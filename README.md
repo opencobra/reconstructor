@@ -1,6 +1,9 @@
-# Reconstruction Curation Tool
+# Reconstructor
 This tool is for the curation of reconstruction reactions. It allows users to preview, save and run tests on reactions of their choice.
-## Installation and Setup
+
+It is live on http://reconstructor.chatimd.org/
+
+## Installation and Setup (to run locally)
 To get started with the Reconstruction Curation Tool, follow these steps to set up the environment on your local machine.
 ### Prerequisites
 Ensure you have the following installed:
