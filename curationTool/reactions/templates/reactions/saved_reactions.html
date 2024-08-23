@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Curation Tool — Saved Reactions</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'reactions/saved_reactions.css' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon_top.ico' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="top-bar">
+        <div class="button-container">
+            <button id="AIButton">Query AI</button>
+        </div>
+        <div class="dropdown" id="dropdown" style="display: none;">
+            <div class="dropdown-content">
+                <label for="geneInput">Enter gene:</label>
+                <input type="text" id="geneInput" name="geneInput" placeholder="HGNC Symbol">
+                <div class="slider-container">
+                    <label for="temperatureSlider">Temperature:</label>
+                    <input type="range" min="0" max="1" step="0.1" value="0.1" class="slider" id="temperatureSlider">
+                    <span id="temperatureValue">0.1</span>
+                    <span class="tooltip-ai">
+                        <i class="fas fa-info-circle"></i>
+                        <span class="tooltiptext">Temperature controls the randomness of the GPT-4 responses. Lower values make the output more focused and deterministic. Higher values make it more creative.</span>
+                    </span>
+                </div>                
+            </div>
+            <button id="submitGene">Submit</button>
+        </div>
+        <div class="spinner" id="loadingSpinner"></div>
+        <div id="errorContainer" style="display: none; color: red;"></div>
+    </div>
+    <div class="llm-response" id="llmResponseContainer"></div>
+    <div class="content">
+        <div id="reactionModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="reactionModalTitle">Adding the following reactions:</h2>
+                <div id="modalReactionsList" class="modal-reactions-list"></div>
+                <button id="confirmAddToVMH" class="confirm-add-to-vmh-btn">Confirm</button>
+                <div id="loadingIndicator" style="display: none; align-items: center; justify-content: center; flex-direction: column;">
+                    <div class="loader"></div>
+                    <p id="loadingText">Checking if there are metabolites to be added</p>
+                </div>
+            </div>
+        </div>
+        <div id="responseModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2 id="responseModalTitle"></h2>
+                <div id="responseModalBody"></div>
+            </div>
+            <span class="close" id="responseModalClose">&times;</span>
+        </div>
+        <div id="alertModal" class="custom-alert-modal">
+            <div class="custom-alert-content">
+                <span class="close-alert-btn">&times;</span>
+                <p id="alertMessage"></p>
+            </div>
+        </div>
+        <div class="header">
+            <h1>Saved Reactions - {{ user_name }}</h1>
+            <button id="backToHome" class="back-btn">Back</button>
+        </div>
+        <div class="add-to-vmh-btn-container">
+            <button id="addToVMH" class="add-to-vmh-btn">Add to VMH</button>
+            <button id="addToRHEA" class="add-to-rhea-btn">Add to Rhea</button>
+            <button id="addToSwiss" class="add-to-metanetx-btn">Add to MetaNetX</button>
+            <button id="searchReactionsButton" class="search-reactions-btn">Search Reactions</button>
+            <input type="text" id="searchInput" style="display:none;" placeholder="Search reactions...">
+        </div>
+
+        {% if reactions %}
+        <table class="reactions-table" id="reactionList">
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Name</th>
+                    <th>Subsystem</th>
+                    <th>Substrates</th>
+                    <th>Direction</th>
+                    <th>Products</th>
+                    <th>Gene Info</th>
+                    <th>Mass Balanced?</th>
+                    <th>Charge Balanced?</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>        
+            <tbody>
+                {% for item in combined_reactions_details %}
+                <tr>
+                    <td><input type="checkbox" class="reaction-checkbox" data-reaction-id="{{ item.reaction.id }}"></td>
+                    <td>{{ item.details.short_name }}</td>
+                    <td>{{ item.details.subsystem }}</td>
+                    <td>{{ item.details.subs_details }}</td>
+                    <td>{{ item.details.direction }}</td>
+                    <td>{{ item.details.prods_details }}</td>
+                    <td>{{ item.details.gene_info }}</td>
+                    <td>
+                        {% if item.details.balanced_count %}
+                            <span class="true-symbol">&#10004;</span>
+                        {% else %}
+                            <span class="false-symbol">&#10008;</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if item.details.balanced_charge %}
+                            <span class="true-symbol">&#10004;</span>
+                        {% else %}
+                            <span class="false-symbol">&#10008;</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="POST" action="{% url 'delete_reaction' %}" onsubmit="return confirmDelete('{{ item.reaction.short_name }}')" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="userID" value="{{ userID }}">
+                            <input type="hidden" name="reaction_id" value="{{ item.reaction.id }}">
+                            <button type="submit" class="delete-btn">Delete</button>
+                        </form>
+                        <button onclick="viewReaction({{ forloop.counter0 }})" class="view-btn">View & Edit</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>        
+        </table>
+        {% else %}
+        <p>No reactions saved.</p>
+        {% endif %}
+    </div>
+
+    <script type="text/javascript">
+        const addToVMHUrl = "{% url 'add_to_vmh' %}";
+        const prepAddToVMHUrl = "{% url 'prepare_add_to_vmh' %}";
+        const csrfToken = '{{ csrf_token }}';
+        const userID = '{{ userID }}';
+        var reactions = {{ reactions_json|safe }};
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const searchButton = document.getElementById('searchReactionsButton');
+            const searchInput = document.getElementById('searchInput');
+            const reactionList = document.getElementById('reactionList');
+
+            searchButton.addEventListener('click', () => {
+                searchButton.style.display = 'none';
+                searchInput.style.display = 'inline-block';
+                searchInput.focus();
+            });
+
+            searchInput.addEventListener('input', () => {
+                const query = searchInput.value.toLowerCase();
+                const rows = reactionList.getElementsByTagName('tr');
+
+                Array.from(rows).forEach(row => {
+                    const name = row.cells[1].textContent.toLowerCase();
+                    const subsystem = row.cells[2].textContent.toLowerCase();
+                    const substrates = row.cells[3].textContent.toLowerCase();
+                    const products = row.cells[4].textContent.toLowerCase();
+
+                    if (name.includes(query) || subsystem.includes(query) || substrates.includes(query) || products.includes(query)) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+
+        <script src="{% static 'reactions/js_savedreactions/reactionChecking.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/queryai.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
+</body>
+</html>

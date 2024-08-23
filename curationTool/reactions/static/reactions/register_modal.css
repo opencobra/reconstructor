@@ -1,0 +1,16 @@
+#password-criteria {
+    list-style-type: none;
+    padding: 0;
+}
+
+#password-criteria li {
+    margin: 5px 0;
+}
+
+.valid {
+    color: green;
+}
+
+.invalid {
+    color: red;
+}

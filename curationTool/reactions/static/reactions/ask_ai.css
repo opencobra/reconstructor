@@ -1,0 +1,11 @@
+.back-btn {
+    background-color: #2196F3; /* Primary color */
+    color: white;
+    padding: 10px 15px;
+    margin-left: 10px; /* Spacing between buttons */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    top: 100;
+}

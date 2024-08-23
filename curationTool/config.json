@@ -1,0 +1,10 @@
+{
+
+    "script_directories": [
+        "/home/vardaan/wetransfer_vmh_revamped_2024-06-05_1135/vmh_revamped/vmh_db_update/src",
+        "/home/vardaan/cobratoolbox/src/dataIntegration/metaboAnnotator/buildMetStruct",
+        "/home/vardaan/cobratoolbox"
+    ],
+    "cobra_path": "/home/vardaan/cobratoolbox",
+    "DEBUG": true
+}

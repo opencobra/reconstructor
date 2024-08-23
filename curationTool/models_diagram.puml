@@ -1,0 +1,175 @@
+@startuml 
+class "admin.LogEntry <Administration>" as admin.LogEntry #f4d6f1 {
+    log entry
+    --
+    - id (AutoField)
+    + action_time (DateTimeField)
+    ~ user (ForeignKey)
+    ~ content_type (ForeignKey)
+    + object_id (TextField)
+    + object_repr (CharField)
+    + action_flag (PositiveSmallIntegerField)
+    + change_message (TextField)
+    --
+}
+admin.LogEntry -- auth.User
+admin.LogEntry -- contenttypes.ContentType
+
+
+class "auth.Permission <Authentication and Authorization>" as auth.Permission #e8f4d6 {
+    permission
+    --
+    - id (AutoField)
+    + name (CharField)
+    ~ content_type (ForeignKey)
+    + codename (CharField)
+    --
+}
+auth.Permission -- contenttypes.ContentType
+
+
+class "auth.Group <Authentication and Authorization>" as auth.Group #e8f4d6 {
+    group
+    --
+    - id (AutoField)
+    + name (CharField)
+    # permissions (ManyToManyField)
+    --
+}
+auth.Group *--* auth.Permission
+
+
+class "auth.User <Authentication and Authorization>" as auth.User #e8f4d6 {
+    user
+    --
+    - id (AutoField)
+    + password (CharField)
+    + last_login (DateTimeField)
+    + is_superuser (BooleanField)
+    + username (CharField)
+    + first_name (CharField)
+    + last_name (CharField)
+    + email (EmailField)
+    + is_staff (BooleanField)
+    + is_active (BooleanField)
+    + date_joined (DateTimeField)
+    # groups (ManyToManyField)
+    # user_permissions (ManyToManyField)
+    --
+}
+auth.User *--* auth.Group
+auth.User *--* auth.Permission
+
+
+class "contenttypes.ContentType <Content Types>" as contenttypes.ContentType #d6f4de {
+    content type
+    --
+    - id (AutoField)
+    + app_label (CharField)
+    + model (CharField)
+    --
+}
+
+
+class "sessions.Session <Sessions>" as sessions.Session #f4e1d6 {
+    session
+    --
+    + session_key (CharField)
+    + session_data (TextField)
+    + expire_date (DateTimeField)
+    --
+}
+
+
+class "reactions.User <Reactions>" as reactions.User #f4dad6 {
+    user
+    --
+    + id (BigAutoField)
+    + name (CharField)
+    + password (CharField)
+    + cred_add_to_vmh (BooleanField)
+    + cred_add_to_rhea (BooleanField)
+    # saved_reactions (ManyToManyField)
+    --
+}
+reactions.User *--* reactions.Reaction
+
+
+class "reactions.Reaction <Reactions>" as reactions.Reaction #f4dad6 {
+    reaction
+    --
+    + id (BigAutoField)
+    + substrates (TextField)
+    + products (TextField)
+    + short_name (TextField)
+    + direction (TextField)
+    + substrates_types (TextField)
+    + products_types (TextField)
+    + substrates_names (TextField)
+    + products_names (TextField)
+    + formulas (TextField)
+    + visualization (TextField)
+    + molc_formula (TextField)
+    + balanced_count (TextField)
+    + balanced_charge (TextField)
+    + subsystem (TextField)
+    + subs_comps (TextField)
+    + prods_comps (TextField)
+    + subs_sch (TextField)
+    + prods_sch (TextField)
+    + subs_atoms (TextField)
+    + prods_atoms (TextField)
+    + subs_charge (TextField)
+    + prods_charge (TextField)
+    + symb_to_name (TextField)
+    + metabolite_names (TextField)
+    + metabolite_formulas (TextField)
+    + metabolite_charges (TextField)
+    + metabolite_mol_file_strings (TextField)
+    + subs_found (TextField)
+    + subs_miriams (TextField)
+    + prod_found (TextField)
+    + prod_miriams (TextField)
+    + vmh_found (BooleanField)
+    + vmh_found_similar (BooleanField)
+    + vmh_url (TextField)
+    + vmh_formula (TextField)
+    + references (JSONField)
+    + ext_links (JSONField)
+    + gene_info (JSONField)
+    + comments (JSONField)
+    --
+}
+
+
+class "reactions.ReactionsAddedVMH <Reactions>" as reactions.ReactionsAddedVMH #f4dad6 {
+    reactions added vmh
+    --
+    + id (BigAutoField)
+    ~ user (ForeignKey)
+    + user_name (CharField)
+    + reaction_id (CharField)
+    + reaction_formula (TextField)
+    + reaction_abbr (CharField)
+    + created_at (DateTimeField)
+    --
+}
+reactions.ReactionsAddedVMH -- reactions.User
+
+
+class "reactions.MetabolitesAddedVMH <Reactions>" as reactions.MetabolitesAddedVMH #f4dad6 {
+    metabolites added vmh
+    --
+    + id (BigAutoField)
+    ~ user (ForeignKey)
+    + user_name (CharField)
+    + metabolite_id (CharField)
+    + metabolite_formula (TextField)
+    + metabolite_abbr (CharField)
+    + created_at (DateTimeField)
+    --
+}
+reactions.MetabolitesAddedVMH -- reactions.User
+
+
+@enduml

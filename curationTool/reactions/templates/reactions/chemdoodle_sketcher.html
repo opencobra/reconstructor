@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ChemDoodle Sketcher</title>
+    <link rel="stylesheet" href="{% static 'reactions/chemdoodle/ChemDoodleWeb.css' %}" type="text/css">
+    <script type="text/javascript" src="{% static 'reactions/chemdoodle/ChemDoodleWeb.js' %}"></script>
+    <link rel="stylesheet" href="{% static 'reactions/chemdoodle/jquery-ui-1.11.4.css'%}" type="text/css">
+    <script type="text/javascript" src="{% static 'reactions/chemdoodle/ChemDoodleWeb-uis.js' %}"></script>
+</head>
+<script>
+    let sketcher = new ChemDoodle.SketcherCanvas('sketcher', 450, 450, {useServices: true, oneMolecule: true});
+    function getMoleculeData() {
+        let mol = sketcher.getMolecule();
+        let molFile = ChemDoodle.writeMOL(mol);
+        return molFile;
+    }
+    function loadMoleculeIntoSketcher(molFile) {
+        if (molFile) {
+            let mol = ChemDoodle.readMOL(molFile);
+            sketcher.loadMolecule(mol);
+        }
+    }
+</script>
+</html>

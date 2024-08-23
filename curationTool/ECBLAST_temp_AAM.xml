@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<EC_BLAST>
+  <ANNOTATION>
+    <MAPPING STATUS="SELECTED">
+      <AAM>[O:1]=[O:2]&gt;&gt;[O:1]=[O:2]</AAM>
+      <RANK_REACTANT>{}</RANK_REACTANT>
+      <RANK_PRODUCT>{}</RANK_PRODUCT>
+    </MAPPING>
+  </ANNOTATION>
+</EC_BLAST>
