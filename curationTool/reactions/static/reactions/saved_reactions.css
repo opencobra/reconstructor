@@ -4,7 +4,7 @@
     align-items: center;
 }
 
-.add-to-vmh-btn, .add-to-rhea-btn, .add-to-metanetx-btn,.search-reactions-btn{
+.add-to-vmh-btn, .add-to-rhea-btn, .add-to-metanetx-btn,.add-flag-btn{
     padding: 10px 20px;
     background-color: #2196F3; /* Blue background */
     color: white;
@@ -15,19 +15,26 @@
     transition: background-color 0.2s ease-in-out;
 }
 
-.add-to-vmh-btn:hover, .add-to-rhea-btn:hover, .add-to-metanetx-btn:hover,.search-reactions-btn {
+.add-to-vmh-btn:hover, .add-to-rhea-btn:hover, .add-to-metanetx-btn:hover,.add-flag-btn {
     background-color: #0b72c4; /* Darker blue on hover */
 }
 
-.add-to-vmh-btn:focus, .add-to-rhea-btn:focus, .add-to-metanetx-btn:focus,.search-reactions-btn {
+.add-to-vmh-btn:focus, .add-to-rhea-btn:focus, .add-to-metanetx-btn:focus,.add-flag-btn {
     outline: none;
     box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
 }
 
-body {
-    font-family: Arial, sans-serif;
-    margin: 20px;
+html, body {
+    font-family: 'Poppins', sans-serif !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #e7f7ff !important; 
 }
+
+
+
+
 
 h1 {
     color: #333;
@@ -68,56 +75,27 @@ li {
 /* Container for each reaction entry */
 /* Table base styling */
 .reactions-table {
-    margin-top: 1.5%;
-    width: 100%; /* Full width to utilize available space */
-    border-collapse: collapse; /* Collapse borders for a clean look */
-    table-layout: fixed; /* Fixed table layout for equal column width */
-}
-
-/* Table Header */
-.reactions-table th {
-    background-color: #f4f4f4; /* Light grey background for the header */
-    color: #333; /* Dark text color for contrast */
-    padding: 10px; /* Spacing inside header cells */
-    text-align: center; /* Center-align text */
-    /* border-bottom: 2px solid #ddd; Bottom border for definition */
-}
-
-input.gene-info-input {
-    background-color: #f4f4f4;
-    color: #333; /* A bit darker shade */
-}
-
-
-/* Table styling */
-.reactions-table {
     width: 100%; /* Full width to utilize available space */
     border-collapse: collapse; /* Collapse borders for a clean look */
     table-layout: fixed; /* Fixed table layout for equal column width */
     margin-top: 1.5%; /* Space above the table */
+    border: 1px solid #ddd; /* Border around the entire table */
 }
 
 /* Table Header */
 .reactions-table th {
     background-color: #f4f4f4; /* Light grey background for the header */
     color: #333; /* Dark text color for contrast */
-    padding: 10px; /* Spacing inside header cells */
     text-align: center; /* Center-align text */
-    /* border-bottom: 2px solid #ddd; Bottom border for definition */
-}
-
-input.gene-info-input {
-    background-color: #f4f4f4;
-    color: #333; /* A bit darker shade */
+    border: 1px solid #ddd; /* Border for header cells */
+    padding: 10px; /* Spacing inside header cells */
 }
 
 /* Table Data Cells */
 .reactions-table td, .reactions-table th {
     text-align: center; /* Center-align text */
     padding: 8px; /* Spacing inside data cells */
-    /* border-bottom: 1px solid #ddd; Bottom border to separate rows */
-    overflow: hidden; /* Hide overflowed content */
-    text-overflow: ellipsis; /* Show ellipsis for overflowed content */
+    border: 1px solid #ddd; /* Border for data cells */
     white-space: nowrap; /* Prevent wrapping by default */
 }
 
@@ -146,13 +124,10 @@ input.gene-info-input {
     word-wrap: break-word; /* Break words to wrap */
 }
 
-
-
 /* Balanced Mass and Balanced Charge columns - intermediate width */
 .reactions-table th:nth-child(6), .reactions-table td:nth-child(6), /* Balanced Mass column */
 .reactions-table th:nth-child(7), .reactions-table td:nth-child(7) { /* Balanced Charge column */
     white-space: normal; /* Allow wrapping */
-
     max-width: 5%; /* Smaller maximum width since these might not require as much space */
 }
 
@@ -160,7 +135,7 @@ input.gene-info-input {
 .reactions-table th:last-child, 
 .reactions-table td:last-child {
     min-width: 120px; /* Minimum width to fit buttons without wrapping */
-    width: 120px; /* Set fixed width to maintain alignment */
+    width: 100%; /* Set fixed width to maintain alignment */
     display: flex; /* Use flexbox to align buttons */
     flex-direction: column; /* Stack buttons vertically */
     justify-content: center; /* Center-align buttons vertically */
@@ -168,15 +143,10 @@ input.gene-info-input {
 }
 
 /* Additional styles to improve readability */
-.reactions-table th {
-    background-color: #f2f2f2; /* Light background for header */
-    font-weight: bold; /* Bold text for header */
-    width: auto;
-}
-
 .reactions-table tr:nth-child(even) {
     background-color: #f9f9f9; /* Light grey background for even rows */
 }
+
 
 .reactions-table tr:hover {
     background-color: #f1f1f1; /* Slightly darker background on hover */
@@ -188,7 +158,6 @@ input.gene-info-input {
     margin: 5px 0; /* Add margin between buttons */
     white-space: nowrap; /* Prevent buttons from wrapping */
 }
-
 
 .reaction-checkbox{
     width: 1.7vw;
@@ -594,16 +563,8 @@ select, input[type="text"] {
     cursor: pointer;
   }
   
-.back-btn {
-    background-color: #2196F3; /* Primary color */
-    color: white;
-    padding: 10px 15px;
-    margin-left: 10px; /* Spacing between buttons */
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-    top: 100;
+  button#backToHome{
+    margin-right: 1%;
 }
 
 .back-btn:hover {
@@ -682,13 +643,13 @@ select, input[type="text"] {
     opacity: 1;
 }
 
+
 .top-bar {
-    width: 100%;
-    position: relative;
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding-bottom: 5px; /* Ensure space for the llm-response */
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
 }
 
 .button-container {
@@ -866,4 +827,77 @@ select, input[type="text"] {
 
 .cs-info-button:focus {
     box-shadow: 0 0 0 4px rgba(0,123,255,0.25);
+}
+
+
+.top-menu-saved-reactions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    height: 11.5%;
+    background-color: #92d5f7;
+    font-size: 1.4em;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+
+    box-sizing: border-box;
+    padding: 0 1%; /* Add some padding to ensure spacing between elements and the edges */
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    margin-left: 1%;
+}
+
+.search-bar {
+    position: relative;
+    width: 40%;
+    max-width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2;
+}
+
+.search-bar input[type="text"] {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    font-size: 16px;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #aaa;
+}
+
+.saved-reaction-user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    margin-top: 0; /* Removed to align with the other elements */
+    margin-right: 0; /* Removed to align with the other elements */
+}
+
+.add-to-vmh-btn-container{
+    margin-left: 0.4%;
+}
+
+
+.icon img {
+    width: 15%;
+    height: 15%;
+    object-fit: contain; /* Ensures the image scales proportionally */
 }

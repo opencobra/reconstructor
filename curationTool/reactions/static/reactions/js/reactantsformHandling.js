@@ -25,6 +25,13 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
     var submitBtn = document.getElementById('submitBtn-form');
     var loadingIndicator = document.getElementById('loadingIndicator');
 
+
+
+    var divElement = document.getElementById("organTags");
+    var organTags = Array.from(divElement.getElementsByClassName('tag'))
+                            .map(tag => tag.firstChild.textContent.trim());
+
+
     // Check if the subsystem field is filled
     var subsystemField = document.getElementById('subsystemField').value;
     if (!subsystemField.trim()) {
@@ -99,7 +106,7 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
     var skipAtomMapping = document.getElementById('skipAtomMapping').checked;
     formData.append('skipAtomMapping', skipAtomMapping);
     formData.append('nameData', JSON.stringify(nameData));
-
+    formData.append('organs', JSON.stringify(organTags));
     const url = window.location.href;
     const parsedUrl = new URL(url);
     
@@ -126,10 +133,11 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
         }
     })
     .then(response => response.json())
-    .then(async (data) => { // Make the callback function async to use await
-        if (action != 'edit' && reactionId != null) {
-            var userID = sessionStorage.getItem('userID'); 
-            var reactionId = data.reaction_id; // Assuming the response contains the reaction_id
+    .then(async (data) => {
+        if (action !== 'edit' && data.reaction_id) { // reactionId is taken from the response
+            const userID = sessionStorage.getItem('userID');
+            const reactionId = data.reaction_id; // Ensure reactionId is obtained from the response
+            
             // Send additional request to save CreatedReaction
             fetch('create-reaction/', {
                 method: 'POST',
@@ -153,28 +161,21 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
             .catch(error => {
                 console.error('Error saving CreatedReaction:', error);
             });
-    
         }
-        // Replace the old function with the new ones
-
+        
         setTimeout(function() {
-            if (action === 'edit') {
-                window.location.href = window.location.origin + "/?reaction_id=" + data.reaction_id + "&action=edit";
-            }
-            else {
-                window.location.href = window.location.origin + "/?reaction_id=" + data.reaction_id;
-            }
+            const redirectUrl = window.location.origin + "/?reaction_id=" + data.reaction_id;
+            window.location.href = action === 'edit' ? redirectUrl + "&action=edit" : redirectUrl;
         }, 10); 
     })
     .catch(error => {
         console.error('Error:', error);
-        var errorMessage = 'An unexpected error occurred.';
+        const errorMessage = 'An unexpected error occurred.';
         showErrorModal(errorMessage);
         window.scrollTo(0, 0);
         submitBtn.disabled = false;
-        loadingIndicator.style.display = 'none';});
- 
-    // Fetch data from session
+        loadingIndicator.style.display = 'none';
+    });
 });    
 
 
@@ -216,9 +217,88 @@ function showErrorModal(message) {
     var errorMessageElement = document.getElementById('error-message');
     
     // Debugging output
-    console.log('Error message set to:', message);
 
     errorMessageElement.innerText = message;
     document.getElementById('error-message').style.display = 'block';
     document.getElementById('error-modal').style.display = 'block';
+}
+
+
+
+
+function updateStatusDots(containerId, foundList, miriamsList) {
+    const container = document.getElementById(containerId);
+    const statusDots = container.querySelectorAll('.status-dot');
+    statusDots.forEach((dot, index) => {
+        dot.style.display = 'block'; // Ensure the dot is displayed
+
+        if (foundList[index]) {
+            dot.className = 'status-dot found';
+            dot.setAttribute('data-tooltip', 'Metabolite found in VMH');
+            dot.style.backgroundColor = ''; // Reset color to default
+        } else {
+            dot.className = 'status-dot not-found';
+            dot.setAttribute('data-tooltip', 'Metabolite not found in VMH');
+            dot.style.backgroundColor = ''; // Reset color to default
+        }
+
+        if (foundList[index] && miriamsList[index]) {
+            dot.onclick = () => window.open(miriamsList[index], '_blank');
+            dot.style.cursor = 'pointer';
+        } else {
+            dot.onclick = null;
+            dot.style.cursor = 'default';
+        }
+    });
+}
+
+function updateStatusDot(dot, found, miriam) {
+    dot.style.display = 'block'; // Ensure the dot is displayed
+
+    if (found) {
+        dot.className = 'status-dot found';
+        dot.setAttribute('data-tooltip', 'Metabolite found in VMH');
+        dot.style.backgroundColor = ''; // Reset color to default
+    } else {
+        dot.className = 'status-dot not-found';
+        dot.setAttribute('data-tooltip', 'Metabolite not found in VMH');
+        dot.style.backgroundColor = ''; // Reset color to default
+    }
+
+    if (found && miriam) {
+        dot.onclick = () => window.open(miriam, '_blank');
+        dot.style.cursor = 'pointer';
+    } else {
+        dot.onclick = null;
+        dot.style.cursor = 'default';
+    }
+}
+
+function confirmAll() {
+    // Get all the elements with the class 'done-field-btn-all'
+    const verifyAllButtons = document.querySelectorAll('.done-field-btn-all');
+
+    // Loop through each button and trigger a click event
+    verifyAllButtons.forEach(button => button.click());
+}
+
+
+
+
+
+
+
+function setupTooltips() {
+    document.querySelectorAll('.info-symbol').forEach(item => {
+        item.addEventListener('mouseenter', function () {
+            const tooltipContent = this.getAttribute('data-tooltip-content');
+            const tooltip = document.createElement('div');
+            tooltip.className = 'tooltip';
+            tooltip.innerHTML = tooltipContent;
+            this.appendChild(tooltip);
+        });
+        item.addEventListener('mouseleave', function () {
+            this.removeChild(this.querySelector('.tooltip'));
+        });
+    });
 }

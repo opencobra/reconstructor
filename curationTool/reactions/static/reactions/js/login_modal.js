@@ -1,15 +1,16 @@
 // Show modal when login button is clicked
 document.getElementById('loginButton').addEventListener('click', function () {
   if (this.textContent === 'Log out') {
-    // Clear the session storage
-    sessionStorage.clear();
-    // Reset the user display
-    document.getElementById('userDisplay').innerHTML = '<i class="icon user"></i> User : None';
-    window.location.href = window.location.origin;
-    this.textContent = 'Log in';
-    return}
+      // Clear the session storage
+      sessionStorage.clear();
+      // Reset the user display
+      document.getElementById('userDisplay').innerHTML = '<i class="icon user"></i> User : None';
 
-  else{$('#loginModal').modal('show');}
+      this.textContent = 'Log in';
+      return;
+  } else {
+      $('#loginModal').modal('show');
+  }
 });
 
 // Close modal when close icon is clicked
@@ -28,7 +29,6 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
       const data = new FormData();
       data.append('username', userName);
       data.append('password', password);
-        console.log(data);
       // Adjust the fetch call to use POST
       fetch(`${getUser}`, {
           method: 'POST',
@@ -39,18 +39,22 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
           body: data
       })
       .then(response => response.json())
-      .then(data => {console.log(data,"success");
+      .then(data => {
 
           if (data.status === 'success') {
               sessionStorage.setItem('userID', data.userID);
               sessionStorage.setItem('userName', data.userName);
               document.getElementById('userDisplay').innerHTML = `<i class="icon user"></i> User: ${data.userName}`;
-                document.getElementById('loginButton').textContent = 'Log out';
-                setLoggedInStatusBasedOnUrl();
-              // Hide the modal after successful login
+              document.getElementById('loginButton').textContent = 'Log out';
+
+
+              setLoggedInStatusBasedOnUrl();
+              // Hide the login modal after successful login
               $('#loginModal').modal('hide');
-              //todo
-            fetchAvailableReactions(data.userID);
+              // Show the task modal
+              document.getElementById('taskModalOverlay').style.display = 'block';
+
+              document.getElementById('taskModal').style.display = 'block';
           } else {
               alert(data.message);
           }
@@ -60,10 +64,33 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
           alert("Failed to fetch user details.");
       });
   }
+});
 
+// Handle task modal actions
+document.getElementById('goBackTaskBtn').addEventListener('click', function () {
+  const userID = sessionStorage.getItem('userID');
+  if (userID) {
+      fetchAvailableReactions(userID);
+  }
+  // Hide the modal and overlay
+  document.getElementById('taskModalOverlay').style.display = 'none';
+  document.getElementById('taskModal').style.display = 'none';
+});
+
+document.getElementById('cancelTaskBtn').addEventListener('click', function () {
+  const modal = document.getElementById('taskModal');
+  const overlay = document.getElementById('taskModalOverlay');
+  modal.style.display = 'none';
+  overlay.style.display = 'none';
 });
 
 
+// Close task modal when close icon is clicked
+document.querySelector('.modal-content-task .close-task').addEventListener('click', function () {
+  // Hide the modal and overlay
+  document.getElementById('taskModalOverlay').style.display = 'none';
+  document.getElementById('taskModal').style.display = 'none';
+});
 
 
 async function fetchAvailableReactions(userId) {

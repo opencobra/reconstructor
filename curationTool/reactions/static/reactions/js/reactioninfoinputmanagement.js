@@ -86,7 +86,6 @@ function createEditableCell(text, gene, fieldType, userId, reactionId) {
             if (updatedValue) {
                 var userId = sessionStorage.getItem('userID'); 
 
-                console.log('User ID save:', userId);
                 await saveUpdatedGeneInfo(gene, fieldType, updatedValue, userId, reactionId);
             } else {
                 console.warn('Empty value. No changes saved.');
@@ -99,7 +98,6 @@ function createEditableCell(text, gene, fieldType, userId, reactionId) {
 
 async function saveUpdatedGeneInfo(gene, fieldType, updatedValue, userId, reactionId) {
     try {
-        console.log('Saving updated gene info:', gene, fieldType, updatedValue, userId, reactionId);
         const response = await fetch('/update_gene_info/', {
             method: 'POST',
             headers: {
@@ -131,7 +129,6 @@ async function saveUpdatedGeneInfo(gene, fieldType, updatedValue, userId, reacti
 
 // Function to fetch parsed gene info from the Django backend
 async function fetchParsedGeneInfo(info) {
-    console.log('Fetching parsed gene info:', info);
     try {
         const response = await fetch(`/parse_gene_info/?info=${encodeURIComponent(info)}`);
         if (response.ok) {
@@ -172,7 +169,6 @@ function deleteRow(reactionID, item, tabId, rowElement) {
         } else {
             // remove row
             rowElement.remove();
-            console.log('Row deleted successfully');
         }
     })
     .catch(error => console.error('Error:', error));

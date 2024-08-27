@@ -74,3 +74,20 @@ function fillMetaboliteInfoTab(data) {
         metaboliteInfoContainer.appendChild(metaboliteDiv);
     });
 }
+
+
+function toggleStructure() {
+    const buttons = document.querySelectorAll('.toggle-button');
+    buttons.forEach(button => {
+        button.addEventListener('click', () => {
+            const messageContainer = button.parentNode.nextElementSibling;
+            if (messageContainer.style.display === 'none' || messageContainer.style.display === '') {
+                messageContainer.style.display = 'block';
+                button.textContent = 'Hide Message';
+            } else {
+                messageContainer.style.display = 'none';
+                button.textContent = 'Show Message';
+            }
+        });
+    });
+}

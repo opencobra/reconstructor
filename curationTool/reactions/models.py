@@ -23,7 +23,6 @@ class Reaction(models.Model):
     products_types = models.TextField(blank=True, null=True)
     substrates_names = models.TextField(blank=True, null=True)
     products_names = models.TextField(blank=True, null=True)
-    formulas = models.TextField(blank=True, null=True)
     visualization = models.TextField(blank=True, null=True)
     molc_formula = models.TextField(blank=True, null=True)
     balanced_count = models.TextField(blank=True, null=True)
@@ -46,7 +45,7 @@ class Reaction(models.Model):
     subs_miriams = models.TextField(blank=True, null=True)
     prod_found = models.TextField(blank=True, null=True)
     prod_miriams = models.TextField(blank=True, null=True)
-
+    Organs = models.TextField(blank=True, null=True)    # New field
     subs_edited = models.TextField(blank=True, null=True)  # New field
     prods_edited = models.TextField(blank=True, null=True)  # New field
     vmh_found = models.BooleanField(default=False)
@@ -58,6 +57,9 @@ class Reaction(models.Model):
     gene_info = models.JSONField(blank=True, null=True)
     comments = models.JSONField(blank=True, null=True)
     confidence_score = models.CharField(blank=True, max_length=10, null=True)
+    rxn_formula = models.TextField(blank=True, null=True)
+
+    flags = models.ManyToManyField('Flag', blank=True, related_name='flagged_reactions')
 
 
 class ReactionsAddedVMH(models.Model):
@@ -98,3 +100,12 @@ class CreatedReaction(models.Model):
 
     def __str__(self):
         return f"{self.reaction.short_name} by {self.user.name}"
+
+class Flag(models.Model):
+    name_flag = models.CharField(max_length=255, blank=True, null=True)  # Updated field name and made it optional
+    color = models.CharField(max_length=7)  # Hex color code like '#FFFF00'
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='flags')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+def __str__(self):
+    return f"{self.name_flag or 'Unnamed Flag'} ({self.color}) by {self.user.name}"

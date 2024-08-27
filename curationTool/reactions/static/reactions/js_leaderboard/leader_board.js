@@ -2,11 +2,9 @@ function loadLeaderBoardData() {
   fetch('/user-reactions-vmh/')
     .then(response => response.json())
     .then(usersData => {
-      console.log(usersData);
       // Sort usersData by reactions saved (descending) and limit to top 10
       usersData.sort((a, b) => b.saved - a.saved);
       usersData = usersData.slice(0, 10);
-      console.log(usersData);
 
       // Populate the table
       const tableBody = document.getElementById('leaderboard-table-body');
@@ -174,18 +172,21 @@ function loadLeaderBoardData() {
     .catch(error => console.error('Error fetching user data:', error));
 }
 
-// Add event listener for the button
-const viewLeaderBoardButton = document.getElementById('view-leader-board');
-
-if (viewLeaderBoardButton) {
-    viewLeaderBoardButton.addEventListener('click', () => {
+window.onload = function() {
+  const observer = new MutationObserver((mutationsList, observer) => {
+    const viewLeaderBoardButton = document.getElementById('view-leader-board');
+    if (viewLeaderBoardButton) {
+      viewLeaderBoardButton.addEventListener('click', () => {
         window.open(`${window.location.origin}/stats/`, '_blank');
-    });
-} else {
-    console.error('Error: The view-leader-board button was not found.');
-}
+      });
+      observer.disconnect(); // Stop observing once the button is found
+    }
+  });
 
-// Load leaderboard data if on the leaderboard page
-if (window.location.pathname === '/stats/') {
+  observer.observe(document.body, { childList: true, subtree: true });
+
+  // Optionally load leaderboard data if on the leaderboard page
+  if (window.location.pathname === '/stats/') {
     loadLeaderBoardData();
-}
+  }
+};

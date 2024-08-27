@@ -9,6 +9,20 @@
     margin-bottom: 10px;
 }
 
+
+#getrxnfromvmhrhea,#getrxnfromtemplate{
+    flex: 0 0 auto; /* Prevent the buttons from stretching */
+
+}
+
+
+.getbuttoncontainer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
 .header-container {
     display: flex;
     align-items: center;
@@ -60,7 +74,6 @@
     border: 2px solid #ccc;
     border-radius: 5px;
     font-size: 1.3em;
-    font-weight: bold;
 }
 
 #subsystemField {
@@ -105,10 +118,11 @@
     padding: 10px; /* Optional: Add padding for better spacing */
 }
 
-#subsystemField {
+#subsystemField 
+{
     margin-left: 10px;
     height: 40px;
-    width: 295px;
+    width: 25%;
     font-weight: bold;
 }
 
@@ -346,19 +360,6 @@ text-align: center;
 }
 
 
-.edit-dot{
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    display: inline-block;
-    position: relative;
-    transition: transform 0.3s ease;
-    background-color: grey; /* Default color */
-    text-align: center;
-    background-color: orange /* Green for found */
-
-
-}
 
 .status-dot.found {
     background-color: #4CAF50; /* Green for found */
@@ -524,8 +525,8 @@ text-align: center;
 
 .dropdown-content {
     display: none; /* Hide the dropdown by default */
-    width: 44%;
-    margin-left: 100px;
+    width: 26%;
+    margin-left: 17.5%;
     top: 100%; /* Position it just below the input field */
     left: 0; /* Align to the left of the parent */
     background-color: #f6f6f6; /* Light background for the dropdown */
@@ -591,3 +592,107 @@ text-align: center;
     width: 50%;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
 }
+
+
+.subsystem-input {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between Subsystem and Organ input fields */
+    width: 100%;
+}
+
+.organ-input-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.tag {
+    background-color: #e0e0e0; /* Slightly grey background color */
+    color: #333; /* Darker text color for contrast */
+    padding: 5px 10px;
+    border-radius: 4px; /* Reduced border-radius for a box-like appearance */
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc; /* Optional: Add a border for more definition */
+}
+
+.tags-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 40px;
+    width: 44%;
+    box-sizing: border-box;
+    cursor: text;
+    margin-left: 10px; /* Space between label and input field */
+}
+
+.organ-dropdown-content {
+    position: absolute;
+    display: none; /* Hide the dropdown by default */
+    width: 24%; /* Similar width as the .dropdown-content */
+    margin-left: 57.5%; /* Adjust based on your layout */
+    top: 100%; /* Position it just below the input field */
+    left: 0; /* Align to the left of the parent */
+    background-color: #fff; /* Background color for the dropdown */
+    min-width: 160px; /* Ensure a minimum width */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
+    z-index: 1000; /* Ensure it stacks above other content */
+    max-height: 200px; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ddd; /* Add a light border */
+    border-top: none; /* Remove the top border to blend with the input field */
+    border-radius: 4px; /* Retain the border radius */
+}
+
+.organ-dropdown-content div {
+    padding: 12px 16px; /* Adjust padding for better spacing */
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+/* Hover effect for dropdown items */
+.organ-dropdown-content div:hover {
+    background-color: #ddd;
+}
+
+/* Alternating row colors */
+.organ-dropdown-content div:nth-child(odd) {
+    background-color: #f9f9f9; /* Lighter color for odd rows */
+}
+
+.organ-dropdown-content div:nth-child(even) {
+    background-color: #ececec; /* Slightly darker color for even rows */
+}
+
+
+/* Container styling */
+.gene-field-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.organ-btn {
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 5px;
+    margin: 1px 1px;
+    border-radius: 12px; /* Rounded corners */
+    cursor: pointer;
+    height: auto;
+    width: auto;
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+

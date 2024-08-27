@@ -21,7 +21,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ObjectDoesNotExist
 from .forms import ReactionForm
-from .models import User,CreatedReaction,Reaction
+from .models import User,CreatedReaction,Reaction,Flag
 from django.shortcuts import get_object_or_404
 from django.views.decorators.http import require_POST
 from .utils.get_from_rhea import get_from_rhea
@@ -48,7 +48,51 @@ from reactions.utils.GPT_functions import get_gene_name, get_vmh_met_from_inchi,
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 
+@login_required
+def get_user_flags(request, user_id):
+    try:
+        user = User.objects.get(pk=user_id)
+        flags = user.flags.all()  # Retrieve all flags for this user
+        flags_data = [{'id': flag.id, 'name_flag': flag.name_flag, 'color': flag.color} for flag in flags]
+        return JsonResponse({'status': 'success', 'flags': flags_data})
+    except User.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Invalid user'})
 
+
+@csrf_exempt
+@login_required
+def add_flag(request):
+    if request.method == 'POST':
+        try:
+            # Parse JSON data from request body
+            data = json.loads(request.body)
+            
+            user_id = data.get('user_id')
+            flag_name = data.get('name_flag')
+            flag_color = data.get('color')
+
+            user = User.objects.get(pk=user_id)
+
+            if flag_name and flag_color:
+                flag, created = Flag.objects.get_or_create(
+                    name_flag=flag_name,
+                    color=flag_color,
+                    user=user
+                )
+
+                return JsonResponse({
+                    'status': 'success',
+                    'message': 'Flag added successfully',
+                    'flag': {'id': flag.id, 'name_flag': flag.name_flag, 'color': flag.color}
+                })
+            else:
+                return JsonResponse({'status': 'error', 'message': 'Flag name and color are required'})
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid user'})
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
+    
+    return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def get_vmh_subsystems():
     BASE_URL = 'https://www.vmh.life/'
@@ -133,7 +177,6 @@ def check_subsystem_similarity(request):
             
             # Find similarities between new and existing subsystems
             similarity_scores = find_similar_subsystems(new_subsystems, existing_subsystems)
-            print("sim",similarity_scores)
             similarities_found = {}
             
             # Collect similarities that have a score above 0.2
@@ -152,8 +195,7 @@ def check_subsystem_similarity(request):
                 {'new_subsystem': new_subsystem, 'existing_subsystem': ','.join(set(existing_subsystems))}
                 for new_subsystem, existing_subsystems in similarities_found.items()
             ]
-            print("agg",aggregated_similarities)
-            print(similarity_scores)
+
             return JsonResponse(aggregated_similarities, safe=False)
                 
         except Exception as e:
@@ -248,7 +290,6 @@ def get_pubmed_info(request, pmid):
         'id': pmid,
         'retmode': 'xml'
     }
-    print("params",params)
     response = requests.get(base_url, params=params)
     
     if response.status_code == 200:
@@ -389,12 +430,10 @@ def input_reaction(request):
     if request.method == 'POST':
         action = request.POST.get('action')  # Action to perform (either 'create' or 'edit')
         form = ReactionForm(request.POST, request.FILES)
-        
         if action == 'edit':
             # Retrieve the existing Reaction object using the provided reaction_id
             
             reaction_id = request.POST.get('reaction_id')
-            print("reaction_id",reaction_id)
             try:
                 reaction = Reaction.objects.get(id=reaction_id)
             except Reaction.DoesNotExist:
@@ -407,6 +446,9 @@ def input_reaction(request):
         substrates_list = request.POST.getlist('substrates')
         products_list = request.POST.getlist('products')
         names_dict = request.POST.get('nameData')
+        organs = request.POST.get('organs')
+
+
         names_dict = json.loads(names_dict)
         substrates_names = []
         products_names = []
@@ -446,10 +488,7 @@ def input_reaction(request):
 
         metabolite_formulas, metabolite_charges, metabolite_mol_file_strings = get_mol_info(subs_mols + prod_mols)
         metabolite_names = substrates_names + products_names
-        substrate_formula = " + ".join(f"{subs_sch[i]} {substrates_list[i]}" for i in range(len(substrates_list)))
-        product_formula = " + ".join(f"{prod_sch[i]} {products_list[i]}" for i in range(len(products_list)))
-        formula_string = substrate_formula + " -> " + product_formula if direction == 'forward' else substrate_formula + " <=> " + product_formula
-
+ 
         reaction_rxn_file = construct_reaction_rxnfile(subs_mols, subs_sch, prod_mols, prod_sch, substrates_names, products_names)
         reaction.save()
 
@@ -472,8 +511,9 @@ def input_reaction(request):
         prod_found, prod_miriams = search_metabolites_vmh(products_list, products_types, request, side='products')
         substrates_list = get_fields(request, substrates_list, substrates_types, settings.MEDIA_ROOT, settings.MEDIA_URL, side='substrates')
         products_list = get_fields(request, products_list, products_types, settings.MEDIA_ROOT, settings.MEDIA_URL, side='products')
-
+        
         # Assign the values directly to the reaction instance
+        reaction.Organs=json.dumps(organs)
         reaction.subs_sch = json.dumps(subs_sch)
         reaction.prods_sch = json.dumps(prod_sch)
         reaction.substrates_types = json.dumps(substrates_types)
@@ -487,7 +527,6 @@ def input_reaction(request):
         reaction.direction = direction
         reaction.subsystem = subsystem
         reaction.visualization = json.dumps(response_data['visualizations'])
-        reaction.formulas = json.dumps([formula_string])
         reaction.molc_formula = json.dumps([molc_formula])
         reaction.balanced_count = json.dumps([balanced_count])
         reaction.balanced_charge = json.dumps([balanced_charge])
@@ -513,7 +552,6 @@ def input_reaction(request):
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             data = {
                 'visualization': json.loads(reaction.visualization),
-                'formulas': json.loads(reaction.formulas),
                 'molc_formula': json.loads(reaction.molc_formula),
                 'balanced_count': json.loads(reaction.balanced_count),
                 'balanced_charge': json.loads(reaction.balanced_charge),
@@ -543,223 +581,10 @@ def input_reaction(request):
     return render(request, 'reactions/Home_page.html', {'form': form})
 
 
-def view_reaction(request):
-    """
-    Handles the POST request for a reaction input form.
-    Processes the reaction data, checks for the reaction in VMH,
-    and returns the processed data.
-
-    Input:
-    - request: The HTTP request object from Django.
-
-    Output:
-    - HttpResponse: Renders a template with the reaction form or returns a JsonResponse with reaction data.
-    """
-    if request.method == 'POST':
-        reaction_id = request.POST.get('reaction_id')
-        subs_edited_view = []
-        prods_edited_view = []
-        substrates_types_view = []
-        products_types_view = []
-
-        if reaction_id:
-            # Fetch the existing reaction object
-            reaction = get_object_or_404(Reaction, id=reaction_id)
-            subs_edited_view = json.loads(reaction.subs_edited) if reaction.subs_edited else []
-            prods_edited_view = json.loads(reaction.prods_edited) if reaction.prods_edited else []
-            substrates_types_view = json.loads(reaction.substrates_types) if reaction.substrates_types else []
-            products_types_view = json.loads(reaction.products_types) if reaction.products_types else []
-        else:
-            # Create a new reaction object
-            reaction = Reaction()
-
-        # Get multiple substrates, products, and their stoichiometry as lists
-        substrates_list = request.POST.getlist('substrates')
-        products_list = request.POST.getlist('products')
-        names_dict_edited = request.POST.get('middleContainerData')
-        names_dict_edited = json.loads(names_dict_edited)
-        names_dict = clean_dict_keys(names_dict_edited)
-        substrates_names, products_names = seperate_metab_names(names_dict)
-        print("subs_edited_view",subs_edited_view)
-        print("prods_edited_view",prods_edited_view)
-        subs_sch = request.POST.getlist('subs_sch')  # Stoichiometry for substrates
-        prod_sch = request.POST.getlist('prod_sch')  # Stoichiometry for products
-        subs_comp = request.POST.getlist('subs_comps')  # Compartments for substrates
-        prod_comp = request.POST.getlist('prod_comps')
-        substrates_types = request.POST.getlist('substrates_type')
-        products_types = request.POST.getlist('products_type')
-        direction = request.POST.get('direction')
-        subs_sch = [int(s) for s in subs_sch]
-        prod_sch = [int(p) for p in prod_sch]
-
-        subs_mols, subs_errors, _ = any_to_mol(substrates_list, substrates_types, request, side='substrates')
-        prod_mols, prod_errors, _ = any_to_mol(products_list, products_types, request, side='products')
-        subsystem = request.POST.get('subsystem')
-        all_errors = subs_errors + prod_errors
-        if any(elem is not None for elem in all_errors):
-            error_message = "\n".join([error for error in all_errors if error is not None])
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                # Return error message in JsonResponse for AJAX requests
-                return JsonResponse({'error': error_message})
-            else:
-                # Return error message in context for non-AJAX requests
-                context = {'form': ReactionForm(), 'error_message': error_message}
-                return render(request, 'reactions/Home_page.html', context)
-
-        metabolite_formulas, metabolite_charges, metabolite_mol_file_strings = get_mol_info(subs_mols + prod_mols)
-        metabolite_names = substrates_names + products_names
-        substrate_formula = " + ".join(f"{subs_sch[i]} {substrates_list[i]}" for i in range(len(substrates_list)))
-        product_formula = " + ".join(f"{prod_sch[i]} {products_list[i]}" for i in range(len(products_list)))
-        formula_string = substrate_formula + " -> " + product_formula if direction == 'forward' else substrate_formula + " <=> " + product_formula
-
-        reaction_rxn_file = construct_reaction_rxnfile(subs_mols, subs_sch, prod_mols, prod_sch, substrates_names, products_names)
-
-        reaction.save()
-
-        # Skip atom mapping if any product fields are empty
-        skip_atom_mapping = request.POST.get('skipAtomMapping')
-        if skip_atom_mapping == 'false' and all(products_list):
-            start_time = time.time()
-            response_data = RDT(reaction_rxn_file, destination_path_png=f'media/images/visual{reaction.id}.png', destination_path_rxn=f'media/rxn_files/rxn{reaction.id}.rxn')
-            balanced_count, (subs_atoms, prods_atoms), balanced_charge, (subs_charge, prods_charge), molc_formula, symb_to_name = get_reaction_info(f'media/rxn_files/rxn{reaction.id}.rxn', direction)
-            end_time = time.time()
-            print(f"Time taken for RDT: {end_time - start_time} seconds")
-        else:
-            start_time = time.time()
-            response_data = {'visualizations': ['/images/atom_mapping_skip.png']}
-            balanced_count, (subs_atoms, prods_atoms), balanced_charge, (subs_charge, prods_charge), molc_formula, symb_to_name = get_reaction_info(reaction_rxn_file, direction)
-            end_time = time.time()
-            print(f"Time taken for skip: {end_time - start_time} seconds")
-
-        vmh_found = check_reaction_vmh(substrates_list, products_list, subs_sch, prod_sch, substrates_types, products_types, subs_mols, prod_mols, direction, subsystem, subs_comp, prod_comp)
-
-        if 'error' in response_data:
-            context = {'form': ReactionForm(), 'error_message': response_data['error']}
-            return render(request, 'reactions/Home_page.html', context)
-        subs_found, subs_miriams = search_metabolites_vmh(substrates_list, substrates_types, request, side='substrates')
-        prod_found, prod_miriams = search_metabolites_vmh(products_list, products_types, request, side='products')
-        substrates_list = get_fields(request, substrates_list, substrates_types, settings.MEDIA_ROOT, settings.MEDIA_URL, side='substrates')
-        products_list = get_fields(request, products_list, products_types, settings.MEDIA_ROOT, settings.MEDIA_URL, side='products')
-
-        subs_edited = check_edited_keys(names_dict_edited, 'substrate')
-        prods_edited = check_edited_keys(names_dict_edited, 'product')
-        print("subs_edited",subs_edited)
-        print("prods_edited",prods_edited)
-        # Update subs_edited and prods_edited
-        # Handling subs_edited
-        # Handling subs_edited
-        len_view = len(subs_edited_view)
-        len_edited = len(subs_edited)
-
-        if len_edited > len_view:
-            extra_elements = subs_edited[len_view:]
-            subs_edited_view.extend(extra_elements)
-            reaction.subs_edited = json.dumps(subs_edited_view) # Save updated edited substrates
-
-        elif len_edited < len_view:
-            reaction.subs_edited = json.dumps(subs_edited) # Save updated edited substrates
-        elif len_edited == len_view:
-            reaction.subs_edited = json.dumps(subs_edited_view) # Save updated edited substrates
-
-        # Determine the lengths of the views and edited lists for products
-        len_view_prods = len(prods_edited_view)
-        len_edited_prods = len(prods_edited)
-
-        # Compare the lengths and update the prods_edited_view accordingly
-        if len_edited_prods > len_view_prods:
-            extra_elements_prods = prods_edited[len_view_prods:]
-            prods_edited_view.extend(extra_elements_prods)
-            reaction.prods_edited = json.dumps(prods_edited_view) # Save updated edited products
-
-        elif len_edited_prods < len_view_prods:
-            reaction.prods_edited = json.dumps(prods_edited) # Save updated edited products
-        elif len_edited_prods == len_view_prods:
-            reaction.prods_edited = json.dumps(prods_edited_view) # Save updated edited products
-
-
-        # Update substrates_types and products_types
-        if substrates_types:
-            substrates_types_view = substrates_types
-        reaction.substrates_types = json.dumps(substrates_types_view)
-
-        if products_types:
-            products_types_view = products_types
-        reaction.products_types = json.dumps(products_types_view)
-
-        reaction.substrates_names = json.dumps(substrates_names)
-        reaction.products_names = json.dumps(products_names)
-        reaction.substrates = json.dumps(substrates_list)
-        reaction.products = json.dumps(products_list)
-        reaction.subs_sch = json.dumps(subs_sch)  # Save updated stoichiometry
-        reaction.prods_sch = json.dumps(prod_sch)  # Save updated stoichiometry
-        reaction.subs_comps = json.dumps(subs_comp)  # Save updated compartments
-        reaction.prods_comps = json.dumps(prod_comp)  # Save updated compartments
-        reaction.direction = direction
-        reaction.subsystem = subsystem
-        reaction.visualization = json.dumps(response_data['visualizations'])
-        reaction.formulas = json.dumps([formula_string])
-        reaction.molc_formula = json.dumps([molc_formula])
-        reaction.balanced_count = json.dumps([balanced_count])
-        reaction.balanced_charge = json.dumps([balanced_charge])
-        reaction.subs_atoms = json.dumps([subs_atoms])
-        reaction.prods_atoms = json.dumps([prods_atoms])
-        reaction.subs_charge = json.dumps([subs_charge])
-        reaction.prods_charge = json.dumps([prods_charge])
-        reaction.symb_to_name = json.dumps([symb_to_name])
-        reaction.subs_found = json.dumps(subs_found)
-        reaction.subs_miriams = json.dumps(subs_miriams)
-        reaction.prod_found = json.dumps(prod_found)
-        reaction.prod_miriams = json.dumps(prod_miriams)
-        reaction.vmh_found = vmh_found['found']
-        reaction.vmh_found_similar = vmh_found['similar']
-        reaction.vmh_url = json.dumps(vmh_found['url']) if vmh_found['found'] else None
-        reaction.vmh_formula = json.dumps(vmh_found['formula']) if vmh_found['found'] else None
-        reaction.metabolite_names = json.dumps(metabolite_names)
-        reaction.metabolite_formulas = json.dumps(metabolite_formulas)
-        reaction.metabolite_charges = json.dumps(metabolite_charges)
-        reaction.metabolite_mol_file_strings = json.dumps(metabolite_mol_file_strings)
-        reaction.save()
-
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            data = {
-                'visualization': json.loads(reaction.visualization),
-                'formulas': json.loads(reaction.formulas),
-                'molc_formula': json.loads(reaction.molc_formula),
-                'balanced_count': json.loads(reaction.balanced_count),
-                'balanced_charge': json.loads(reaction.balanced_charge),
-                'subs_atoms': json.loads(reaction.subs_atoms),
-                'prods_atoms': json.loads(reaction.prods_atoms),
-                'subs_charge': json.loads(reaction.subs_charge),
-                'prods_charge': json.loads(reaction.prods_charge),
-                'symb_to_name': json.loads(reaction.symb_to_name),
-                'subs_found': json.loads(reaction.subs_found),
-                'subs_edited': json.loads(reaction.subs_edited),
-                'prods_edited': json.loads(reaction.prods_edited),
-                'substrates_types': json.loads(reaction.substrates_types),
-                'products_types': json.loads(reaction.products_types),
-                'subs_miriams': json.loads(reaction.subs_miriams),
-                'prod_found': json.loads(reaction.prod_found),
-                'prod_miriams': json.loads(reaction.prod_miriams),
-                'reaction_id': reaction.id,
-                'metabolite_names': json.loads(reaction.metabolite_names),
-                'metabolite_formulas': json.loads(reaction.metabolite_formulas),
-                'metabolite_charges': json.loads(reaction.metabolite_charges),
-                'metabolite_mol_file_strings': json.loads(reaction.metabolite_mol_file_strings),
-            }
-            if vmh_found['found']:
-                data['vmh_found'] = vmh_found['found']
-                data['vmh_found_similar'] = vmh_found['similar']
-                data['vmh_url'] = vmh_found['url']
-                data['vmh_formula'] = vmh_found['formula']
-            return JsonResponse(data)
-    else:
-        form = ReactionForm()
-    return render(request, 'reactions/Home_page.html', {'form': form})
 
 @csrf_exempt
 def update_reaction_data(request):
     if request.method == 'POST':
-        print("request.body",request.body)
         data = json.loads(request.body)
         reaction_data = data['reaction_data']
         reaction_id = data['reaction_id']
@@ -789,14 +614,12 @@ def get_reaction(request, reaction_id):
     :param reaction_id: The ID of the reaction to retrieve.
     :return: JsonResponse containing the reaction details or an error message.
     """
-    print("get_reaction function called with reaction_id:", reaction_id)  # Debugging statement
 
     try:
-        print("Attempting to retrieve the Reaction object...")  # Debugging statement
         reaction = Reaction.objects.get(pk=reaction_id)
-        print("Reaction object retrieved successfully:", reaction)  # Debugging statement
 
         reaction_data = {
+            'Organs': reaction.Organs,
             'reaction_id': reaction.id,
             'short_name': reaction.short_name,
             'substrates': safe_json_loads(reaction.substrates),
@@ -808,7 +631,7 @@ def get_reaction(request, reaction_id):
             'subs_comps': safe_json_loads(reaction.subs_comps),
             'prods_comps': safe_json_loads(reaction.prods_comps),
             'visualization': safe_json_loads(reaction.visualization),
-            'formulas': safe_json_loads(reaction.formulas),
+            'rxn_formula': safe_json_loads(reaction.rxn_formula),
             'molc_formula': safe_json_loads(reaction.molc_formula),
             'balanced_count': safe_json_loads(reaction.balanced_count),
             'balanced_charge': safe_json_loads(reaction.balanced_charge),
@@ -837,15 +660,12 @@ def get_reaction(request, reaction_id):
             'metabolite_mol_file_strings': safe_json_loads(reaction.metabolite_mol_file_strings),
         }
 
-        print("Reaction data prepared successfully:", reaction_data)  # Debugging statement
         return JsonResponse(reaction_data)
 
     except Reaction.DoesNotExist:
-        print("Reaction with id", reaction_id, "does not exist.")  # Debugging statement
         return JsonResponse({'error': 'Reaction not found'}, status=404)
     
     except Exception as e:
-        print("An error occurred:", str(e))  # General exception handling for debugging
         return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
 
 
@@ -861,7 +681,6 @@ def add_info_to_reaction(request):
             ref_type = data.get('refType', '')
             reaction_id = data.get('reactionId')
 
-            print("data", data)
 
             if not all([user_id, info_type, info_text]) or (info_type != 'Gene Info' and not reaction_id):
                 return JsonResponse({'status': 'error', 'message': 'All fields are required.', 'info_type': info_type}, status=400)
@@ -941,7 +760,6 @@ def add_info_to_reaction(request):
 
 @csrf_exempt
 def update_gene_info(request):
-    print("Received request:", request.body)
     try:
         data = json.loads(request.body)
         user_id = data.get('userID')
@@ -951,7 +769,6 @@ def update_gene_info(request):
         updated_value = data.get('updatedValue')
 
         # Debugging statements to trace values
-        print(f"user_id: {user_id}, reaction_id: {reaction_id}, gene: {gene}, field_type: {field_type}, updated_value: {updated_value}")
 
         # Check if any required field is missing or updated_value is empty
         if not all([user_id, reaction_id, gene, field_type]) or updated_value is None or updated_value.strip() == "":
@@ -1002,10 +819,8 @@ def delete_reaction_info(request):
         try:
             req_body = json.loads(request.body)
             reaction_id = req_body.get('reaction_id')
-            print("req_body",reaction_id)
             tab_id = req_body.get('tab_id')
             item_to_delete = req_body.get('item_to_delete')
-            print(req_body)
             # Fetch the reaction object
             react_obj = Reaction.objects.get(pk=reaction_id)
 
@@ -1089,7 +904,6 @@ def clear_session(request):
             # Clear the entire session
             request.session.flush()  # This will clear all session data
 
-            print("Session cleared.")
             return JsonResponse({'status': 'success', 'message': 'Session cleared successfully.'})
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -1111,7 +925,6 @@ def get_reaction_details(request):
             reaction.comments = []
 
         
-        print("Comments",reaction.comments)
 
         return JsonResponse({
             'references': reaction.references,
@@ -1126,7 +939,6 @@ def get_reaction_details(request):
 def validate_user_ID(user_id):
     """Validate the user ID."""
     try:
-        print("user_id",user_id)
         user = User.objects.get(pk=user_id)
         return user
     except User.DoesNotExist:
@@ -1136,18 +948,49 @@ def save_user_reaction(request):
     if request.method == 'POST':
         reaction_id = request.POST.get('reaction_id')
         userID = request.POST.get('userID')
-        reaction = Reaction.objects.get(pk=reaction_id)
+        short_name = request.POST.get('short_name')
+        flag_data = request.POST.get('flag')  # Expecting format "flag:xyz,#000000"
+        try:
+            reaction = Reaction.objects.get(pk=reaction_id)
+        except Reaction.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'Invalid reaction'})
+
         user = validate_user_ID(userID)
+
         if user and reaction:
-            reaction.short_name = request.POST.get('short_name')
+            reaction.short_name = short_name
+            
+            if flag_data:
+                try:
+                    # Split the flag_data to extract name and color
+                    flag_name, flag_color = flag_data.split(',')
+                    flag_name = flag_name.replace('flag:', '').strip()
+                    flag_color = flag_color.strip()
+
+                    # Get or create the flag
+                    flag, created = Flag.objects.get_or_create(
+                        name_flag=flag_name,
+                        color=flag_color,
+                        user=user
+                    )
+
+                    # Clear any existing flags associated with the reaction
+                    reaction.flags.clear()
+
+                    # Associate the new flag with the reaction
+                    reaction.flags.add(flag)
+
+                except ValueError:
+                    return JsonResponse({'status': 'error', 'message': 'Invalid flag format'})
+
             reaction.save()
             user.saved_reactions.add(reaction)
             return JsonResponse({'status': 'success'})
-        elif not user:
-            return JsonResponse({'status': 'error', 'message': 'Invalid key'})
-        elif not reaction:
-            return JsonResponse({'status': 'error', 'message': 'Invalid reaction'})
+        
+        return JsonResponse({'status': 'error', 'message': 'Invalid user or reaction'})
+    
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
 
 
 def saved_reactions(request, modal=False):
@@ -1192,6 +1035,10 @@ def saved_reactions(request, modal=False):
             else:
                 gene_info_list = []
 
+            # Get associated flags and their colors
+            flags = reaction.flags.all()
+            flag_details = [{"name": flag.name_flag, "color": flag.color} for flag in flags]
+
             combined_reactions_details.append({
                 'reaction': reaction,
                 'details': {
@@ -1204,6 +1051,7 @@ def saved_reactions(request, modal=False):
                     'subsystem': reaction.subsystem,
                     'direction': reaction.direction,
                     'gene_info': gene_info_list,
+                    'flags': flag_details,  # Include flag details with name and color
                 }
             })
         
@@ -1221,6 +1069,7 @@ def saved_reactions(request, modal=False):
             return render(request, 'reactions/saved_reactions.html', context)
     else:
         return render(request, 'reactions/error.html', {'error_message': 'Invalid key'})
+
 
 def get_ai_response(request):
     if request.method == 'POST':
@@ -1353,12 +1202,44 @@ def prepare_add_to_vmh(request):
         logger.error(f"Error processing reactions: {e}")
         return JsonResponse({'status': 'error', 'message': 'An error occurred while processing reactions.'}, status=500)
     
+@csrf_exempt  # Remove this if you want to deal with CSRF tokens later
+def create_formula_abbr(request):
+    if request.method == 'POST':
+        # Parse JSON data from the request body
+        try:
+            data = json.loads(request.body)
+            metabolite = data.get('metabolite')
+            mtype = data.get('mtype')
+            metabolite_name = data.get('metabolite_name')
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        # Ensure all required fields are present
+        if not all([metabolite, mtype, metabolite_name]):
+            return JsonResponse({'error': 'Missing data'}, status=400)
+
+        # Initialize Matlab session manager
+        matlab_session = MatlabSessionManager()
+
+        # Use the bypass function to force the else clause
+        abbr = gen_metabolite_abbr(metabolite, mtype, metabolite_name, bypass_search_func, matlab_session)
+
+        # Return the abbreviation as JSON
+        return JsonResponse({'abbr': abbr})
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+def bypass_search_func(metabolites, types, *args, **kwargs):
+    # Always return False for found and None for abbreviation
+    return [False], [None]
 
 def add_to_vmh(request):
     """
     Main function to handle the request for adding reactions to VMH.
     """
     req_body = json.loads(request.body)
+
     userID = req_body.get('userID')
     user = User.objects.get(pk=userID)
     if not user:
@@ -1633,8 +1514,10 @@ ORGAN_MAPPING = {
     "vagina": "Cervix"
 }
 # Determine the base directory three levels up from the current file's directory
+# Construct the base directory path
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
-base_dir = base_dir + '/reconx'
+base_dir = os.path.join(base_dir, 'reconstructor')
+
 # Construct the full path to the config.json file
 config_path = os.path.join(base_dir, 'config.json')
 
@@ -1642,9 +1525,14 @@ config_path = os.path.join(base_dir, 'config.json')
 with open(config_path, 'r') as config_file:
     config = json.load(config_file)
 
+# Extract the file_path from the config
+file_path = config.get('file_path')
 
-file_path = '/home/vardaan/reconx/curationTool/reactions/normal_tissue.tsv'
-df = pd.read_csv(file_path, sep='\t')
+# Construct the full path to the file using base_dir and file_path from the config
+full_file_path = os.path.join(base_dir, file_path)
+
+# Load the CSV file using the full file path
+df = pd.read_csv(full_file_path, sep='\t')
 
 
 @csrf_exempt
@@ -1654,7 +1542,6 @@ def gene_details_view(request):
 
     try:
         # Log the raw request body
-        print("Request body:", request.body)
 
         data = json.loads(request.body)
         # Extract the nested infoText from the data object
@@ -1663,7 +1550,6 @@ def gene_details_view(request):
         if not isinstance(data_string, str):
             raise TypeError("infoText must be a string")
 
-        print("Extracted infoText:", data_string)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except TypeError as e:
@@ -1688,19 +1574,15 @@ def gene_details_view(request):
             gene_info["ORGAN"] = "Error fetching organs"
         else:
             gene_info["ORGAN"] = unique_organs
-            print("Unique organs:", unique_organs)
             all_organs.add(unique_organs)
-            print("All organs:", all_organs)
 
         # Get subcellular locations
         subcellular_locations = get_subcellular_locations(gene)
         if subcellular_locations:
             mapped_locations = map_locations_to_wbm(subcellular_locations)
             gene_info["SUBCELLULAR LOCATION"] = mapped_locations
-            print("Mapped subcellular locations:", mapped_locations)
             mapped_locations = extract_unique_elements(mapped_locations)
             all_subcellular_locations.update(mapped_locations)
-            print("All subcellular locations:", all_subcellular_locations)
         else:
             gene_info["SUBCELLULAR LOCATION"] = "Subcellular locations not found"
 
@@ -1724,7 +1606,6 @@ def gene_details_view(request):
         "infoText": "; ".join(info_text_parts)
     }
 
-    print("RESULTS", json.dumps(organized_result, indent=2))  # Pretty print JSON for readability
     return JsonResponse(organized_result)
 
 
@@ -1766,7 +1647,6 @@ def parse_gene_info(request):
     
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-    print("response_data",response_data)
     return JsonResponse(response_data)
 
 @csrf_exempt
@@ -1776,7 +1656,6 @@ def temp_gene_details(request):
 
     try:
         # Log the raw request body
-        print("Request body:", request.body)
 
         data = json.loads(request.body)
         genes_string = data.get("genes", "")
@@ -1818,7 +1697,6 @@ def temp_gene_details(request):
             "all_subcellular_locations": list(all_subcellular_locations),
             "all_organs": list(all_organs)
         }
-        print("response_data temp",response_data)    
         return JsonResponse(response_data)
 
     except json.JSONDecodeError:
@@ -1877,7 +1755,6 @@ def get_available_reactions(request):
             available_reaction_ids = list(available_reactions.values_list('id', flat=True))
             last_index = saved_reaction_ids[-1] if saved_reaction_ids else None
 
-            print("last_index", last_index)
              
             return JsonResponse({'available_reaction_ids': available_reaction_ids, 'last_index': last_index})
         except User.DoesNotExist:
@@ -2131,7 +2008,6 @@ def create_reaction(request):
         data = json.loads(request.body)
         user_id = data.get('user_id')
         reaction_id = data.get('reaction_id')
-
         
         # Validate the user ID using the provided function
         user = validate_user_ID(user_id)
@@ -2142,9 +2018,7 @@ def create_reaction(request):
         # Fetch the reaction based on reaction_id
         reaction = get_object_or_404(Reaction, id=reaction_id)
         
-        # Debug: Print confirmed user and reaction objects
-        print("Confirmed user:", user)
-        print("Confirmed reaction:", reaction)
+
         
         created_reaction = CreatedReaction.objects.create(user=user, reaction=reaction)
         
@@ -2167,7 +2041,6 @@ def parse_formula_with_compartments(request):
         prods_comps = body.get('prods_comps', [])
 
         # Log received data for debugging
-        print("Received data:", body)
 
         detailed_formulas = []
 
@@ -2200,9 +2073,7 @@ def parse_formula_with_compartments(request):
             subs_list = [comp for comp in subs_list if comp]
             prods_list = [comp for comp in prods_list if comp]
 
-            # Log parsed substrates and products
-            print("Parsed substrates:", subs_list)
-            print("Parsed products:", prods_list)
+
 
             # Check if the lengths of subs_comps and prods_comps match the lengths of subs_list and prods_list
             if len(subs_list) != len(subs_comps):
@@ -2261,3 +2132,31 @@ def convert_to_smiles(request):
     
 def saved_reactions_view(request):
     return render(request, 'saved_reactions.html')
+
+
+
+@csrf_exempt  # Use csrf_exempt if CSRF token isn't being managed
+def save_formula(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            formula = data.get('formula', '')
+            reaction_id = data.get('reaction_id', '')
+
+            # Ensure the formula is saved with quotes
+            quoted_formula = f'"{formula}"'
+
+            # Find the reaction by the provided reaction ID
+            try:
+                reaction = Reaction.objects.get(id=reaction_id)
+            except Reaction.DoesNotExist:
+                return JsonResponse({'status': 'failed', 'error': 'Reaction not found'}, status=404)
+
+            # Update the formulas field with the provided formula string with quotes
+            reaction.rxn_formula = quoted_formula
+            reaction.save()
+
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'failed', 'error': str(e)}, status=500)
+    return JsonResponse({'status': 'failed', 'error': 'Invalid request method'}, status=400)

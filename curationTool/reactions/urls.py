@@ -6,6 +6,8 @@ from reactions.views import saved_reactions  # Correctly import from the app whe
 
 from django.conf.urls.static import static
 urlpatterns = [
+    path('flags/<int:user_id>/', views.get_user_flags, name='get_user_flags'),
+    path('add_flag/', views.add_flag, name='add_user_flag'),
     path('', views.input_reaction, name='input_reaction'),
     path('saved_reactions/', views.saved_reactions, name='saved_reactions'),
     path('get_ai_response/', views.get_ai_response, name='get_ai_response'),
@@ -35,6 +37,8 @@ urlpatterns = [
     path('check-session/', views.check_session_data, name='check_session'),
     path('delete-gene-info/', views.delete_gene_info_from_session, name='delete_gene_info_from_session'),
     path('clear-session/', views.clear_session, name='clear_session'),
+    path('create-formula-abbr/', views.create_formula_abbr, name='create_formula_abbr'),
+    path('save-formula/', views.save_formula, name='save_formula'),
 
     path('saved_reactions/', views.saved_reactions_page, name='saved_reactions_page'),
     path('search_reactions/', views.search_reactions, name='search_reactions'),
@@ -43,7 +47,6 @@ urlpatterns = [
     path('stats/', views.leader_board, name='leader_board'),
     path('create-reaction/', views.create_reaction, name='create_reaction'),
     path('parse_formula_with_compartments/', views.parse_formula_with_compartments, name='parse_formula_with_compartments'),
-    path('view_reaction/', views.view_reaction, name='view_reaction'),
     path("gene_details_view/", views.gene_details_view, name="gene_details_view"),
     path("parse_gene_info/", views.parse_gene_info, name="parse_gene_info"),
     path('update_gene_info/', views.update_gene_info, name='update_gene_info'),

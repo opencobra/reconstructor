@@ -8,13 +8,17 @@
     <title>Curation Tool — Home</title>
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/Home_page.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/reactants.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'reactions/reactioninfo.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/cheminfo.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/atommapping.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'reactions/metabolite-div.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/register_modal.css' %}">
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon_top.ico' %}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">    
     <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+
 
 
 </head>
@@ -37,24 +41,25 @@
     
 
     <div class="top-menu">
-        
-        <div class="item">
+        <div class="image-icon item">
+            <img src="{% static 'reactions/website-icon.png' %}" alt="Website Icon">
         </div>
         <div class="statusAndMessage">
             <div class="status-item" id="statusTitle"></div>
             <div id="reactionFoundMessage"></div>
         </div>
         <div class="user-info item">
-            <button class="ui button" id = "userDisplay">
+            <button class="ui button" id="userDisplay">
                 <i class="icon user"></i>
                 User : None
             </button>
             <button class="ui blue button" id="loginButton">Log In</button>
         </div>
     </div>
+    
     <div class="main-container">
         <div class = "side-buttons">
-            <div class="ui secondary vertical pointing menu">
+            <div class="ui secondary vertical pointing menu" style="border-right: 2px solid #000;">
                 <div class="fluid ui button dynamic-button-side-button" id= "reactants-button">Reactants </div>
                 <div class="fluid ui button dynamic-button-side-button" id= "atommapping-button">Atom Mapping</div>
                 <div class="fluid ui button dynamic-button-side-button" id= "cheminfo-button">Chem Info</div>
@@ -63,15 +68,7 @@
                 <div class="fluid ui button dynamic-button-side-button" id= "extlinks-button">External Links</div>
                 <div class="fluid ui button dynamic-button-side-button" id= "geneinfo-button">Gene Info</div>
                 <div class="fluid ui button dynamic-button-side-button" id= "comments-button">Comments</div>
-                <div id="viewsavedreactions-button" 
-                class="fluid ui button dynamic-button-side-button"
-                data-reaction-checking="{% static 'reactions/js_savedreactions/reactionChecking.js' %}"
-                data-dynamic-listeners="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"
-                data-view-delete="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"
-                data-query-ai="{% static 'reactions/js_savedreactions/queryai.js' %}"
-                data-utilities="{% static 'reactions/js_savedreactions/utilities.js' %}"
-                data-handle-vmh="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}">
-               View Saved Reactions
+                <div id="viewsavedreactions-button" class="fluid ui button dynamic-button-side-button">View Saved Reactions
            </div>
                           <div class ="bottom"> <div class = "fluid ui button" id="view-leader-board" >View Stats</div>
                 <div class ="fluid ui button" id="item about-item">About</div> </div>
@@ -282,11 +279,19 @@
                             </div>
                             <button type="button" id="addProduct">Add Product</button><br>
                             <div class="subsystem-input">
-                                <label for="subsystemField" style="font-size: 1.2em;
-                                font-weight: bold;">Subsystem:</label>
+                                <label for="subsystemField" style="font-size: 1.2em; font-weight: bold;">Subsystem:</label>
                                 <input type="text" id="subsystemField" name="subsystem" autocomplete="off">
                                 <div id="subsystemDropdown" class="dropdown-content"></div>
+                            
+                                <div class="organ-input-wrapper">
+                                    <label for="organTags" style="font-size: 1.2em; font-weight: bold;">Organ:</label>
+                                    <div id="organTags" class="tags-input-container" contenteditable="true"></div>
+                                </div>
+                                <div id="organDropdown" class="organ-dropdown-content"></div>
                             </div>
+                            
+                            
+
                         </form>
                     </div>
                 </div>  
@@ -395,7 +400,16 @@
                             </div>
                         </div>
                     </div>
+                
+                    <!-- Modal placed inside the Chemical Information div -->
+                    <div class="cheminfo-loader-modal" id="cheminfo-loader-modal"  style="display: none;" >
+                        <div class="cheminfo-loader-content">
+                            <div class="loader"></div>
+                            <p id="modal-message">Please wait...</p>
+                        </div>
+                    </div>
                 </div>
+                
             
                 <div class="content-div" name="metaboliteinfo-div" id="metaboliteinfo-div" style="display: none;">
                     <div class="div-header">Metabolite Information</div>
@@ -558,34 +572,65 @@
     </div>
 
     <div class="modal-background" id="modalBackground"></div>
-
+  
     <div id="saveReactionModal" class="ui modal savereaction">
         <div class="header">Save Reaction</div>
         <div class="content">
-            <form class="ui form">
+            <form class="ui form" id="saveReactionForm">
+                <input type="text" id="reactionNameInput" placeholder="Name the reaction">
+    
+                <!-- Dropdown for selecting an existing flag -->
+                <label for="flagSelectCustom">Choose a flag (optional):</label>
+                <div style="display: flex; align-items: center;">
+                    <select id="flagSelectCustom" class="ui dropdown">
+                        <option value="">None</option>
+                        <!-- Flags will be loaded here by JavaScript -->
+                    </select>
+                    <div id="flagColorDisplayCustom" style="width: 35px; height: 35px; margin-left: 10px; border: 1px solid #ccc;"></div>
 
-            <input type="text" id="reactionNameInput" placeholder="Name the reaction">
-            <p>Your reaction is about to be saved locally. Do you want to proceed?</p>
-            </form> 
+                    <button type="button" id="createFlagButtonCustom" class="ui button" style="margin-left: 10px;">+</button>
+    
+                    <!-- Color display box -->
+                </div>
+    
+                <p>Your reaction is about to be saved locally. Do you want to proceed?</p>
+            </form>
         </div>
         <div class="actions">
             <div class="ui cancel button" id="closeSaveReactionModal">Cancel</div>
             <div class="ui approve button" id="submitSaveReaction">Save</div>
         </div>
     </div>
-
-    <div id="subsystemModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <span id="modalClose" class="close">&times;</span>
-            <p id="modalMessage"></p>
-            <div id="similarSubsystems" style="display: none;">
-                <p>Did you mean one of these subsystems?</p>
-                <ul id="similarSubsystemsList"></ul>
-            </div>
-            <button id="confirmAddSubsystem">Add Subsystem</button>
+    
+    
+    <div id="modalOverlayCustom"></div>
+    <!-- Create Flag Modal -->
+    <div id="createFlagModalCustom" class="ui modal createflag">
+        <div class="header">Create New Flag</div>
+        <div class="content">
+            <form class="ui form" id="createFlagFormCustom">
+                <div class="field-group">
+                    <input type="text" id="newFlagNameCustom" placeholder="Flag Name" required>
+                    <input type="color" id="newFlagColorCustom" value="#ff0000" required>
+                </div>
+            </form> 
+        </div>
+        <div class="actions" id="createFlagActions">
+            <div class="ui cancel button" id="closeCreateFlagModalCustom">Cancel</div>
+            <div class="ui approve button" id="submitCreateFlagCustom">Create</div>
         </div>
     </div>
     
+    <div id="taskModalOverlay" class="modal-overlay" style="display: none;"></div>
+    <div id="taskModal" class="modal-container"style="display: none;">
+        <div class="modal-content-task">
+          <span class="close-task">&times;</span>
+          <p>Do you want to go back to the reaction you last saved?</p>
+          <button id="goBackTaskBtn" class="ui blue button task-btn">Yes, take me back</button>
+          <button id="cancelTaskBtn" class="ui blue button task-btn">No</button>
+        </div>
+      </div>
+      
 
     <!-- Register Modal -->
     <div class="ui modal" id="registerModal">
@@ -624,6 +669,8 @@
     <div class="funding-container">
         <img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo">
         <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997), the Swiss State Secretariat for Education, Research and Innovation (23.00232), and by United Kingdom Research and Innovation (10083717 & 10080153).</div>
+        <img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo">
+
     </div>
 
 
@@ -648,16 +695,21 @@
         var subsystemList = [];
     </script>
     <script type="text/javascript"> var MEDIA_URL = '{{ MEDIA_URL }}';</script>
-    <script src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
     <script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
     <script src="{% static 'reactions/js/login_modal.js' %}"></script>
     <script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
+    <script src="{% static 'reactions/js/Flag.js' %}"></script>
     <script src="{% static 'reactions/js/register_modal.js' %}"></script>
     <script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
     <script src="{% static 'reactions/js/reactioninfoformhandling.js' %}"></script>
+    <script src="{% static 'reactions/js/status.js' %}"></script>
+    <script src="{% static 'reactions/js/geneinfoinput.js' %}"></script>
+    <script src="{% static 'reactions/js/savereaction.js' %}"></script>
+    <script src="{% static 'reactions/js/displayReactionmessage.js' %}"></script>
     <script src="{% static 'reactions/js/displayAtomMapping.js' %}"></script>
     <script src="{% static 'reactions/js/displayChemInfoDiv.js' %}"></script>
-    <script src="{% static 'reactions/js/logout.js' %}"></script>
+    <script src="{% static 'reactions/js/OrganDropdown.js' %}"></script>
+    <script src="{% static 'reactions/js/Displayalldivs.js' %}"></script>
     <script src="{% static 'reactions/js/displayMetaboliteInfo.js' %}"></script>
     <script src="{% static 'reactions/js/reactantsformHandling.js' %}"></script>
     <script src="{% static 'reactions/js/getrxnfromtemplate.js' %}"></script>
@@ -665,13 +717,14 @@
     <script src="{% static 'reactions/js/reactantsdisplay.js' %}"></script>  
     <script src="{% static 'reactions/js/chemdoodleIntegration.js' %}"></script>
     <script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
-    <script src="{% static 'reactions/js/displaysubsystem.js' %}"></script>    
     <script src="{% static 'reactions/js/Creatediv.js' %}"></script> 
+    <script src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
     <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
     <script src="{% static 'reactions/lib/blowup.js' %}"></script>  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     
 
 

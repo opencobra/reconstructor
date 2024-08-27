@@ -1,10 +1,16 @@
 from django.contrib import admin
-from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction
+from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction,Flag
 
 class CreatedReactionInline(admin.TabularInline):
     model = CreatedReaction
     extra = 0  # No extra empty forms displayed
     fields = ('reaction', 'created_at')  # Fields to display
+    readonly_fields = ('created_at',)  # Make created_at read-only
+
+class FlagInline(admin.TabularInline):
+    model = Flag
+    extra = 1  # Allows adding one empty form by default
+    fields = ('name_flag', 'color', 'created_at')  # Fields to display
     readonly_fields = ('created_at',)  # Make created_at read-only
 
 class UserAdmin(admin.ModelAdmin):
@@ -21,9 +27,15 @@ class CreatedReactionAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'reaction', 'created_at')  # Customize list display
     search_fields = ('user__name', 'reaction__short_name')  # Customize search fields
 
+class FlagAdmin(admin.ModelAdmin):
+    list_display = ('id', 'name_flag', 'color', 'user', 'created_at')  # Customize list display for flags
+    search_fields = ('name_flag', 'user__name', 'color')  # Customize search fields
+    list_filter = ('color', 'user')  # Add filters for color and user
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Reaction, ReactionAdmin)
 admin.site.register(ReactionsAddedVMH)
 admin.site.register(MetabolitesAddedVMH)
 admin.site.register(Subsystem)
 admin.site.register(CreatedReaction, CreatedReactionAdmin)
+admin.site.register(Flag, FlagAdmin)

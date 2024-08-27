@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{% static 'reactions/leader_board.css' %}">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script defer src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon_top.ico' %}">
 
 
@@ -16,15 +17,18 @@
 <body>
     <section class="hero is-primary">
         <div class="hero-body">
+            <div class= "logo">
+                <img src="{% static 'reactions/website-icon.png' %}" alt="logo">
+                </div>
             <div class="container has-text-centered">
                 <h1 class="title">
                     Insights
                 </h1>
+                
             </div>
         </div>
     </section>
 
-    <section class="section">
         <div class="container">
             <div class="columns">
                 <div class="column is-full">
@@ -51,6 +55,5 @@
                 </table>
             </div>
         </div>
-    </section>
 </body>
 </html>

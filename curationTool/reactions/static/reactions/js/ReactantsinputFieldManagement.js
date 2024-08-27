@@ -483,6 +483,7 @@ async function updateFormFields(data) {
             }
         });
     }
+
     
     await Promise.all(promises);
 
@@ -594,6 +595,7 @@ function attachEventListenersToDoneAllButtons() {
             if (data.error) {
                 showErrorModal(data.message);
                 window.scrollTo(0, 0);
+
             } else {
                 updateNameFields(data, main_input, typeField, button);
     

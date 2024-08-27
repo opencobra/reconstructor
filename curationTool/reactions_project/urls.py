@@ -26,6 +26,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.input_reaction, name='input_reaction'),
     path('saved_reactions/', views.saved_reactions, name='saved_reactions'),
+    path('save-formula/', views.save_formula, name='save_formula'),
+
     path('get_ai_response/', views.get_ai_response, name='get_ai_response'),
     path('check_reaction_vmh/', views.check_reaction_vmh, name='check_reaction_vmh'),
     path('get_from_vmh/', views.get_from_vmh, name='get_from_vmh'),
@@ -52,6 +54,7 @@ urlpatterns = [
     path('delete-gene-info/', views.delete_gene_info_from_session, name='delete_gene_info_from_session'),
     path('clear-session/', views.clear_session, name='clear_session'),
     path('user_saved_reaction_ids/', views.get_user_saved_reaction_ids, name='get_user_saved_reaction_ids'),
+    path('create-formula-abbr/', views.create_formula_abbr, name='create_formula_abbr'),
 
     path('register_user',views.register_user,name='register_user'),
     path('check-reaction', views.is_reaction_in_user_saved_reactions, name='check_reaction'),
@@ -64,10 +67,10 @@ urlpatterns = [
 # Update this line in your urls.py
     path('stats/', views.leader_board, name='leader_board'),
     path('saved-reactions-modal/', lambda request: saved_reactions(request, modal=True), name='saved_reactions_modal_content'),
-
+    path('flags/<int:user_id>/', views.get_user_flags, name='get_user_flags'),
+    path('add_flag/', views.add_flag, name='add_user_flag'),
     path('create-reaction/', views.create_reaction, name='create_reaction'),
     path('parse_formula_with_compartments/', views.parse_formula_with_compartments, name='parse_formula_with_compartments'),
-    path('view_reaction/', views.view_reaction, name='view_reaction'),
     path("gene_details_view/", views.gene_details_view, name="gene_details_view"),
     path("parse_gene_info/", views.parse_gene_info, name="parse_gene_info"),
     path('update_gene_info/', views.update_gene_info, name='update_gene_info'),

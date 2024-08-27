@@ -13,7 +13,6 @@ document.querySelectorAll('.content-div').forEach(function(div) {
             infoType = 'Comment';
             extLinkType = '';  // Set external link type to an empty string
             refType = '';      // Set reference type to an empty string
-            console.log('Comments Div clicked. infoType set to:', infoType);
             setupSubmitHandler("submitAddInfocom","infoTextInputcom");
 
         } else if (nameAttr === 'references-div') {
@@ -22,7 +21,6 @@ document.querySelectorAll('.content-div').forEach(function(div) {
 
             extLinkType = '';  // Set external link type to an empty string
             refType = identifierType;      // Set reference type to an empty string
-            console.log('References Div clicked. infoType set to:', infoType);
             setupSubmitHandler("submitAddInforef","infoTextInputref");
 
 
@@ -32,7 +30,6 @@ document.querySelectorAll('.content-div').forEach(function(div) {
             infoType = 'External Link';
             extLinkType = extType;  // Set external link type to the selected value
             refType = '';      // Set reference type to an empty string
-            console.log('External Links Div clicked. infoType set to:', infoType);
             setupSubmitHandler("submitAddInfoext","infoTextInputext");
 
         } else {
@@ -40,7 +37,6 @@ document.querySelectorAll('.content-div').forEach(function(div) {
             extLinkType = '';  // Set external link type to an empty string
             refType = '';      // Set reference type to an empty string
     
-            console.log('Gene Info Div clicked. infoType set to:', infoType);
             setupSubmitHandler("submitAddInfogene","geneInfoInput");
 
         }
@@ -59,7 +55,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 
     // Add the new event listener
     newSubmitButton.addEventListener('click', function() {
-        console.log(`${submitButtonId} clicked`);
 
         var userID = sessionStorage.getItem('userID'); 
         const urlParams = new URLSearchParams(window.location.search);
@@ -81,15 +76,11 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 
         if (infoType !== 'Gene Info') {
             var infoText = document.getElementById(Infotextid).value;
-            console.log('Info Text:', infoText);
             data.infoText = infoText;
-            console.log('Data send:', data);
             submitData(data);
         } else {
             const geneInputs = document.getElementById('geneInfoInput');
-            console.log('Gene inputs:', geneInputs);
             var geneinfo = geneInputs.textContent;
-            console.log('Gene info:', geneinfo);
 
             fetch('gene_parsing/', {
                 method: 'POST',
@@ -107,11 +98,8 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 return response.json();
             })
             .then(response => {
-                console.log('Response:', response);
                 if (response.processed_string) {
-                    console.log('Processed string:', response.processed_string);
                     data.infoText = response.processed_string;
-                    console.log('Gene Data:', data);
                     AddOrganLocation(data);
                 } else {
                     if (response.error) {
@@ -132,7 +120,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 
     function AddOrganLocation(data) {
         const url = '/gene_details_view/';
-        console.log('Data gene', data);
         fetch(url, {
             method: 'POST',
             headers: {
@@ -155,7 +142,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             }
 
             const results = data;
-            console.log('Results:', results);
             submitData(results);
         })
         .catch(error => {
@@ -177,8 +163,7 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
         .then(response => response.json().then(data => ({ status: response.status, body: data })))
         .then(obj => {
             if (obj.status === 200) {
-                console.log("obj", obj.body.message);
-                console.log('Data:', data.reactionId);
+
                 
                 // Refactored to use POST request instead of GET
                 fetch(getReactionDetails, {
@@ -192,7 +177,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 })
                 .then(response => response.json())
                 .then(details => {
-                    console.log('Details:', details);
     
                     // Conditionally display tab content based on infotype
                     switch (infotype) {
@@ -249,7 +233,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
     
     
     async function displayTabContent(tableId, reaction_info, reaction_id) {
-        console.log('Displaying tab content:', tableId, reaction_info, reaction_id);
         const tableElement = document.getElementById(tableId);
         if (!tableElement) {
             console.error('Table not found');
@@ -332,22 +315,31 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
         for (const item of reaction_info) {
             const row = document.createElement('div');
             row.classList.add('row');
-            console.log('Item:', item);
         
             if (tableId === 'gene-info-content') {
                 const parsedInfo = parseInfo(item.info);
-                console.log('Parsed Info:', parsedInfo);
                 const gprField = document.createElement('span');
                 gprField.textContent = parsedInfo.gpr;
                 row.appendChild(gprField);
         
                 const geneField = document.createElement('span');
-                geneField.textContent = parsedInfo.organ.join(', ');
+                geneField.classList.add('gene-field-container');
                 row.appendChild(geneField);
-        
+
                 const organField = document.createElement('span');
                 row.appendChild(organField);
         
+                // // Create buttons for organs
+                parsedInfo.organ.forEach((organ) => {
+                    const organButton = document.createElement('button');
+                    organButton.textContent = organ;
+                    organButton.classList.add('organ-btn');
+                    organButton.addEventListener('click', () => {
+                        applyOrganFunction(organ); // Define what happens when an organ button is clicked
+                    });
+                    geneField.appendChild(organButton);
+                });
+
                 // Create buttons for subcellular locations
                 parsedInfo.subcellular.forEach((location) => {
                     const locationButton = document.createElement('button');
@@ -371,7 +363,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             } else if (tableId === 'ext-links-content') {
                 const typeField = document.createElement('span');
                 typeField.textContent = item.ext_link_type;
-                console.log('Type:', item.ext_link_type);
                 row.appendChild(typeField);
         
                 const identifierField = document.createElement('span');
@@ -392,7 +383,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             const deleteButton = document.createElement('button');
             deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
             deleteButton.onclick = async () => {
-                console.log('Delete button clicked',item.reactionId);
                 const reactionId = reaction_id;  // Ensure reaction_id is present in your item data
                 const tabId = tableId;  // Use the current tabId context
                 const itemToDelete = {
@@ -510,5 +500,155 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
         } catch (error) {
             console.error('Error:', error);
             alert('An unexpected error occurred. Please try again.');
+        }
+    }
+
+
+
+    function applyOrganFunction(organ) {
+        // Assuming `organField` is the container where organ tags should be added
+        const organField = document.querySelector('.tags-input-container'); // Adjust this selector as needed
+    
+        // Debugging step: Log a warning if organField is not found
+        if (!organField) {
+            console.warn('organField element not found. Check the selector or HTML structure.');
+            return; // Exit the function to avoid further errors
+        }
+    
+        // Function to add a tag to the organField
+        function addTag(tagText) {
+            // Check if the tag already exists to prevent duplicates
+            if ([...organField.children].some(tag => tag.textContent.replace('×', '').trim() === tagText)) return;
+    
+            // Create the tag element
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.contentEditable = false; // Make the tag non-editable
+            tag.textContent = tagText;
+    
+            // Create a close button for the tag
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close-btn';
+            closeBtn.textContent = '×';
+            closeBtn.addEventListener('click', function() {
+                organField.removeChild(tag); // Remove the tag when the close button is clicked
+            });
+    
+            // Append the close button to the tag
+            tag.appendChild(closeBtn);
+            organField.appendChild(tag); // Insert the tag inside the organ field
+    
+            // Add a space and an empty span to ensure the cursor moves outside the tag
+            const spaceNode = document.createTextNode(' ');
+            const caretSpan = document.createElement('span');
+            caretSpan.innerHTML = '&nbsp;'; // Invisible space to ensure caret positioning
+    
+            organField.appendChild(spaceNode);
+            organField.appendChild(caretSpan);
+    
+            // Move the cursor to the end of the contenteditable div
+            const range = document.createRange();
+            const selection = window.getSelection();
+            range.setStartAfter(caretSpan);
+            range.collapse(true);
+            selection.removeAllRanges();
+            selection.addRange(range);
+    
+            organField.focus(); // Refocus the input area
+        }
+    
+        // Add the organ as a tag
+        addTag(organ);
+    }
+    
+
+    function displayreactioninfo(reactionData) {
+        // Extract the reactionId from reactionData
+        const reactionId = reactionData;
+        var user_id = sessionStorage.getItem('userID');
+        // Log the reactionId for debugging purposes
+    
+        if (reactionId === null) {
+            // If reactionId is null, fetch session data
+            fetch('/check-session/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken, // Include CSRF token if needed
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // If session data is found, display the gene info
+                        displayTabContent('gene-info-content', data.gene_info, null);
+                    } else {
+                        return;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching session data:', error);
+                });
+        } else {
+            // If reactionId is not null, first fetch session data
+            fetch('/check-session/', {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken, // Include CSRF token if needed
+                }
+            })
+            .then(sessionResponse => sessionResponse.json())
+            .then(sessionData => {
+            
+                if (sessionData.status === 'success' && sessionData.gene_info) {
+                    // Process each item in the session data
+                    sessionData.gene_info.forEach(geneInfoItem => {
+                        const dataToSubmit = {
+                            userID: user_id,  // assuming you have this from your context
+                            infoType: 'Gene Info',
+                            infoText: geneInfoItem.info,
+                            reactionId: reactionId.reaction_id  // Include the reaction ID
+                        };
+                        // Submit the data to the reaction
+                        submitData(dataToSubmit);
+                    });
+            
+                    // After all data has been submitted, clear the session
+                    clearSession();
+                } else {
+                    console.log('No gene info in session or an error occurred.');
+                }
+            })
+            .catch(error => {
+                console.error('An error occurred:', error);
+                })
+                .catch(sessionError => {
+                    console.error('Error handling session data:', sessionError);
+                })
+                .then(() => {
+                    // After checking the session, proceed with fetching reaction details
+                    fetch(getReactionDetails, {
+                        method: 'POST',
+                        body: JSON.stringify(reactionId.reaction_id),  // Assuming the POST requires a JSON body
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRFToken': csrfToken,
+                            'Content-Type': 'application/json'  // Ensuring the content type is JSON
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(details => {
+    
+                            // Display content in the appropriate tabs
+                            displayTabContent('refs-content', details.references, reactionId.reaction_id);
+                            displayTabContent('ext-links-content', details.external_links, reactionId.reaction_id);
+                            displayTabContent('gene-info-content', details.gene_info, reactionId.reaction_id);
+                            displayTabContent('comments-content', details.comments, reactionId.reaction_id);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching reaction details:', error);
+                        });
+                });
         }
     }
