@@ -197,8 +197,6 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
         prodsAbbr = vmhResponse.prods_abbr;
         subsNeedNewNames = vmhResponse.subs_need_new_names;
         prodsNeedNewNames = vmhResponse.prods_need_new_names;
-        subsEdited = vmhResponse.subs_edited;
-        prodsEdited = vmhResponse.prods_edited;
         reactionAbbrs = vmhResponse.reaction_abbrs;
 
         checkedReactions.forEach(function(reactionId) {
@@ -222,8 +220,6 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
                 let prodsAbbrForReaction = prodsAbbr[reactionIndex];
                 let subsNeedNewNamesForReaction = subsNeedNewNames[reactionIndex];
                 let prodsNeedNewNamesForReaction = prodsNeedNewNames[reactionIndex];
-                let subsEditedForReaction = subsEdited[reactionIndex];
-                let prodsEditedForReaction = prodsEdited[reactionIndex];
                 let reactionAbbrForReaction = reactionAbbrs[reactionIndex];
 
                 var listItem = document.createElement('div');
@@ -270,11 +266,11 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
                                         <text>${subs_comps[index]}</text>
                                     </td>
                                     <td>
-                                        <input type="text" name=subsNameInput placeholder="Name" value="${name}" ${subsInVMHForReaction[index] && !subsEditedForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=subsNameInput placeholder="Name" value="${name}" ${subsInVMHForReaction[index]  ? 'readonly' : ''}>
                                         ${subsNeedNewNamesForReaction[index] ? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' + name + ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>' : ''}
                                     </td>
                                     <td>
-                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${subsAbbrForReaction[index]}" ${subsInVMHForReaction[index] && !subsEditedForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${subsAbbrForReaction[index]}" ${subsInVMHForReaction[index]  ? 'readonly' : ''}>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -302,11 +298,11 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
                                         <text>${prods_comps[index]}</text>
                                     </td>
                                     <td>
-                                        <input type="text" name=prodsNameInput placeholder="Name" value="${name}" ${prodsInVMHForReaction[index] && !prodsEditedForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=prodsNameInput placeholder="Name" value="${name}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
                                         ${prodsNeedNewNamesForReaction[index] ? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' + name + ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>' : ''}
                                     </td>
                                     <td>
-                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${prodsAbbrForReaction[index]}" ${prodsInVMHForReaction[index] && !prodsEditedForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${prodsAbbrForReaction[index]}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
                                     </td>
                                 </tr>
                             `).join('')}
@@ -324,7 +320,6 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
                 listItem.innerHTML += createSectionHTML('Comments', 'comment', comments, reaction.pk);      
                 listItem.innerHTML += createSectionHTML('Gene Info', 'gene-info', gene_info, reaction.pk,false,false,true);
                 modalList.appendChild(listItem);
-                counter++;        
             }
         });
         setupTooltips();

@@ -126,26 +126,6 @@ def get_subsystems(request):
     except Exception as e:
         return JsonResponse({'error': True, 'message': str(e)}, status=500)
 
-def find_similar_subsystems(new_subsystems, existing_subsystems):
-    # Combine new and existing subsystems for vectorization
-    combined_subsystems = list(existing_subsystems) + list(new_subsystems)
-    
-    # Vectorize the subsystems using TF-IDF
-    vectorizer = TfidfVectorizer().fit_transform(combined_subsystems)
-    vectors = vectorizer.toarray()
-    
-    # Calculate cosine similarity
-    similarity_matrix = cosine_similarity(vectors)
-    
-    # Extract similarity scores for new subsystems with existing subsystems
-    similarity_scores = {}
-    for i, new_subsystem in enumerate(new_subsystems):
-        scores = similarity_matrix[len(existing_subsystems) + i][:len(existing_subsystems)]
-        similar_indices = scores.argsort()[::-1]  # Sort in descending order
-        similar_subsystems = [(existing_subsystems[idx], scores[idx]) for idx in similar_indices if scores[idx] > 0]
-        similarity_scores[new_subsystem] = similar_subsystems
-    
-    return similarity_scores
 
 @csrf_exempt
 def update_subsystems(request):
@@ -164,43 +144,6 @@ def update_subsystems(request):
 
 
 
-@require_POST
-def check_subsystem_similarity(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            new_subsystems = data.get('subsystems', [])
-            
-            # Fetch existing subsystems from the database and VMH API
-            existing_subsystems = get_vmh_subsystems()
-            existing_subsystems.extend(list(Subsystem.objects.values_list('name', flat=True)))
-            
-            # Find similarities between new and existing subsystems
-            similarity_scores = find_similar_subsystems(new_subsystems, existing_subsystems)
-            similarities_found = {}
-            
-            # Collect similarities that have a score above 0.2
-            for new_subsystem, similarities in similarity_scores.items():
-                filtered_similarities = [
-                    existing_subsystem for existing_subsystem, score in similarities if score >= 0.7
-                ]
-                if filtered_similarities:
-                    if new_subsystem not in similarities_found:
-                        similarities_found[new_subsystem] = filtered_similarities
-                    else:
-                        similarities_found[new_subsystem].extend(filtered_similarities)
-            
-            # Aggregate existing subsystems for each new subsystem
-            aggregated_similarities = [
-                {'new_subsystem': new_subsystem, 'existing_subsystem': ','.join(set(existing_subsystems))}
-                for new_subsystem, existing_subsystems in similarities_found.items()
-            ]
-
-            return JsonResponse(aggregated_similarities, safe=False)
-                
-        except Exception as e:
-            return JsonResponse({'error': True, 'message': str(e)}, status=500)
-    return JsonResponse({'error': True, 'message': 'Invalid request method'}, status=400)
 
 
 
@@ -582,27 +525,6 @@ def input_reaction(request):
 
 
 
-@csrf_exempt
-def update_reaction_data(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        reaction_data = data['reaction_data']
-        reaction_id = data['reaction_id']
-        user_id = data['user_id']
-
-        # Check and update subs_edited
-        if 'subs_edited' not in reaction_data or reaction_data['subs_edited'] is None:
-            reaction_data['subs_edited'] = [False] * len(reaction_data.get('substrates', []))
-        
-        # Check and update prods_edited
-        if 'prods_edited' not in reaction_data or reaction_data['prods_edited'] is None:
-            reaction_data['prods_edited'] = [False] * len(reaction_data.get('products', []))
-        
-        # Additional processing can be added here
-
-        return JsonResponse(reaction_data)
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
-
 def safe_json_loads(data):
     return json.loads(data) if data is not None else None
 
@@ -616,8 +538,8 @@ def get_reaction(request, reaction_id):
     """
 
     try:
+        
         reaction = Reaction.objects.get(pk=reaction_id)
-
         reaction_data = {
             'Organs': reaction.Organs,
             'reaction_id': reaction.id,
@@ -645,8 +567,6 @@ def get_reaction(request, reaction_id):
             'prods_charge': safe_json_loads(reaction.prods_charge),
             'symb_to_name': safe_json_loads(reaction.symb_to_name),
             'subs_found': safe_json_loads(reaction.subs_found),
-            'subs_edited': safe_json_loads(reaction.subs_edited),
-            'prods_edited': safe_json_loads(reaction.prods_edited),  
             'subs_miriams': safe_json_loads(reaction.subs_miriams),
             'prod_found': safe_json_loads(reaction.prod_found),
             'prod_miriams': safe_json_loads(reaction.prod_miriams),
@@ -1163,8 +1083,7 @@ def prepare_add_to_vmh(request):
 
         subs_in_vmh = [json.loads(reaction.subs_found) if reaction.subs_found else [] for reaction in reaction_objs]
         prods_in_vmh = [json.loads(reaction.prod_found) if reaction.prod_found else [] for reaction in reaction_objs]
-        subs_edited = [json.loads(reaction.subs_edited) if reaction.subs_edited else [] for reaction in reaction_objs]  # Include edited status
-        prods_edited = [json.loads(reaction.prods_edited) if reaction.prods_edited else [] for reaction in reaction_objs]  # Include edited status
+
 
         matlab_session = MatlabSessionManager()
         subs_abbr = [[gen_metabolite_abbr(sub, sub_type, sub_name, search_metabolites_vmh, matlab_session) for sub, sub_type, sub_name in zip(json.loads(reaction.substrates), json.loads(reaction.substrates_types), json.loads(reaction.substrates_names))] for reaction in reaction_objs]
@@ -1198,8 +1117,6 @@ def prepare_add_to_vmh(request):
             'prods_abbr': prods_abbr,
             'subs_need_new_names': subs_need_new_names,
             'prods_need_new_names': prods_need_new_names,
-            'subs_edited': subs_edited,
-            'prods_edited': prods_edited,
             'reaction_abbrs': reaction_abbrs,
         })
     except Exception as e:

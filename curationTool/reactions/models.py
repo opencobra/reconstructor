@@ -46,8 +46,6 @@ class Reaction(models.Model):
     prod_found = models.TextField(blank=True, null=True)
     prod_miriams = models.TextField(blank=True, null=True)
     Organs = models.TextField(blank=True, null=True)    # New field
-    subs_edited = models.TextField(blank=True, null=True)  # New field
-    prods_edited = models.TextField(blank=True, null=True)  # New field
     vmh_found = models.BooleanField(default=False)
     vmh_found_similar = models.BooleanField(default=False)
     vmh_url = models.TextField(blank=True, null=True)

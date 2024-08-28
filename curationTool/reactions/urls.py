@@ -51,8 +51,6 @@ urlpatterns = [
     path("parse_gene_info/", views.parse_gene_info, name="parse_gene_info"),
     path('update_gene_info/', views.update_gene_info, name='update_gene_info'),
     path('get_rxn_template/', views.get_rxn_template, name='get_rxn_template'),
-    path('update_reaction_data', views.update_reaction_data, name='update_reaction_data'),
-    path('check_subsystem_similarity/', views.check_subsystem_similarity, name='check_subsystem_similarity'),
     path('temp_gene_details/',views.temp_gene_details,name='temp_gene_details'),
     path('convert_to_smiles/', views.convert_to_smiles, name='convert_to_smiles'),
     path('saved-reactions-modal/', lambda request: saved_reactions(request, modal=True), name='saved_reactions_modal_content'),

@@ -318,7 +318,6 @@ function hideLoaderdiv() {
         })
         .then(response => {
             if (response.ok) {
-                console.log('Formula saved successfully');
                 
                 // Adding a 100-second timeout before hiding the loader
                 setTimeout(function() {
