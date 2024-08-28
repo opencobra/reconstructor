@@ -20,11 +20,15 @@ Ensure you have the following installed:
 ## Code Structure
 ### HTML Files
 1. **Home_page.html**
-    - Main page for inputting reaction data.
-    - Includes form fields for substrates, products, and reaction direction.
-    - Integrates Django template language for dynamic content rendering.
-    - Contains modals for saving reactions, adding information, and ChemDoodle sketcher.
-    - Links to CSS for styling and JavaScript for interactive elements.
+    - Head Section: Includes meta tags, page title, and links to various CSS stylesheets and external libraries such as jQuery and Semantic UI.
+    - Top Navigation Bar: Contains user-related elements like login buttons, user display, and status messages.
+    - Side Navigation Menu: A vertical menu provides navigation buttons for various sections like "Reactants," "Atom Mapping," ,"Chem Info","Metabolite   Info","References" ,"External Links","Gene Info","Comments", "View Saved Reaction"
+    - Main Content Area: Hosts multiple content divs for different functionalities (e.g., form for reactants input, atom mapping, chemical info).
+    - Form Elements: Includes forms for creating and submitting reactions, with input fields for substrates, products, and subsystem tagging.
+    - Modal Dialogs: Multiple modals are defined for tasks like login, registration, saving reactions, selecting reactions from vmh and rhea and  selecting  reaction templates.
+    - JavaScript Integration: Several scripts are loaded for handling user interactions, AJAX requests, form validation, and dynamic content updates.
+    - External Libraries: Uses external libraries such as jQuery, Semantic UI, and FontAwesome for enhanced user interface components and icons.
+    - Footer Section: Contains funding acknowledgment with logos and texts, displaying the funding sources for the project.
 2. **saved_reactions.html**
     - Displays a list of saved reactions for a given user.
     - Each reaction entry includes details like name, substrates, products, and chemical formula.
@@ -40,8 +44,15 @@ Ensure you have the following installed:
     - Includes necessary ChemDoodle Web components and scripts.
     - Provides functions for getting molecule data, loading molecules into the sketcher, and clearing the sketcher.
     - This is used as a sub-page in the **Home_page.html** when a user wants to draw a molecule.
+
+4. **leaderboard.html**
+    - Styles and Scripts: Links external CSS (Bulma, Google Fonts) and JavaScript (Chart.js), along with Django static files for custom styles of bar chart and scripts.
+    - Chart Area: A full-width column containing a <canvas> element for displaying a chart using Bulma.
+    - Stats Title: A centered title heading for the stats section.
+    - Leaderboard Table: A responsive table to display leaderboard data, structured with headers and an empty body to be populated dynamically.
+
 ### CSS Files
-1. **input_reaction.css**
+1. **Home_page.css**
     - Styles for the **Home_page.html** page.
     - Defines layout for form fields, buttons, modals, and containers.
     - Ensures responsive design for different screen sizes.
@@ -60,67 +71,636 @@ Ensure you have the following installed:
     - ChemDoodle Interaction: `setCurrentlyDrawing` and `clearCurrentlyDrawing` functions manage the state of which molecule is currently being drawn or edited.
     - Molecule Data Handling: `saveDrawing` function handles the extraction of molecule data from the ChemDoodle sketcher, prompts for a molecule name, and updates the corresponding input fields.
     - Editing Functionality: `editDrawing` and `replaceStartWithEditButton` provide functionality to edit existing molecule drawings, including retrieving and sending data back to the ChemDoodle sketcher.
-2. **formHandling.js**
-    - Dynamic Form Submission and Handling: Manages the submission of various forms within the application, including the addition of reaction information, reaction form submission, and saving reactions.
-    - Event Listener for Adding Information: Implements an event listener on the 'Add Information' button. Captures and sends user input data such as user key, information type, text, and external link type using AJAX POST request to `addInfo2Reaction` endpoint.
-    - Error Handling and Response Management: Processes server responses, handling both success and error cases, and updates the user interface accordingly.
-    - Reaction Form Submission Logic: Attaches an event listener to the main reaction form to handle submission. Prevents default form submission, manages form data, and sends it to the inputReactionUrl endpoint.
-    - Loading Indicator Management: Displays a loading indicator during data processing and disables the submit button to prevent multiple submissions.
-    - Error Display for Reaction Submission: Shows an error message in the user interface if an unexpected error occurs during form submission.
-    - VMH (Virtual Metabolic Human) Integration: Manages the functionality to retrieve reaction data from VMH. It includes enabling the 'Get from VMH' button based on input and handling the button click event to fetch data from the `getFromVmhUrl` endpoint.
-    - View Saved Reactions Feature: Attaches an event listener to the 'View Saved Reactions' button, prompting the user to enter a key and then navigating to the saved reactions page with the provided key.
-    - Save Reaction Functionality: Handles the saving of a reaction. This involves capturing user input for reaction identification and user key, sending the data to the `saveReaction` endpoint, and providing feedback to the user on success or failure.
-    - UX Enhancements: Includes various user experience improvements such as clearing input fields upon successful data submission, handling form field validation, and providing immediate feedback to user actions.
-3. **inputFieldHandling.js**
-    - Dynamic Field Management: Specializes in dynamically adding and removing input fields for substrates and products in the form.
-    - Adding Substrate and Product Fields: Implements `addField` function, called when 'Add Substrate' or 'Add Product' buttons are clicked. This function creates a new set of input fields including a number input for stoichiometry, a text input for the compound, and a select input for the compound type.
-    - Remove Button Functionality: Integrates event listeners on dynamically created 'Remove' buttons to delete their respective input group.
-    - File Input Management: Handles the toggling of file input fields with toggleFileInput function, which switches between text and file inputs based on the selected compound type, specifically for 'MDL Mol file' type.
-    - Field Creation with Pre-filled Data: Contains `addFieldWithData` function for adding fields with existing data, useful for pre-populating the form when editing existing reactions or loading data from external sources.
-    - Updating Form Fields from External Data: Features `updateFormFields` function to clear existing input groups and create new ones based on provided data, particularly useful for loading reaction details from an external source like VMH (Virtual Metabolic Human).
-    - Enhanced User Interaction: Improves user experience by allowing users to dynamically manage the number of substrates and products in their reactions and by providing a clear and intuitive interface for inputting or editing reaction components.
-4. **inputFieldHandling.js**
-    - Modal Display Control: Manages the display and hiding of modals in the application, specifically for 'Add Information' and 'Save Reaction' functionalities.
-    'Add Information' Modal Handling:
-        - Implements functionality to show the 'Add Information' modal upon clicking the 'Add Info' button.
-        - Clears text content and response messages in the modal when opened.
-        - Closes the modal when the close button is clicked.
-    - Dynamic Placeholder Management:
-        - Updates the placeholder text in the information text input field based on the selected information type (Reference, External Link, Gene Info, Comment).
-        - Dynamically adds or removes an additional dropdown for the 'External Link' type, enabling further specificity for the link type (e.g., KEGG orthology, Wikipedia).
-    - 'Save Reaction' Modal Handling:
-        - Handles the display of the 'Save Reaction' modal when the 'Save Reaction' button is clicked.
-        - Includes functionality to close the modal when the close button is clicked or when a click is detected outside the modal content.
-    - Enhanced User Interaction:
-        - Provides a user-friendly interface for adding reaction information and saving reactions, with clear and intuitive modal interactions.
-        - Ensures a smooth and non-disruptive user experience by handling modal interactions efficiently and effectively.
-5. **reactionDisplay.js**
-    - Tab Management for Reaction Details: Handles the display logic for different tabs (Chem Info, References, External Links, Gene Info, Comments) in the reaction detail section.
-        - Utilizes radio buttons to toggle between different content tabs.
-        - Adds event listeners to each tab to show the corresponding content when selected.
-    - Display Reaction Details: Implements `displayReactionDetails` function to show reaction data fetched from the server.
-        - Handles display of error messages and links to external resources (like VMH URLs) when available.
-        - Updates UI elements like status dots based on the data received (e.g., indicating whether substrates and products were found in databases).
-        - Fetches and displays additional details for the reaction in various tabs.
-    - Reaction Data Presentation: Contains `displayReactionData` function for visual representation of reaction details.
-        - Dynamically generates sections for each reaction, including images, molecular formulas, and balancing information.
-        - Creates and populates div elements with atom lists and other reaction-related data.
-    - Atom List Population: Features `populateAtomList` function to display lists of atoms involved in substrates or products, including their counts and names.
-        - Sorts atoms based on their count and displays them in a structured format.
-    - Tab Content Display: Provides `displayTabContent` function to populate specific tabs (like References or External Links) with relevant data in a table format.
-        -Generates HTML table elements dynamically based on the type of data received for each tab.
-    - Status Dot Updates: Implements `updateStatusDots` function to update the visual indicators (dots) next to substrates and products, showing whether they are found in the database.
-        - Makes these dots clickable, linking to external resources if available.
-    - Response Message Updates: Includes `updateResponseMessage` function to display success or error messages based on the responses received from server interactions.
-        - Dynamically updates the class of the message container to reflect the nature of the message (success or error).
-6. **reactionInitialization.js**
-    - Initial Reaction Data Loading: For cases where a specific reaction ID is passed in the URL, this initializes the reaction details when the page is loaded.
-    - URL Parameter Handling:
-        - Extracts the reaction_id from the URL query parameters using `URLSearchParams`.
-        - Ensures that the application responds dynamically to URL changes, allowing for deep linking to specific reactions.
-    - Fetching Reaction Data:
-        - If a `reaction_id` is present in the URL, makes a fetch request to the server using the `getReaction` URL concatenated with the `reaction_id`.
-        - Processes the response to display the reaction details on the page.
+2. **Creatediv.js**
+    - Mapping Buttons to Divs: The button_to_div object serves as a mapping between sidebar button IDs and corresponding div names. This allows for a clean and scalable way to associate each button with a specific content section.
+
+    - Event Listener Initialization: When the document is fully loaded (DOMContentLoaded event), the code selects all elements with the class .dynamic-button-side-button. It iterates through these buttons and checks if the button's ID exists in the button_to_div mapping.
+
+    - Toggle Visibility: When a button is clicked:
+        - It checks the corresponding div’s current display status.
+        - If the div is visible (display: block), the code hides the div and removes the 'active' class from the button.
+        - If the div is hidden, it shows the div and adds the 'active' class to the button.
+
+    - Dynamic Button State Management: The refreshSideButtons function is used to synchronize the button states with the visibility of the corresponding divs
+    - It iterates through the button_to_div entries.
+    - For each entry, it checks if the associated div is visible.
+    - If the div is visible, it adds the 'active' class to the button; otherwise, it removes the class.
+    - Initial State Synchronization: The refreshSideButtons function is called on window.onload, ensuring that when the page is loaded or refreshed, the    sidebar buttons reflect the correct state based on which divs are currently visible.
+
+3. **Displayalldivs.js**
+    - Loading Div Data: The first three function calls (loadAtomMappingDiv, loadChemInfoDiv, loadMetaboliteInfoDiv) populate the relevant divs with data from reactionData.
+
+    - Updating Status Dots: The updateStatusDots function is called twice to update the status dots for both substrates and products, indicating whether metabolites were found.
+
+    - Displaying Additional Information: displayReactionMessage and displayreactioninfo functions are used to show other relevant reaction information.
+
+    - Refresh Side Buttons: Finally, refreshSideButtons is called to ensure that the state of the side buttons accurately reflects the visibility of the divs.
+
+4. **displayAtomMapping.js**
+    - Message Container Initialization:
+        - The function begins by selecting the reactionFoundMessage element to potentially display messages.
+        - The contentDiv associated with atom mapping is also selected for further manipulation.
+        - It clears any previous messages in the reactionFoundMessage element.
+    - Error Handling:
+        - If reactionData contains an error, it formats the error message (replacing line breaks with HTML <br> tags).
+        - The error message is then displayed in a modal (#error-modal), and the page scrolls to the top to ensure visibility.
+    - Updating Atom Mapping Image:
+        - If no error is present, it first retrieves the existing image element (reactionImage) in the contentDiv.
+        - The function stores relevant attributes (class, name, id) of the image and then removes the old image element.
+        - A new image element is created with the same attributes and a new source URL that includes a cache buster to prevent caching issues.
+        - The new image element is then appended to the contentDiv.
+    - Blowup Effect:
+        - After the new image has loaded, a "blowup" effect is applied to it using jQuery, which allows for a zoomed-in view of the image when hovered over. The lens is customized in size and appearance (https://github.com/paulkr/blowup.js).
+    - Div Visibility:
+        - Finally, the contentDiv is set to be visible (display: block) to ensure the updated content is shown to the user.
+
+5. **displayChemInfoDiv**
+    - **Purpose**: Dynamically generates and displays chemical information based on the provided `reactionData`.
+    - **Parameters**: 
+        - `reactionData`: Object containing data related to the chemical reaction.
+    - **Functionality**:
+        - Clears and sets up the main content area (`contentDiv`) for displaying chemical information.
+        - Creates and appends a status text indicating whether the reaction is balanced in terms of atoms and charge.
+        - Dynamically assigns colors to atom types and displays them in the molecular formula.
+        - Displays mass and charge balance information.
+        - Handles the creation and display of reaction formulas, including user interaction elements (input fields, dropdowns, and buttons) for unrecognized metabolites.
+        - Includes a "Save All" button that automates the saving of user inputs by triggering all relevant actions and sending data to the backend.
+        - Constructs and appends a comparison table showing atom counts in substrates and products, highlighting discrepancies.
+        - Generates distinct colors for atom types using the `getDistinctColors` function.
+    - **Helper Functions**:
+        - `populateAtomComparisonTable()`: Populates a table comparing atom counts between substrates and products, along with charge information.
+        - `getDistinctColors()`: Generates distinct colors for atom types based on the golden angle approximation.
+    - **Loader Functions**:
+        - `showLoaderdiv(message)`: Displays a loader with a modal background and a custom message.
+        - `hideLoaderdiv()`: Hides the loader and modal background after the operation is complete.
+    - **User Interaction**:
+        - Includes dropdowns and input fields for user to manually input abbreviations for unrecognized metabolites.
+        - Automatically saves and updates formulas based on user interactions.
+
+6. **displayMetaboliteInfo.js**
+    - **loadMetaboliteInfoDiv(reactionData)**
+        - **Purpose**: Initializes and displays the metabolite information section within a specified content div.
+        - **Parameters**: 
+            - `reactionData`: Object containing data related to the metabolites involved in a reaction, including their names, formulas, and molecular structures.
+        - **Functionality**:
+            - Checks if the metabolite information div is present in the DOM.
+            - Sets up the header for the metabolite information section.
+            - Calls `fillMetaboliteInfoTab` to populate the section with detailed metabolite information.
+        - **Error Handling**: Logs an error to the console if the metabolite info div is not found.
+
+    - **fillMetaboliteInfoTab(data)**
+        - **Purpose**: Populates the metabolite information section with details about each metabolite, including the name, charged formula, and a toggleable 3D structure viewer.
+        - **Parameters**:
+            - `data`: Object containing metabolite data, including names, formulas, and 3D structure data in SDF format.
+        - **Functionality**:
+            - Iterates through each metabolite and creates a div container to hold the metabolite's name, formula, and a button to toggle the 3D structure viewer.
+            - If the user clicks the "Show 3D Structure" button, it initializes a 3Dmol.js viewer with the corresponding molecular structure and displays it.
+            - The 3D structure is hidden by default and can be toggled on/off by the user.
+        - **3D Viewer Initialization**:
+            - Configures and renders a 3D structure viewer using 3Dmol.js.
+            - Allows the user to click on atoms to display labels in the 3D structure.
+        
+    - **toggleStructure()**
+        - **Purpose**: Adds event listeners to buttons that toggle the visibility of additional content (such as 3D structures or messages) associated with each metabolite.
+        - **Functionality**:
+            - Attaches click event listeners to all elements with the class `toggle-button`.
+            - Toggles the visibility of a sibling element (e.g., 3D structure container) and updates the button text accordingly.
+        - **Use Case**: General-purpose function for toggling the display of content sections in the metabolite information div.
+
+7. **displayReactionMessage.js**
+    - **Purpose**: Displays a message indicating whether the reaction data was found on the VMH (Virtual Metabolic Human) database and provides a link to the relevant VMH page if available.
+    - **Parameters**:
+        - `reactionData`: Object containing information about the reaction, including whether it was found on VMH, if it's an exact or similar match, and the VMH URL.
+    - **Functionality**:
+        - Clears any previous messages in the `reactionFoundMessage` container.
+        - Checks if the reaction was found on VMH:
+            - If found, displays a message indicating whether the match is exact or similar.
+            - Provides a clickable link to the VMH entry.
+        - If the reaction is not found, displays a message stating "Reaction not found at VMH".
+        - Ensures the message is visible by setting the display style of the message container to `block`.
+
+8. **displaysavedReaction.js**
+    - **Functionality**:
+        - Attaches a click event listener to the `viewsavedreactions-button`.
+        - When the button is clicked:
+            - **If the user is logged in**:
+                - Retrieves the `userID` from `sessionStorage`.
+                - Redirects the user to the `/saved_reactions` page to view their saved reactions.
+            - **If the user is not logged in**:
+                - Displays an error message prompting the user to log in before they can view saved reactions.
+                - Calls `showErrorModal(errorMessage)` to display the error in a modal window.
+
+9. **flag.js**
+    - **General Overview**
+        - Manages the creation, selection, and display of custom flags for a user, including loading existing flags and submitting new ones.
+
+    - **openCreateFlagModal()**
+        - **Purpose**: Opens the interface for creating a new flag and hides the save reaction interface.
+
+    - **closeCreateFlagModalAndReopenSaveReaction()**
+        - **Purpose**: Closes the flag creation interface and reopens the save reaction interface.
+
+    - **updateColorDisplay()**
+        - **Purpose**: Updates the visual display to reflect the color of the currently selected flag.
+
+    - **loadFlags()**
+        - **Purpose**: Loads the user's existing flags from the server and updates the selection options accordingly.
+
+    - **submitCreateFlagButton Event Listener**
+        - **Purpose**: Handles the submission of a new flag to the server, reloads the flag list, and reopens the save reaction interface upon success.
+
+    - **Initial Flag Loading**
+        - **Purpose**: Automatically loads the user's flags when the page is accessed, provided the user is logged in.
+
+10. **geneinfoinput.js**
+    - **General Overview**
+        - Manages the creation and handling of gene information input, including user interactions for adding gene symbols, logical operators (AND, OR), and parentheses within an editable field.
+
+    - **createGeneInfoInput()**
+        - **Purpose**: Initializes the gene information input section, including an editable area for gene input and a set of buttons for logical operations.
+        
+    - **createButton(label)**
+        - **Purpose**: Creates a button with the specified label and assigns an event listener to handle the corresponding action when the button is clicked.
+        
+    - **handleButtonClick(label)**
+        - **Purpose**: Handles the actions triggered by different buttons, such as inserting logical operators or gene symbols into the input field or opening a modal for gene input.
+
+    - **getCursorPosition()**
+        - **Purpose**: Retrieves the current cursor position within the editable input area, which is used to correctly insert text at the desired location.
+
+    - **disableKeyboardInput()**
+        - **Purpose**: Disables certain keyboard inputs within the gene information input field, allowing only specific keys such as Backspace and arrow keys.
+
+    - **insertTextAtCursor(textToInsert, cursorPosition)**
+        - **Purpose**: Inserts the specified text at the current cursor position within the input field and ensures the inserted text is non-editable.
+
+    - **placeCursorAtEnd(element)**
+        - **Purpose**: Moves the cursor to the end of the content within the specified element, typically used after inserting text.
+
+    - **createAndShowModal(onConfirm)**
+        - **Purpose**: Creates and displays a modal window for entering gene information, allowing the user to input and confirm gene symbols or IDs.
+
+    - **submitGeneInfo(inputValue, selectValue)**
+        - **Purpose**: Submits the gene information to the server and returns the corresponding gene symbol if successful.
+
+    - **clearSession()**
+        - **Purpose**: Sends a request to the server to clear the current session, handling any errors that may occur during the process.
+
+11. **getreactionfromvmhandrhea.js**
+    - **General Overview**
+        - Manages user interactions and data fetching related to retrieving reaction information from VMH (Virtual Metabolic Human) and RHEA databases based on user input.
+
+    - **handleReactionSelectChange()**
+        - **Purpose**: Handles changes in the reaction source selection dropdown. Updates the state of the input field and the submit button based on the selected source (VMH or RHEA).
+        - **Functionality**:
+            - Enables the input field and updates its placeholder based on the selected source.
+            - Displays or hides the submit button depending on whether a valid source is selected.
+
+    - **handleVmhFetch()**
+        - **Purpose**: Fetches reaction data from the VMH database using the entered reaction abbreviation.
+        - **Functionality**:
+            - Sends a POST request with the reaction abbreviation to the server endpoint responsible for retrieving VMH data.
+            - Handles the server response by updating form fields with the retrieved data or displaying an error message.
+
+    - **handleRheaFetch()**
+        - **Purpose**: Fetches reaction data from the RHEA database using the entered reaction ID.
+        - **Functionality**:
+            - Sends a POST request with the reaction ID to the server endpoint responsible for retrieving RHEA data.
+            - Handles the server response by updating form fields with the retrieved data or displaying an error message.
+
+    - **Initialization**
+        - **DOMContentLoaded Event Listener**: 
+            - Sets up event listeners for the reaction selection dropdown, submit button, and modal trigger.
+            - Calls `handleReactionSelectChange()` on page load to ensure the input field and submit button are correctly initialized based on the selected reaction source.
+
+12. **getrxnfromtemplate.js**
+    - **General Overview**
+        - Manages the interaction for selecting and applying a reaction template from a modal, including enabling buttons based on user selections and fetching the template data.
+
+    - **Initialization**
+        - **DOMContentLoaded Event Listener**: 
+            - Sets up event listeners for the template selection dropdown, the button to show the modal, and the apply button.
+            - Initializes the modal display and enables or disables the apply button based on the user's selection.
+
+    - **Template Selection and Modal Display**
+        - **Modal Trigger**: 
+            - Displays the modal for selecting a reaction template when the corresponding button is clicked.
+
+    - **Reaction Template Selection**
+        - **Reaction Selection Dropdown**: 
+            - Monitors changes in the dropdown selection and enables the apply button when a valid template option is selected.
+
+    - **handleTemplateButtonClick(option)**
+        - **Purpose**: Fetches the selected reaction template data from the server and updates the form fields with the retrieved data.
+        - **Functionality**:
+            - Sends a POST request with the selected reaction type to the server.
+            - Processes the server response and updates the form with the template data.
+            - Hides the modal after successfully applying the template.
+
+    - **Button Interaction**
+        - **Apply Template Button**:
+            - Triggered when the user clicks the apply button. It fetches the selected template data and updates the form accordingly.
+
+13. **login_modal.js**
+    - **General Overview**
+        - Handles user login, session management, and subsequent actions related to task handling within modals.
+
+    - **Login and Logout Handling**
+        - **Login Button Event Listener**:
+            - Opens the login modal when the "Log in" button is clicked.
+            - Logs the user out, clears session storage, and updates the UI when the "Log out" button is clicked.
+
+        - **Modal Close Event Listener**:
+            - Closes the login modal when the close icon is clicked.
+
+        - **Form Submission Handling**:
+            - Submits the login form using AJAX to authenticate the user.
+            - On successful login, updates the session storage with user information, displays the user's name, and changes the button text to "Log out".
+            - Displays the task modal after login and hides the login modal.
+
+    - **Task Modal Handling**
+        - **Go Back Button Event Listener**:
+            - Fetches available reactions for the logged-in user and hides the task modal when the "Go Back" button is clicked.
+
+        - **Cancel Button and Close Icon Event Listeners**:
+            - Hides the task modal and overlay when the "Cancel" button or the close icon is clicked.
+
+    - **fetchAvailableReactions(userId)**
+        - **Purpose**: Fetches the list of available reactions for the logged-in user from the server.
+        - **Functionality**:
+            - Sends a POST request with the user ID to the server.
+            - Handles the server response by either processing the data or logging an error.
+
+    - **handleLoginResponse(data)**
+        - **Purpose**: Handles the server's response after fetching available reactions.
+        - **Functionality**:
+            - If there are available reactions, redirects the user to the reaction page with the last reaction ID.
+            - If no reactions are available, hides the login modal.
+
+14. **OrganDropdown.js**
+    - **General Overview**
+        - Provides functionality for a custom tag input system where users can type or select organs from a dropdown menu, with added support for displaying and managing these tags.
+
+    - **Tag Input and Dropdown Handling**
+        - **Initialization**:
+            - Sets up the input container and dropdown menu for organ selection.
+
+        - **organTagsContainer Event Listeners**:
+            - **Click Event**:
+                - Opens the dropdown menu when the input container is clicked, allowing users to select organs from a predefined list.
+            - **Keydown Event**:
+                - Handles user input within the container, allowing users to add new tags by pressing Enter or comma.
+                - Deletes the last tag when Backspace is pressed if the input area is empty.
+
+    - **Dropdown Interaction**
+        - **renderDropdown(items, dropdown)**:
+            - Renders the dropdown menu with a list of selectable organs.
+            - When an organ is clicked, it is added as a tag to the input container, and the dropdown is hidden.
+
+        - **Global Click Event Listener**:
+            - Closes the dropdown when the user clicks outside the input container or dropdown.
+
+    - **Tag Management**
+        - **addTag(tagText)**:
+            - Adds a new tag to the input container based on user input or selection.
+            - Prevents the addition of duplicate tags.
+            - Ensures the cursor is properly positioned after adding a tag for seamless input continuation.
+
+    - **Display Existing Tags**
+        - **DisplayTag(tags)**:
+            - Converts a string of tags into individual tag elements within the input container.
+            - Used for initializing or restoring tags from a saved state.
+            - Prevents duplicate tags and ensures proper tag structure with close buttons.
+
+    - **Utility Functions**
+        - **Organ List Handling**:
+            - Filters and deduplicates a predefined list of organs, ensuring unique selections for the dropdown.
+15. **reactantsdisplay.js**
+    - **General Overview**
+        - Initializes the user interface, manages session status, and sets up event listeners for a reaction display page.
+
+    - **Initialization**
+        - **DOMContentLoaded Event Listener**:
+            - Sets up the initial state of the page once the DOM is fully loaded.
+            - Checks if a user is logged in by verifying `sessionStorage` and updates the UI accordingly.
+            - Sets the session user on the server and manages tooltips, reaction creation, gene info input, and reaction data display.
+
+    - **Session Management**
+        - **User Session Initialization**:
+            - If the user is logged in, sets the user status and displays their username.
+            - Sends a POST request to the server to set the session user, handling success and error responses.
+
+    - **Page Setup and Event Handling**
+        - **Tooltips and Event Listeners**:
+            - Calls `setupTooltips()` to initialize tooltips on the page.
+            - Attaches event listeners to various elements for handling user interactions, such as form submissions and button clicks.
+
+        - **Reaction Handling**:
+            - Fetches and updates reaction data if a reaction ID is present in the URL or if the action is set to 'edit'.
+            - Displays relevant reaction data and UI elements based on the fetched data.
+            - Fetches subsystem data if it is not already loaded and updates the UI.
+
+        - **createnewreaction()**:
+            - Sets up an event listener for the reset button that redirects the user to the homepage when clicked.
+
+    - **Utility Functions**
+        - **DisplayTag()**:
+            - Displays tags for organs or other relevant data in the UI based on provided data.
+
+        - **setLoggedInStatusBasedOnUrl()**:
+            - Ensures the correct user session status is displayed based on the current URL.
+
+16. **reactantsformhandling.js**
+    - **General Overview**
+        - Manages form submission, validation, and UI interactions for handling reactant inputs in a reaction creation or editing process.
+
+    - **Form Submission Handling**
+        - **submitBtn-form Event Listener**:
+            - Triggers the form submission when the submit button is clicked, ensuring the default form submission behavior is prevented.
+        
+        - **reactionForm Event Listener**:
+            - Handles the main form submission process, including validation of inputs and subsystem fields, enabling/disabling form fields, and managing the loading indicator during the submission.
+            - If the form is valid, the data is sent via a POST request to the server for processing.
+            - Upon success, the page is redirected based on the action (create or edit).
+
+    - **Modal and Loading Indicator Management**
+        - **hidemodal()**:
+            - Hides the error modal when called.
+
+        - **showLoader() and hideLoader()**:
+            - Controls the visibility of a loading indicator during form processing.
+
+        - **showErrorModal(message)**:
+            - Displays an error message in a modal window to inform the user of any issues during form submission or validation.
+
+    - **Validation and User Interaction**
+        - **Subsystem Validation**:
+            - Validates the subsystem field to ensure it is filled and prompts the user to confirm if a new subsystem needs to be added.
+            - Updates the subsystem list if the user confirms the addition of a new subsystem.
+
+        - **Metabolite Name Validation**:
+            - Ensures that all required metabolite names are entered before allowing form submission.
+
+    - **Supporting Functions**
+        - **persistSubsystemList(newSubsystem)**:
+            - Sends a POST request to update the subsystem list on the server with a new entry.
+
+        - **updateStatusDots(containerId, foundList, miriamsList) and updateStatusDot(dot, found, miriam)**:
+            - Updates the visual status indicators (dots) associated with metabolite validation, including whether they are found in VMH and linked to external resources.
+
+        - **confirmAll()**:
+            - Triggers confirmation actions on all relevant form fields, ensuring that all necessary data is validated and confirmed.
+
+        - **setupTooltips()**:
+            - Sets up tooltips for additional information on certain UI elements, enhancing the user experience by providing contextual help.
+
+17. **reactantsinputfieldmanagement.js**
+    - **General Overview**
+        - Manages the interaction and validation of input fields for substrates and products within a reaction form. This includes dynamic field addition, input validation, and dropdown handling.
+
+    - **Subsystem Dropdown Handling**
+        - **subsystemField Event Listener**:
+            - Filters and displays matching subsystem options in a dropdown as the user types.
+            - Fills the input field with the selected subsystem when a dropdown option is clicked.
+
+        - **Document Click Event Listener**:
+            - Closes the subsystem dropdown when the user clicks outside the input field or dropdown.
+
+    - **Placeholder Management**
+        - **updatePlaceholder(selectElement, inputElement)**:
+            - Updates the placeholder text of an input field based on the selected type from a dropdown (e.g., "VMH Abbreviation", "ChEBI ID").
+            - Initializes the placeholder text based on the current selection.
+
+    - **Field Management**
+        - **addField(containerId, inputName, numberName)**:
+            - Dynamically adds a new input field for substrates or products, including compartments and type selectors.
+            - Adds necessary event listeners for input validation and file handling.
+
+        - **addFieldWithData(container, name, schName, value, schValue, compValue, type, metab_name=null)**:
+            - Adds a new input field with pre-filled data for substrates or products, useful for editing existing reactions.
+
+        - **removeField(button)**:
+            - Removes an input field group when the corresponding "Remove" button is clicked.
+
+    - **Compartment and Type Management**
+        - **applyAllSubsComps** and **applyAllProdsComps**:
+            - Applies the selected compartment value to all substrate or product compartment dropdowns.
+
+        - **applyAllSubsType** and **applyAllProdsType**:
+            - Applies the selected type to all substrate or product type dropdowns.
+            - Updates the corresponding input fields and toggles file inputs if necessary.
+
+    - **Event Listener Initialization**
+        - **attachEventListenersToDoneButtons() and attachEventListenersToDoneAllButtons()**:
+            - Sets up event listeners for "Done" and "Done All" buttons to handle metabolite verification and input validation.
+
+        - **toggleRotation(event)**:
+            - Toggles a rotation class on an image element within a button, typically used to indicate an expanded/collapsed state.
+
+        - **toggleFileInput(container, selectValue)**:
+            - Toggles between text and file input fields based on the selected type in the dropdown (e.g., "MDL Mol file" shows a file input).
+
+    - **Field Update and Validation**
+        - **updateFormFields(data)**:
+            - Populates the form fields with substrate and product data from a provided dataset, typically used when editing a reaction.
+
+        - **handleDoneButtonClick(event) and handleDoneAllButtonClick(event)**:
+            - Validates and processes individual or all metabolite inputs, verifying them against a database and updating the UI accordingly.
+
+        - **updateNameFields(data, main_input, typeField, button, showButton)**:
+            - Updates hidden name fields and visual indicators based on the verification results of a metabolite input.
+            - Manages the state of the input fields and related buttons based on whether the metabolite was found in the database.
+
+18. **reactioninfoformhandling.js**
+    - **General Overview**
+        - Manages the interaction, submission, and display of reaction-related information such as comments, references, external links, and gene information within a reaction form.
+
+    - **Variable Initialization**
+        - **infoType, extLinkType, refType**:
+            - Variables to hold the type of information being processed, determined by the user's interaction with specific sections of the UI.
+
+    - **Event Handling for Information Sections**
+        - **Event Listener for `.content-div` elements**:
+            - Sets up click event listeners for different sections (comments, references, external links, and gene info).
+            - Adjusts the `infoType`, `extLinkType`, and `refType` variables based on the clicked section.
+            - Calls `setupSubmitHandler()` to initialize form submission handling based on the selected section.
+
+    - **Form Submission Handling**
+        - **setupSubmitHandler(submitButtonId, Infotextid)**:
+            - Configures the submit button for the specific section based on user interaction.
+            - Handles data preparation and submission for the selected section, including making POST requests for gene information parsing.
+
+        - **submitData(data)**:
+            - Submits the prepared data to the server using a POST request.
+            - Upon successful submission, updates the UI by fetching and displaying the relevant reaction details (comments, references, external links, gene info) in the corresponding tabs.
+
+    - **Gene Information Management**
+        - **Gene Info Processing**:
+            - Handles the special case of gene info submission, where gene information is parsed and organ locations are added before submission.
+            - **AddOrganLocation(data)**:
+                - Submits gene information to the server to retrieve organ and subcellular location data before final submission.
+
+        - **parseInfo(info)**:
+            - Parses gene information to extract GPR, organ, and subcellular location details from the input text.
+
+        - **deleteGeneInfoFromSession(itemToDelete)**:
+            - Deletes gene information from the session data upon user confirmation.
+
+    - **Tab Content Display**
+        - **displayTabContent(tableId, reaction_info, reaction_id)**:
+            - Dynamically populates the content of a specified tab (comments, references, external links, gene info) with the fetched reaction data.
+            - **Gene Info Tab**:
+                - Special handling for displaying gene info, including organ and subcellular location tags.
+            - **Comments, References, and External Links Tabs**:
+                - Displays the relevant content along with user information and delete buttons.
+
+    - **Delete Operations**
+        - **deleteItem(reactionId, tabId, itemToDelete, rowElement)**:
+            - Handles the deletion of a specific piece of information (comment, reference, external link) from the reaction data.
+            - Removes the corresponding row from the UI upon successful deletion.
+
+    - **Utility Functions**
+        - **applyOrganFunction(organ)**:
+            - Adds organ tags to the input field, ensuring no duplicates and allowing for tag removal.
+        - **applySubcellularLocation(location)**:
+            - Applies subcellular location to all relevant compartments in the substrates and products sections of the form.
+
+    - **Session Management**
+        - **displayreactioninfo(reactionData)**:
+            - Manages the display of reaction information based on the provided `reactionData` or session data.
+            - If gene info is present in the session, it submits this data and clears the session afterward.
+            - Fetches and displays reaction details in the UI after handling session data.
+
+19. **register_modal.js**
+    - **General Overview**
+        - Manages the user registration process, including modal display, form submission, and password validation.
+
+    - **Modal Handling**
+        - **Show Register Modal**:
+            - **register-link Event Listener**:
+                - Displays the registration modal and hides the login modal when the "Register" link is clicked.
+        
+        - **Close Modal**:
+            - **.ui.modal .close Event Listeners**:
+                - Hides the closest modal when the close button (X) within any modal is clicked.
+
+    - **Form Submission Handling**
+        - **registerForm Event Listener**:
+            - Handles the registration form submission via an AJAX POST request.
+            - Gathers user inputs (username, password, ORCID ID, email) and sends them to the server.
+            - On successful registration, the user's session is updated, and the registration modal is hidden.
+
+    - **Password Validation**
+        - **password-reg Event Listener**:
+            - Validates the password input in real-time against predefined criteria:
+                - Minimum length of 8 characters.
+                - At least one uppercase letter.
+                - At least one lowercase letter.
+                - At least one number.
+                - At least one special character from the set `!@#$%^&*`.
+            - Updates the UI to show which criteria are met by adding or removing appropriate classes (`valid` or `invalid`) from corresponding elements.
+
+    - **Session Management**
+        - Upon successful registration, the user's session storage is updated with `userID` and `userName`, and the UI reflects the logged-in status.
+
+    - **Error Handling**
+        - Displays an alert to the user if the registration process fails, either due to missing fields or server-side errors.
+
+20. **savereaction.js**
+    - **General Overview**
+        - Handles the saving of reaction data by interacting with the backend to check if the reaction is already saved and submitting the necessary information to save a reaction with a custom name and flag.
+
+    - **Event Handling**
+        - **Save Reaction Button (`saveReactionButton`)**:
+            - Triggered when the user clicks the "Save Reaction" button.
+            - Checks if the reaction has already been saved for the user:
+                - If not saved, displays a custom modal for the user to enter a short name and select a flag.
+                - If already saved, alerts the user.
+
+        - **Close Save Reaction Modal (`closeSaveReactionModal`)**:
+            - Closes the save reaction modal and the background overlay when the close button is clicked.
+
+        - **Submit Save Reaction (`submitSaveReaction`)**:
+            - Triggered when the user submits the save reaction form.
+            - Validates that a short name is entered before proceeding.
+            - Submits the reaction data, including the user ID, reaction ID, short name, and selected flag, to the server via an AJAX POST request.
+
+    - **Modal Management**
+        - **Opening and Closing the Save Reaction Modal**:
+            - The modal is displayed if the reaction is not already saved and hides upon successful save or when the close button is clicked.
+
+    - **Form Submission Handling**
+        - **Asynchronous Submission**:
+            - Checks if the reaction ID is available and the user is logged in.
+            - If validation passes, it sends the form data (including the user ID, reaction ID, short name, and flag) to the server.
+            - Alerts the user upon success or failure of the save operation.
+
+    - **Validation and Error Handling**
+        - Ensures the reaction ID and user ID are present before proceeding.
+        - Validates that the short name input is not empty.
+        - Provides user feedback through alerts for various states, such as missing inputs, successful saves, and errors during the process.
+
+21. **status.js**
+    - **General Overview**
+        - Manages the status display based on the user's login state and the current URL parameters. The status is shown in the UI with an associated colored dot indicating the current state.
+
+    - **Functions**
+        - **setLoggedInStatusBasedOnUrl**:
+            - Determines and displays the status for logged-in users based on the current URL parameters.
+            - **Logic**:
+                - **Viewing Reaction**: 
+                    - Status: "Viewing reaction".
+                    - Dot Color: Green (`dot-green`).
+                    - Triggered if the user is not in edit mode and a reaction ID is present.
+                - **Creating Reaction**:
+                    - Status: "Creating reaction".
+                    - Dot Color: Blue (`dot-blue`).
+                    - Default status when a reaction is being created (when no reaction ID is present and the user is not editing).
+                - **Editing Reaction**:
+                    - Status: "Editing reaction".
+                    - Dot Color: Orange (`dot-orange`).
+                    - Triggered if the user is in edit mode (i.e., `action=edit` in the URL).
+            - **DOM Interaction**:
+                - Updates the inner HTML of the element with `id="statusTitle"` to reflect the current status and color-coded dot.
+                - Logs an error if the status element is not found in the DOM.
+
+        - **setLoggedOutStatusBasedOnUrl**:
+            - Displays a default "Idle" status for logged-out users.
+            - **Logic**:
+                - **Idle**:
+                    - Status: "Idle".
+                    - Dot Color: Grey (`dot-grey`).
+                    - This is the default status shown to users who are not logged in.
+            - **DOM Interaction**:
+                - Updates the inner HTML of the element with `id="statusTitle"` to reflect the "Idle" status and the grey dot.
+                - Logs an error if the status element is not found in the DOM.
+
+    - **Status Display**:
+        - The status is dynamically updated in the UI based on the user's actions and the current page context, providing immediate feedback on the state of the application.
+        - The colored dot next to the status text provides a visual indication of the current state.
+
+22. **utilityFunction.js**
+    - **General Overview**
+        - Contains utility functions that provide reusable code snippets for various tasks across the application.
+
+    - **Functions**
+        - **getDistinctColors(count)**:
+            - Generates a list of distinct colors in HSL (Hue, Saturation, Lightness) format, specifically designed to avoid yellow and near-yellow hues.
+            - **Parameters**:
+                - `count`: The number of distinct colors to generate.
+            - **Logic**:
+                - **Hue Step Calculation**:
+                    - The hue step is calculated as `360 / count`, ensuring that colors are evenly spaced across the color wheel.
+                - **Lightness**:
+                    - Set to 40% to achieve a balance between visibility and distinction without being too dark.
+                - **Yellow Hue Avoidance**:
+                    - The function skips hues between 50 and 70 degrees to avoid generating yellow or near-yellow colors, which may be harder to distinguish in certain contexts.
+            - **Returns**:
+                - An array of strings, each representing a color in the `hsl(hue, 100%, lightness%)` format.
+            - **Example Usage**:
+                - Calling `getDistinctColors(5)` might return an array of 5 distinct colors, excluding yellow tones.
+
+
 ### Django Application Files
 1. **views.py**
     - Django View Functions: Contains various view functions to handle different aspects of the web application.
@@ -141,6 +721,7 @@ Ensure you have the following installed:
         - Adding new metabolites to the database (if needed), including their formulas, charges, and InChIKeys, using MATLAB integration.
         - Constructing and saving new reaction entities with complete details including subsystem, directionality, and associated gene information.
         - Providing feedback on the operation's success, including detailed lists of added reactions and metabolites.
+    
 2. **reaction_info.py**
     - Reaction Information Processing: Provides functions for processing chemical reactions, like balancing checks and molecular formula generation.
     - Total Charge Calculation: Calculates the total charge of molecules in a reaction.
