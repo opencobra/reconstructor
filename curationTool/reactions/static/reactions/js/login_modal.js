@@ -128,7 +128,7 @@ function handleLoginResponse(data) {
       loginModal.style.display = 'none';
   } else {
       const lastReactionId = data.last_index;
-      window.location.href = window.location.origin + "/?reaction_id=" + lastReactionId;
+      window.location.href = window.location.origin + "/?reaction_id=" + lastReactionId +"&action=edit";
   }
 }
 

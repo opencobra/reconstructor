@@ -56,7 +56,7 @@ class Reaction(models.Model):
     comments = models.JSONField(blank=True, null=True)
     confidence_score = models.CharField(blank=True, max_length=10, null=True)
     rxn_formula = models.TextField(blank=True, null=True)
-
+    
     flags = models.ManyToManyField('Flag', blank=True, related_name='flagged_reactions')
 
 

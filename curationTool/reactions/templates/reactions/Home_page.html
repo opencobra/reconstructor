@@ -643,23 +643,20 @@
                     <input type="text" id="username-reg" placeholder="Username" required autocomplete="username">
                 </div>
                 <div class="field">
+                    <label for="fullname-reg">Full Name</label>
+                    <input type="text" id="fullname-reg" placeholder="Full Name" required autocomplete="name">
+                </div>
+                <div class="field">
                     <label for="email">Email</label>
                     <input type="email" id="email" placeholder="Email" required autocomplete="email">
                 </div>
                 <div class="field">
                     <label for="password-reg">Password</label>
                     <input type="password" id="password-reg" placeholder="Password" required autocomplete="new-password">
-                    <ul id="password-criteria">
-                        <li id="length-criteria" class="invalid">At least 8 characters</li>
-                        <li id="uppercase-criteria" class="invalid">At least one uppercase letter</li>
-                        <li id="lowercase-criteria" class="invalid">At least one lowercase letter</li>
-                        <li id="number-criteria" class="invalid">At least one number</li>
-                        <li id="specialChar-criteria" class="invalid">At least one special character (!@#$%^&*)</li>
-                    </ul>
                 </div>
                 <div class="field">
                     <label for="orchidid">ORCID ID</label>
-                    <input type="text" id="orchidid" placeholder="ORCID ID" required>
+                    <input type="text" id="orchidid" placeholder="ORCID ID">
                 </div>
                 <button class="ui button primary" type="submit">Register</button>
             </form>

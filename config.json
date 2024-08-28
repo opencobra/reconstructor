@@ -5,6 +5,7 @@
         "/home/saleh/cobratoolbox"
     ],
     "cobra_path": "/home/saleh/cobratoolbox",
-    "DEBUG": true
+    "DEBUG": true,
+    "file_path": "curationTool/reactions/normal_tissue.tsv"
 }
 

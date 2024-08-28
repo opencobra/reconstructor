@@ -66,7 +66,6 @@ document.getElementById('submitSaveReaction').addEventListener('click', function
     var shortName = shortNameInput.value;
     var flag_name = document.getElementById('flagSelectCustom').options[document.getElementById('flagSelectCustom').selectedIndex].text;   
     var flag_color = document.getElementById('flagSelectCustom').options[document.getElementById('flagSelectCustom').selectedIndex].getAttribute('data-color');
-    var flag_data = `flag:"${flag_name}",${flag_color}`;
 
     // Clear any previous custom validity message
     shortNameInput.setCustomValidity('');
@@ -79,12 +78,12 @@ document.getElementById('submitSaveReaction').addEventListener('click', function
             shortNameInput.reportValidity();
             return; // Prevent form submission
         }
-
         var data = new FormData();
         data.append('userID', userID);
         data.append('reaction_id', reactionId);
         data.append('short_name', shortName);
-        data.append('flag', flag_data);
+        data.append('flag_name', flag_name);
+        data.append('flag_color', flag_color);
 
         fetch(saveReaction, {  // Use the correct URL here
             method: 'POST',

@@ -123,6 +123,36 @@
             
         </div>
 
+        <div id="savedReactionsModal" class="ui modal savedreactions" style="display: none;">
+            <div class="header"> Saved Reactions Page</div>
+            <div class="content">
+                <form class="ui form" id="saveReactionToSavedPageForm">
+                    <input type="text" id="reactionNameInputSavedPage" placeholder="Name the reaction">
+        
+                    <!-- Dropdown for selecting an existing flag -->
+                    <label for="flagSelectSavedPage">Choose a flag (optional):</label>
+                    <div style="display: flex; align-items: center;">
+                        <select id="flagSelectSavedPage" class="ui dropdown">
+                            <option value="">None</option>
+                            <!-- Flags will be loaded here by JavaScript -->
+                        </select>
+                        <div id="flagColorDisplaySavedPage" style="width: 35px; height: 35px; margin-left: 10px; border: 1px solid #ccc;"></div>
+        
+                        <button type="button" id="createFlagButtonSavedPage" class="ui button" style="margin-left: 10px;">+</button>
+        
+                        <!-- Color display box -->
+                    </div>
+        
+                    <p>Your reaction is about to be saved to the Saved Reactions page. Do you want to proceed?</p>
+                </form>
+            </div>
+            <div class="actions">
+                <div class="ui cancel button" id="closeSavedReactionsModal">Cancel</div>
+                <div class="ui approve button" id="submitSavedReactions">Save</div>
+            </div>
+        </div>
+        
+
         {% if reactions %}
         <table class="reactions-table" id="reactionList">
             <thead>
@@ -176,7 +206,8 @@
                             <input type="hidden" name="reaction_id" value="{{ item.reaction.id }}">
                             <button type="submit" class="delete-btn">Delete</button>
                         </form>
-                        <button onclick="viewReaction({{ forloop.counter0 }})" class="view-btn">Edit</button>
+                        <button class="view-btn">Edit</button>
+                        <button type="button" class="clone-btn" onclick="cloneReaction({{ item.reaction.id }})">Clone</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -204,7 +235,7 @@
         {% comment %} <script src="{% static 'reactions/js_savedreactions/queryai.js' %}"></script> {% endcomment %}
         <script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
-
-    <script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
+        <script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
+        
 </body>
 </html>

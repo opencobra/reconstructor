@@ -23,6 +23,15 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
     e.preventDefault(); // Prevent the default form submission
 
     var submitBtn = document.getElementById('submitBtn-form');
+    currentUrl = window.location.href;
+    if (currentUrl.includes('edit')) {
+        // pop up that says "are you sure you want to update this reaction?"
+        var userConfirmed = confirm('Are you sure you want to update this reaction?');
+        if (!userConfirmed) {
+            return; // Exit the function and do not submit form
+        }
+    }
+
     var loadingIndicator = document.getElementById('loadingIndicator');
 
 
@@ -122,7 +131,7 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
 
         formData.append('reaction_id', reactionId);
     }   
-
+    formData.append('userID', sessionStorage.getItem('userID'));
 
     fetch(inputReactionUrl, {
         method: 'POST',
@@ -134,7 +143,14 @@ document.getElementById('reactionForm').addEventListener('submit', function(e) {
     })
     .then(response => response.json())
     .then(async (data) => {
-        if (action !== 'edit' && data.reaction_id) { // reactionId is taken from the response
+        if (data.status === 'error') {
+            showErrorModal(data.message);
+            window.scrollTo(0, 0);
+            submitBtn.disabled = false;
+            loadingIndicator.style.display = 'none';
+            return;
+        }
+        else if (action !== 'edit' && data.reaction_id) { // reactionId is taken from the response
             const userID = sessionStorage.getItem('userID');
             const reactionId = data.reaction_id; // Ensure reactionId is obtained from the response
             

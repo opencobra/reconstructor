@@ -19,7 +19,7 @@ from django.urls import path
 from reactions import views
 from django.conf import settings
 from django.conf.urls.static import static
-from reactions.views import saved_reactions  # Correctly import from the app where the views.py is located
+from reactions.views import saved_reactions 
 
 
 urlpatterns = [
@@ -55,16 +55,16 @@ urlpatterns = [
     path('clear-session/', views.clear_session, name='clear_session'),
     path('user_saved_reaction_ids/', views.get_user_saved_reaction_ids, name='get_user_saved_reaction_ids'),
     path('create-formula-abbr/', views.create_formula_abbr, name='create_formula_abbr'),
+    path('saved_reactions/save_reaction/', views.save_user_reaction, name='save_reaction_duplicate'),
 
     path('register_user',views.register_user,name='register_user'),
     path('check-reaction', views.is_reaction_in_user_saved_reactions, name='check_reaction'),
     path('available_reactions', views.get_available_reactions, name='available_reactions'),
     path('reaction_view', views.reaction_view, name='reaction_view'),
-    path('saved_reactions/', views.saved_reactions_page, name='saved_reactions_page'),
     path('search_reactions/', views.search_reactions, name='search_reactions'),
     path('user-reactions-vmh/', views.get_user_reactions_and_vmh, name='get_user_reactions_and_vmh'),
+    path('saved_reactions/reactions/clone/', views.clone_reaction_view, name='clone_reaction'),
 
-# Update this line in your urls.py
     path('stats/', views.leader_board, name='leader_board'),
     path('saved-reactions-modal/', lambda request: saved_reactions(request, modal=True), name='saved_reactions_modal_content'),
     path('flags/<int:user_id>/', views.get_user_flags, name='get_user_flags'),
@@ -77,6 +77,5 @@ urlpatterns = [
     path('get_rxn_template/', views.get_rxn_template, name='get_rxn_template'),
     path('temp_gene_details/',views.temp_gene_details,name='temp_gene_details'),
     path('convert_to_smiles/', views.convert_to_smiles, name='convert_to_smiles'),
-    path('saved_reactions_view/', views.saved_reactions_view, name='saved_reactions'),
 
 ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -30,6 +30,7 @@ document.addEventListener('DOMContentLoaded', function () {
     setupTooltips();
     createnewreaction();
     createGeneInfoInput();
+    setupdate();
     displayreactioninfo(reactionData = null);
 
     attachEventListenersToSelects();
@@ -105,6 +106,14 @@ function createnewreaction() {
     });
 }
 
+function setupdate(){
+    const urlParams = new URLSearchParams(window.location.search);
+    const action = urlParams.get('action');
+    if (action === 'edit') {
+        document.getElementById('submitBtn-form').childNodes[2].nodeValue = 'Update Reaction';
+    }
+
+}
 
 
 

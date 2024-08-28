@@ -12,7 +12,7 @@ function setLoggedInStatusBasedOnUrl() {
         status = "Viewing reaction";
         dotClass = "dot-green"; // Green dot for "Viewing reaction"
     } else if (reactionId == null && action != "edit") {
-        status = "creating reaction";
+        status = "Creating Reaction";
         dotClass = "dot-red"; // Orange dot for "Editing reaction"
     }
     else {

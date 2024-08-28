@@ -72,25 +72,24 @@ def add_flag(request):
             flag_color = data.get('color')
 
             user = User.objects.get(pk=user_id)
-
-            if flag_name and flag_color:
-                flag, created = Flag.objects.get_or_create(
-                    name_flag=flag_name,
-                    color=flag_color,
-                    user=user
-                )
-
-                return JsonResponse({
-                    'status': 'success',
-                    'message': 'Flag added successfully',
-                    'flag': {'id': flag.id, 'name_flag': flag.name_flag, 'color': flag.color}
-                })
-            else:
-                return JsonResponse({'status': 'error', 'message': 'Flag name and color are required'})
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid user'})
-        except json.JSONDecodeError:
-            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'})
+        
+        if flag_name and flag_color:
+            flag, created = Flag.objects.get_or_create(
+                name_flag=flag_name,
+                color=flag_color,
+                user=user
+            )
+
+            return JsonResponse({
+                'status': 'success',
+                'message': 'Flag added successfully',
+                'flag': {'id': flag.id, 'name_flag': flag.name_flag, 'color': flag.color}
+            })
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Flag name and color are required'})
+
     
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
@@ -143,11 +142,6 @@ def update_subsystems(request):
     return JsonResponse({'error': True, 'message': 'Invalid request method'}, status=400)
 
 
-
-
-
-
-
 def get_user(request):
     username = request.POST.get('username', '')
     password = request.POST.get('password', '')
@@ -167,9 +161,13 @@ def register_user(request):
     password = request.POST.get('password', '')
     email = request.POST.get('email', '')
     orchid_id = request.POST.get('orchid_id', '')
-
-    if not username or not password or not email or not orchid_id:
-        return JsonResponse({'status': 'error', 'message': 'All fields are required'})
+    full_name = request.POST.get('full_name', '')   # New field
+    users = User.objects.all()
+    usernames = [user.name for user in users]
+    if username in usernames:
+        return JsonResponse({'status': 'error', 'message': 'Username already exists'})
+    if not username or not password or not email or not full_name:
+        return JsonResponse({'status': 'error', 'message': 'Ysername, password, email, and full name are required'})
 
     try:
         if User.objects.filter(name=username).exists():
@@ -179,7 +177,8 @@ def register_user(request):
             name=username,
             email=email,
             password=password,  # Hash the password before saving
-            orchid_id=orchid_id
+            orchid_id=orchid_id,
+            full_name=full_name
         )
         user.save()
 
@@ -256,6 +255,18 @@ import requests
 from django.http import JsonResponse
 
 def get_gene_info(request):
+    """
+    Retrieves gene information based on user input.
+
+    Args:
+        request (HttpRequest): The HTTP request object.
+
+    Returns:
+        JsonResponse: The JSON response containing the gene information.
+
+    Raises:
+        None
+    """
     gene_input = request.POST.get('gene')
     type_input = request.POST.get('type')
     
@@ -357,6 +368,12 @@ def verify_metabolite(request):
         name = capitalize_first_letter(name)
         return JsonResponse({'found': found, 'abbr': abbr, 'name': name, 'miriam': miriam,'input_type':input_type})   
 
+def get_user_created_reactions(user_id):
+
+    user = User.objects.get(pk=user_id)
+    reactions = CreatedReaction.objects.filter(user=user)
+    reaction_ids = [reaction.reaction.id for reaction in reactions]
+    return reaction_ids
 
 def input_reaction(request):
     """
@@ -373,12 +390,18 @@ def input_reaction(request):
     if request.method == 'POST':
         action = request.POST.get('action')  # Action to perform (either 'create' or 'edit')
         form = ReactionForm(request.POST, request.FILES)
+        user_id = request.POST.get('userID')
         if action == 'edit':
             # Retrieve the existing Reaction object using the provided reaction_id
             
+            #TODO: CHECK IF NOT USER
+
             reaction_id = request.POST.get('reaction_id')
             try:
                 reaction = Reaction.objects.get(id=reaction_id)
+                reactions_by_user = get_user_created_reactions(user_id)
+                if reaction_id not in reactions_by_user:
+                    return JsonResponse({'message': 'You did not create this reaction. Only the creator can edit it.', 'status': 'error'})
             except Reaction.DoesNotExist:
                 return JsonResponse({'error': 'Reaction not found.'}, status=404)
         else:
@@ -518,6 +541,7 @@ def input_reaction(request):
                 data['vmh_found_similar'] = vmh_found['similar']
                 data['vmh_url'] = vmh_found['url']
                 data['vmh_formula'] = vmh_found['formula']
+            data['status'] = 'success'
             return JsonResponse(data)
     else:
         form = ReactionForm()
@@ -527,6 +551,30 @@ def input_reaction(request):
 
 def safe_json_loads(data):
     return json.loads(data) if data is not None else None
+
+
+@require_POST
+def clone_reaction_view(request):
+    try:
+        reaction_id = request.POST.get('reaction_id')
+        user_id = request.POST.get('userID')
+        reaction_name = request.POST.get('name')
+        cloned_reaction = Reaction.objects.get(pk=reaction_id)
+
+        cloned_reaction.pk = None  # Set the primary key to None to create a new instance
+        cloned_reaction.short_name = reaction_name
+        # Save the cloned reaction object to generate a new ID
+        cloned_reaction.save()
+        user = User.objects.get(pk=user_id)
+        user.saved_reactions.add(cloned_reaction)
+        user.save()
+        return JsonResponse({'status': 'success', 'message': 'Reaction cloned successfully'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)})
+
+
+
+
 
 def get_reaction(request, reaction_id):
     """
@@ -866,11 +914,13 @@ def validate_user_ID(user_id):
     
 def save_user_reaction(request):
     if request.method == 'POST':
-        print(request.POST)
         reaction_id = request.POST.get('reaction_id')
         userID = request.POST.get('userID')
         short_name = request.POST.get('short_name')
-        flag_data = request.POST.get('flag')
+        flag_name = request.POST.get('flag_name')
+        flag_color = request.POST.get('flag_color')
+
+
         try:
             reaction = Reaction.objects.get(pk=reaction_id)
         except Reaction.DoesNotExist:
@@ -881,31 +931,12 @@ def save_user_reaction(request):
         if user and reaction:
             reaction.short_name = short_name
 
-            if flag_data:
-                try:
-                    # Regular expression to extract the flag name inside quotes and the color code
-                    match = re.match(r'flag:"([^"]+)",(#.+)', flag_data)
-                    if not match:
-                        raise ValueError('Flag data is not in the expected format.')
+            if flag_name != 'None' and flag_color != 'null':
+                # Get or create the flag
+                flag = Flag.objects.get(name_flag=flag_name, color=flag_color)
 
-                    flag_name = match.group(1).strip()  # Extracts the name within quotes
-                    flag_color = match.group(2).strip()  # Extracts the color code
-
-                    # Get or create the flag
-                    flag, created = Flag.objects.get_or_create(
-                        name_flag=flag_name,
-                        color=flag_color,
-                        user=user
-                    )
-
-                    # Clear any existing flags associated with the reaction
-                    reaction.flags.clear()
-
-                    # Associate the new flag with the reaction
-                    reaction.flags.add(flag)
-
-                except ValueError as e:
-                    return JsonResponse({'status': 'error', 'message': f'Invalid flag format: {str(e)}'})
+                # Associate the new flag with the reaction
+                reaction.flags.add(flag)
 
             reaction.save()
             user.saved_reactions.add(reaction)
@@ -1438,10 +1469,8 @@ ORGAN_MAPPING = {
 # Construct the base directory path
 base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
 base_dir = os.path.join(base_dir, 'reconstructor')
-
 # Construct the full path to the config.json file
 config_path = os.path.join(base_dir, 'config.json')
-
 # Load the config file
 with open(config_path, 'r') as config_file:
     config = json.load(config_file)
@@ -1867,32 +1896,6 @@ def search_reactions(request):
     ]
     return JsonResponse({'reactions': reactions_data})
 
-@login_required
-def saved_reactions_page(request):
-    user = request.user
-    reactions = user.saved_reactions.all()
-    combined_reactions_details = [
-        {
-            'reaction': reaction,
-            'details': {
-                'short_name': reaction.short_name,
-                'subsystem': reaction.subsystem,
-                'subs_details': reaction.substrates,
-                'prods_details': reaction.products,
-                'balanced_count': reaction.balanced_count,
-                'balanced_charge': reaction.balanced_charge,
-                # Add more fields if needed
-            }
-        }
-        for reaction in reactions
-    ]
-    return render(request, 'saved_reactions.html', {
-        'user_name': user.name,
-        'combined_reactions_details': combined_reactions_details,
-        'userID': user.id,
-        'reactions_json': json.dumps(list(reactions.values()))  # This is for any additional JavaScript processing
-    })
-
 def leader_board(request):
     return render(request, 'reactions/leader_board.html')
 
@@ -1938,8 +1941,6 @@ def create_reaction(request):
         
         # Fetch the reaction based on reaction_id
         reaction = get_object_or_404(Reaction, id=reaction_id)
-        
-
         
         created_reaction = CreatedReaction.objects.create(user=user, reaction=reaction)
         
@@ -2050,10 +2051,6 @@ def convert_to_smiles(request):
         return JsonResponse(response_data)
     else:
         return JsonResponse({'error': 'Invalid request method'}, status=400)
-    
-def saved_reactions_view(request):
-    return render(request, 'saved_reactions.html')
-
 
 
 @csrf_exempt  # Use csrf_exempt if CSRF token isn't being managed

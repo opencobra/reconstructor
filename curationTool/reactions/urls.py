@@ -14,6 +14,8 @@ urlpatterns = [
     path('check_reaction_vmh/', views.check_reaction_vmh, name='check_reaction_vmh'),
     path('get_from_vmh/', views.get_from_vmh, name='get_from_vmh'),
     path('save_reaction/', views.save_user_reaction, name='save_reaction'),
+    path('saved_reactions/save_reaction/', views.save_user_reaction, name='save_reaction_duplicate'),
+    path('reaction_ids/', views.get_all_reaction_ids, name='get_all_reaction_ids'),
     path('delete_reaction/', views.delete_reaction, name='delete_reaction'),
     path('chemdoodle_sketcher/', views.chemdoodle_sketcher, name='chemdoodle_sketcher'),
     path('add_info_to_reaction/', views.add_info_to_reaction, name='add_info_to_reaction'),
@@ -39,8 +41,7 @@ urlpatterns = [
     path('clear-session/', views.clear_session, name='clear_session'),
     path('create-formula-abbr/', views.create_formula_abbr, name='create_formula_abbr'),
     path('save-formula/', views.save_formula, name='save_formula'),
-
-    path('saved_reactions/', views.saved_reactions_page, name='saved_reactions_page'),
+    path('saved_reactions/reactions/clone/', views.clone_reaction_view, name='clone_reaction'),
     path('search_reactions/', views.search_reactions, name='search_reactions'),
     path('user-reactions-vmh/', views.get_user_reactions_and_vmh, name='get_user_reactions_and_vmh'),
     path('get_reaction/<int:reaction_id>/', views.get_reaction, name='get_reaction'),
@@ -54,7 +55,6 @@ urlpatterns = [
     path('temp_gene_details/',views.temp_gene_details,name='temp_gene_details'),
     path('convert_to_smiles/', views.convert_to_smiles, name='convert_to_smiles'),
     path('saved-reactions-modal/', lambda request: saved_reactions(request, modal=True), name='saved_reactions_modal_content'),
-    path('saved_reactions_view/', views.saved_reactions_view, name='saved_reactions'),
-
+    path('user_saved_reaction_ids/', views.get_user_saved_reaction_ids, name='get_user_saved_reaction_ids'),
 
     ]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
