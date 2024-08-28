@@ -946,10 +946,11 @@ def validate_user_ID(user_id):
     
 def save_user_reaction(request):
     if request.method == 'POST':
+        print(request.POST)
         reaction_id = request.POST.get('reaction_id')
         userID = request.POST.get('userID')
         short_name = request.POST.get('short_name')
-        flag_data = request.POST.get('flag')  # Expecting format "flag:xyz,#000000"
+        flag_data = request.POST.get('flag')
         try:
             reaction = Reaction.objects.get(pk=reaction_id)
         except Reaction.DoesNotExist:
@@ -959,13 +960,16 @@ def save_user_reaction(request):
 
         if user and reaction:
             reaction.short_name = short_name
-            
+
             if flag_data:
                 try:
-                    # Split the flag_data to extract name and color
-                    flag_name, flag_color = flag_data.split(',')
-                    flag_name = flag_name.replace('flag:', '').strip()
-                    flag_color = flag_color.strip()
+                    # Regular expression to extract the flag name inside quotes and the color code
+                    match = re.match(r'flag:"([^"]+)",(#.+)', flag_data)
+                    if not match:
+                        raise ValueError('Flag data is not in the expected format.')
+
+                    flag_name = match.group(1).strip()  # Extracts the name within quotes
+                    flag_color = match.group(2).strip()  # Extracts the color code
 
                     # Get or create the flag
                     flag, created = Flag.objects.get_or_create(
@@ -980,15 +984,15 @@ def save_user_reaction(request):
                     # Associate the new flag with the reaction
                     reaction.flags.add(flag)
 
-                except ValueError:
-                    return JsonResponse({'status': 'error', 'message': 'Invalid flag format'})
+                except ValueError as e:
+                    return JsonResponse({'status': 'error', 'message': f'Invalid flag format: {str(e)}'})
 
             reaction.save()
             user.saved_reactions.add(reaction)
             return JsonResponse({'status': 'success'})
-        
+
         return JsonResponse({'status': 'error', 'message': 'Invalid user or reaction'})
-    
+
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
 
 

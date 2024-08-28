@@ -66,7 +66,7 @@ document.getElementById('submitSaveReaction').addEventListener('click', function
     var shortName = shortNameInput.value;
     var flag_name = document.getElementById('flagSelectCustom').options[document.getElementById('flagSelectCustom').selectedIndex].text;   
     var flag_color = document.getElementById('flagSelectCustom').options[document.getElementById('flagSelectCustom').selectedIndex].getAttribute('data-color');
-    var flag_data = `flag:${flag_name},${flag_color}`;
+    var flag_data = `flag:"${flag_name}",${flag_color}`;
 
     // Clear any previous custom validity message
     shortNameInput.setCustomValidity('');
