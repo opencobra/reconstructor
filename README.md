@@ -1350,4 +1350,4 @@ Ensure you have the following installed:
 
 Below is the architecture diagram for the project:
 
-![Architecture Diagram](architecture-diagram.png)
+![Architecture Diagram](Reconstruction-Interface-Architecture.png)
