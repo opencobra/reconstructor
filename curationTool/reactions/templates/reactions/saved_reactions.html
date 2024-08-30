@@ -25,13 +25,14 @@
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchInput" placeholder="Search reactions..." />
             <button id="FilterFlag" class="filter-button"title="Filter by Flags">
-                <i class="fas fa-flag"></i> <!-- Adding a flag icon -->
+                <i class="fas fa-flag" style="cursor: pointer;"></i> <!-- Adding a flag icon -->
             </button>
+            <div id="Filteredflag"></div>
+            <table id="reactionList">
+                <!-- Table content goes here -->
+            </table>
         </div>
-        <div id="Filteredflag"></div>
-        <table id="reactionList">
-            <!-- Table content goes here -->
-        </table>
+
         
         <div class="saved-reaction-user-info saved-reaction-item">
             <button class="ui button saved-reaction-user-display" id="userDisplay">

@@ -1,6 +1,7 @@
 
 
 function createGeneInfoInput() {
+
     // Create a main container for the gene info input
     var container = document.createElement('div');
     container.id = 'geneInfoContainer';

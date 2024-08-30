@@ -973,8 +973,11 @@ select, input[type="text"] {
     width: 200px; /* Adjust as necessary */
     z-index: 1000;
     padding: 10px;
-    margin-top: 21%;
-    margin-left: 62%;
+    margin-top: 62%;
+    margin-left: 58%;
+    font-size: small;
+    height: auto; /* Allow the modal to grow with content */
+    width: 35%; /* Set a fixed width */
 }
 
 #FilterFlag{
@@ -1000,31 +1003,25 @@ select, input[type="text"] {
 }
 
 
-
-Copy code
-/* Modal Background */
-#flagModal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
-}
-
 /* Modal Content */
 #flagModal .modal-content {
-    background-color: #f4f4f4; /* Light background color */
-    margin: 10% auto; /* 10% from the top and centered */
+    background-color: #f4f4f4;
+    margin: 10% auto;
     padding: 20px;
     border: 1px solid #888;
-    width: 40%; /* Could be more or less, depending on screen size */
+    width: 40%;
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     border-radius: 8px;
     position: relative;
+    height: auto; /* Allow the modal to grow with content */
+    max-height: none; /* Remove any max-height constraint */
+    overflow: visible; /* Ensure content doesn't overflow */
+}
+
+/* Dropdown Menu */
+#flagSelectCustom .dropdown-menu {
+    max-height: none; /* Remove max-height to let it grow */
+    overflow-y: visible; /* Ensure no scrollbar within dropdown */
 }
 
 /* Close Button */

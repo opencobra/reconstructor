@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-
-
+    
     if (sessionStorage.getItem('userID') !== null) {
         setLoggedInStatusBasedOnUrl();
         username = sessionStorage.getItem('userName');
@@ -24,7 +23,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     var errorMessageContainer = 'Error in setting session user: ' + data.message;
                     showErrorModal(errorMessageContainer);   
                 }            })
+
     }
+
 
 
     setupTooltips();
@@ -35,7 +36,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     attachEventListenersToSelects();
     toggleStructure();
-
 
     const urlParams = new URLSearchParams(window.location.search);
     const reactionId = urlParams.get('reaction_id');
@@ -123,51 +123,4 @@ function setupdate(){
 }
 
 
-
-
-//TODO : Add the function to display the placeholders
-
-function enforceLoginRequirement() {
-    // Define an array of selectors using both class and name attributes
-    const selectors = [
-        { class: 'content-div', name: 'references-div', header: 'References' },
-        { class: 'content-div', name: 'extlinks-div', header: 'External Links' },
-        { class: 'content-div', name: 'comments-div', header: 'Comments' },
-        { class: 'content-div', name: 'gene_info-div', header: 'Gene Info' },
-        // Add more selectors here if needed
-    ];
-
-    // Loop through each selector
-    selectors.forEach(selector => {
-        // Construct the CSS selector
-        const query = `div.${selector.class}[name="${selector.name}"]`;
-
-        // Select the div elements that match the query
-        const targetDivs = document.querySelectorAll(query);
-
-        // Update each targeted div
-        targetDivs.forEach(div => {
-            // Clear the existing content
-            div.innerHTML = '';
-
-            // Create and append the header
-                const header = document.createElement('div');
-                header.classList.add('div-header');
-                header.textContent = selector.header;
-                div.appendChild(header);
-
-                // Create and style the message box
-                const messageBox = document.createElement('div');
-                messageBox.classList.add('login-message-box');
-
-                // Create and append the message text
-                const messageText = document.createElement('p');
-                messageText.classList.add('login-message-text');
-                messageText.textContent = 'Please log in to use this feature';
-
-                messageBox.appendChild(messageText);
-                div.appendChild(messageBox);
-        });
-    });
-}
 
