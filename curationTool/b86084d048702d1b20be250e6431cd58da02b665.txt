@@ -1,0 +1,1046 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.add-to-vmh-btn, .add-to-rhea-btn, .add-to-metanetx-btn,.add-flag-btn{
+    padding: 10px 20px;
+    background-color: #2196F3; /* Blue background */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.add-to-vmh-btn:hover, .add-to-rhea-btn:hover, .add-to-metanetx-btn:hover,.add-flag-btn {
+    background-color: #0b72c4; /* Darker blue on hover */
+}
+
+.add-to-vmh-btn:focus, .add-to-rhea-btn:focus, .add-to-metanetx-btn:focus,.add-flag-btn {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.5);
+}
+
+html, body {
+    font-family: 'Poppins', sans-serif !important;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background-color: #e7f7ff !important; 
+}
+
+
+
+
+
+h1 {
+    color: #333;
+}
+
+ul {
+    list-style: none;
+    padding: 0;
+}
+
+li {
+    margin: 10px 0;
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex; /* Use flexbox */
+    justify-content: space-between; /* Space out content */
+    align-items: center; /* Align items vertically */
+}
+.toggle-icon {
+    display: inline-block;
+    margin-left: 10px;
+    margin-right: 8px; /* Space between icon and text */
+    color: #007bff; /* Theme color, can be adjusted */
+    font-weight: bold; /* Make the icon stand out */
+    cursor: pointer; /* Cursor change to suggest clickability */
+    transition: transform 0.2s ease-in-out; /* Smooth transition for rotation */
+    user-select: none; /* Prevent text selection on click */
+}
+
+.true-symbol {
+    color: green;
+}
+
+.false-symbol {
+    color: red;
+}
+/* Container for each reaction entry */
+/* Table base styling */
+.reactions-table {
+    width: 100%; /* Full width to utilize available space */
+    border-collapse: collapse; /* Collapse borders for a clean look */
+    table-layout: fixed; /* Fixed table layout for equal column width */
+    margin-top: 1.5%; /* Space above the table */
+    border: 1px solid #ddd; /* Border around the entire table */
+}
+
+/* Table Header */
+.reactions-table th {
+    background-color: #f4f4f4; /* Light grey background for the header */
+    color: #333; /* Dark text color for contrast */
+    text-align: center; /* Center-align text */
+    border: 1px solid #ddd; /* Border for header cells */
+    padding: 10px; /* Spacing inside header cells */
+}
+
+/* Table Data Cells */
+.reactions-table td, .reactions-table th {
+    text-align: center; /* Center-align text */
+    padding: 8px; /* Spacing inside data cells */
+    border: 1px solid #ddd; /* Border for data cells */
+    white-space: nowrap; /* Prevent wrapping by default */
+}
+
+/* Enhance appearance for the checkbox and button container for actions */
+.reactions-table .reaction-checkbox,
+.reactions-table .button-container {
+    justify-content: center; /* Center-align for flex items */
+    display: flex; /* Use flex to align checkbox and buttons */
+    align-items: center; /* Vertically center align items */
+}
+
+/* Select column - minimal width */
+.reactions-table th:first-child, 
+.reactions-table td:first-child {
+    width: 3%; /* Minimize width */
+    min-width: 50px; /* Minimum width to accommodate checkbox comfortably */
+}
+
+/* Name, Subsystem, Substrates, Products columns - allow more space but limit maximum width */
+.reactions-table th:nth-child(2), .reactions-table td:nth-child(2), /* Name column */
+.reactions-table th:nth-child(3), .reactions-table td:nth-child(3), /* Subsystem column */
+.reactions-table th:nth-child(4), .reactions-table td:nth-child(4), /* Substrates column */
+.reactions-table th:nth-child(5), .reactions-table td:nth-child(5) { /* Products column */
+    max-width: 20%; /* Maximum width limit */
+    white-space: normal; /* Allow wrapping */
+    word-wrap: break-word; /* Break words to wrap */
+}
+
+/* Balanced Mass and Balanced Charge columns - intermediate width */
+.reactions-table th:nth-child(6), .reactions-table td:nth-child(6), /* Balanced Mass column */
+.reactions-table th:nth-child(7), .reactions-table td:nth-child(7) { /* Balanced Charge column */
+    white-space: normal; /* Allow wrapping */
+    max-width: 5%; /* Smaller maximum width since these might not require as much space */
+}
+
+/* Actions column - adjust according to content */
+.reactions-table th:last-child, 
+.reactions-table td:last-child {
+    min-width: 120px; /* Minimum width to fit buttons without wrapping */
+    width: 100%; /* Set fixed width to maintain alignment */
+    display: flex; /* Use flexbox to align buttons */
+    flex-direction: column; /* Stack buttons vertically */
+    justify-content: center; /* Center-align buttons vertically */
+    align-items: center; /* Center-align items horizontally */
+}
+
+/* Additional styles to improve readability */
+.reactions-table tr:nth-child(even) {
+    background-color: #f9f9f9; /* Light grey background for even rows */
+}
+
+
+.reactions-table tr:hover {
+    background-color: #f1f1f1; /* Slightly darker background on hover */
+}
+
+/* Button styles to ensure visibility and alignment */
+.reactions-table .button-container button {
+    padding: 5px 10px; /* Add padding to buttons for better visibility */
+    margin: 5px 0; /* Add margin between buttons */
+    white-space: nowrap; /* Prevent buttons from wrapping */
+}
+
+.reaction-checkbox{
+    width: 1.7vw;
+    height: 1.7vh;
+}
+
+/* Styles for the button container */
+.button-container {
+    display: flex; /* Use flexbox */
+    flex-direction: column; /* Stack buttons vertically */
+    align-items: flex-end; /* Align buttons to the right */
+}
+
+/* Individual button styles */
+button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+/* Specific style for the 'View' button */
+button.view-btn {
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    margin-bottom: 5px; /* Add some space between buttons */
+}
+
+button.view-btn:hover, button.view-btn:active {
+    background-color: #45a049; /* Slightly darker green on hover/active */
+}
+
+/* Specific style for the 'Delete' button */
+button.delete-btn {
+    background-color: #f44336; /* Red background for delete */
+    color: white;
+    margin-bottom: 5px; /* Add some space between buttons */
+}
+
+button.delete-btn:hover, button.delete-btn:active {
+    background-color: #d73830; /* Slightly darker red on hover/active */
+}
+
+button.clone-btn {
+    background-color: #2196F3; /* Blue background for clone */
+    color: white;
+}
+
+button.clone-btn:hover, button.clone-btn:active {
+    background-color: #0b72c4; /* Slightly darker blue on hover/active */
+}
+
+button.delete-btn, button.view-btn, button.clone-btn{
+    width: 5.5vw;
+}
+/* Button focus outline */
+button:focus {
+    outline: none; /* Remove default focus outline */
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1); /* Custom focus outline */
+}
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    overflow: auto;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    height: auto;
+    overflow: auto;
+    padding: 40px; /* Increased padding for more space around content */
+    border-radius: 5px; /* Soften the edges */
+}
+
+.close {
+    color: #aaaaaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.confirm-add-to-vmh-btn {
+    background-color: #4CAF50;
+    color: white;
+    padding: 14px 20px;
+    margin: 10px 0;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+}
+
+.modal-reactions-list {
+    margin-bottom: 20px;
+}
+.detail-item {
+    position: relative;
+    list-style-type: none;
+    cursor: pointer;
+}
+.info-symbol {
+    position: relative;
+    cursor: help;
+}
+
+.tooltip {
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 0;
+    transform: translateX(-50%);
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    margin-bottom: 5px;
+    white-space: nowrap;
+    display: none;
+}
+.detail-item .tooltip{
+    top: 25; /* Align with the top of the info-symbol */
+    left: 25; /* Position to the right of the info-symbol */
+    justify-content: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    display: none;
+    transform: none;
+    white-space: nowrap;
+}
+
+.info-symbol .tooltip {
+    top: 0; /* Align with the top of the info-symbol */
+    left: 100%; /* Position to the right of the info-symbol */
+    justify-content: center;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 6px 5px 20px 5px;
+    margin-left: 5px; /* Add some space between the info-symbol and the tooltip */
+    display: none;
+    transform: none;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.detail-item:hover .tooltip,
+.info-symbol:hover .tooltip {
+    display: block;
+}
+
+.reaction-header {
+    display: flex;
+    align-items: baseline; /* Vertical alignment */
+    flex-wrap: wrap; /* Allows items to wrap in smaller views */
+    gap: 8px; /* Consistent space between elements */
+    border-radius: 5px; /* Optional: rounded corners for the header */
+    transition: background-color 0.2s ease-in-out; /* Smooth background transition */
+    overflow: visible;
+}
+.reaction-header:hover {
+    background-color: #f0f0f0; /* Slightly change header background on hover */
+}
+.reaction-header:hover .toggle-icon {
+    transform: scale(1.2); /* Slightly enlarge icon on hover for interactivity */
+}
+
+/* Optional: add a visual cue for expanded/collapsed state */
+.reaction-header.active .toggle-icon {
+    transform: rotate(0deg); /* Reset to default state when active (expanded) */
+}
+
+.reaction-header .toggle-icon {
+    transform: rotate(-180deg); /* Flip the icon when the section is collapsed */
+}
+
+.reaction-counter {
+    font-weight: bold;
+    color: #333; /* Dark grey for high contrast */
+    margin-right: 8px; /* Ensure some space between the counter and the input field */
+    font-size: 20px; /* Slightly larger font size for emphasis */
+    margin-bottom: 5px;
+}
+.reaction-name-input {
+    border: 1px solid #ccc; /* Subtle border */
+    border-radius: 4px; /* Rounded corners for a modern look */
+    padding: 8px 12px; /* Adequate padding for text */
+    width: 15vw; /* Full width while accounting for padding */
+    margin-bottom: 10px; /* Space below the input field */
+    font-size: 14px; /* Comfortable reading size */
+    box-sizing: border-box; /* Ensures padding doesn't add to the width */
+    transition: border-color 0.3s; /* Smooth transition for focus */
+}
+
+.reaction-name-input:focus {
+    border-color: #2196F3; /* Highlight color when focused */
+    outline: none; /* Removes the default focus outline */
+}
+.button-disabled {
+    background-color: #ccc; /* Grey background */
+    color: #666; /* Darker text color */
+    cursor: not-allowed; /* Shows a 'not allowed' cursor when hovering */
+    pointer-events: none; /* Prevents click events */
+}
+
+/* Response Modal Styling */
+#responseModal .modal-content {
+    background-color: #fff; /* Light background for the content */
+    color: #333; /* Dark text for readability */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    max-width: 600px; /* Max width for the content */
+    width: 90%; /* Responsive width */
+    margin: 40px auto; /* Centered in the viewport */
+    padding: 20px; /* Padding inside the content */
+    position: relative; /* For positioning the close button */
+}
+
+#responseModal h2 {
+    color: #4CAF50; /* Green color for success messages */
+    margin-top: 0;
+}
+
+#responseModal .close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    color: #aaaaaa;
+}
+
+#responseModal .close:hover,
+#responseModal .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#responseModal #responseModalBody {
+    margin-top: 15px;
+    line-height: 1.6; /* Increased line height for better readability */
+    font-size: 16px; /* Slightly larger font size */
+}
+
+#responseModal #responseModalBody p {
+    margin-bottom: 10px; /* Spacing between paragraphs */
+}
+
+#responseModal #responseModalBody ul {
+    list-style-type: none; /* Remove default list styling */
+    padding: 0;
+}
+
+#responseModal #responseModalBody ul li {
+    background-color: #f9f9f9; /* Light background for list items */
+    margin-bottom: 8px; /* Spacing between list items */
+    padding: 10px; /* Padding inside list items */
+    border-left: 4px solid #4CAF50; /* Highlight line for list items */
+    border-radius: 4px; /* Rounded corners for list items */
+}
+#responseModal #responseModalBody h3 {
+    font-size: 18px; /* Slightly larger font for sub-headers */
+    margin-top: 20px; /* Spacing above sub-headers */
+    margin-bottom: 10px; /* Spacing below sub-headers */
+    color: #333; /* Dark text for readability */
+}
+
+#responseModal #responseModalBody .info-block {
+    margin-left: 10px; /* Indent content under sub-headers */
+}
+
+#responseModal #responseModalBody .bold {
+    font-weight: bold; /* Make text bold */
+}
+
+
+.loader {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top: 4px solid #3498db;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#loadingIndicator {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, 0);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+}
+
+.add-reference, .add-ext-link, .add-comment, .remove-reference, .remove-ext-link, .remove-comment , .remove-gene-info{
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 5px;
+}
+
+.remove-reference, .remove-ext-link, .remove-comment, .remove-gene-info {
+    background-color: #dc3545; /* Different color for remove buttons */
+}
+
+/* Ensure selects and inputs are styled consistently */
+select, input[type="text"] {
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-top: 5px;
+}
+.modal-reaction-entry {
+    border-bottom: 1px dotted #ccc; /* Adds a dotted line between reactions */
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+.reaction-details, .reference-section, .ext-link-section, .comment-section, .gene-info-section {
+    margin-left: 20px; /* Shift reaction information to the left */
+}
+
+
+.reaction-name-input, .sub-name-input, .prod-name-input {
+    margin-top: 5px;
+    display: block; /* Ensure inputs are on their own line for clarity */
+}
+
+.detail-item, .reaction-info {
+    font-size: 14px;
+}
+
+.sub-header {
+    font-weight: bold;
+    font-size: 14px; /* Make subheaders like 'Substrates', 'Products', etc., bold and slightly bigger */
+    margin-top: 10px;
+}
+
+/* Styling for subheaders */
+.reaction-details > p, .reference-section > p, .ext-link-section > p, .comment-section > p , .gene-info-section > p{
+    font-weight: bold;
+    font-size: 16px;
+    /* border-bottom: 1px solid #eee; Optional: adds a light border under subheaders for better separation */
+    padding-bottom: 5px;
+    margin-bottom: 10px;
+}
+
+/* Tooltip styling adjustments for clarity */
+.tooltip {
+    box-shadow: 0 1px 3px rgba(0,0,0,.1); /* Add a subtle shadow for depth */
+}
+
+.custom-alert-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 100; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+  
+  .custom-alert-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+    max-width: 500px; /* Maximum width */
+  }
+  
+  .close-alert-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close-alert-btn:hover,
+  .close-alert-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  button#backToHome{
+    margin-right: 1%;
+}
+
+.back-btn:hover {
+    background-color: #0b72c4; /* Darker shade for hover effect */
+    color: #fff;
+}
+
+.reaction-details table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.reaction-details th, .reaction-details td {
+    text-align: left;
+    padding: 8px;
+}
+
+.reaction-details th {
+    background-color: #f4f4f4;
+}
+
+.reaction-details td input[type="text"] {
+    width: 90%; /* Adjust based on needs */
+    padding: 5px;
+    margin-right: 10px; /* Space between input and button */
+}
+
+.reaction-details td button {
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.reaction-details tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+/* Optional: Style for readonly inputs to differentiate them */
+.reaction-details td input[readonly] {
+    background-color: #e9e9e9;
+    color: #707070;
+}
+
+.info-icon {
+    display: inline-block;
+    background-color: red;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    text-align: center;
+    line-height: 20px;
+    font-size: 16px;
+    margin-left: 5px;
+    cursor: help;
+}
+
+.tooltip-content {
+    visibility: hidden;
+    width: 280px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -140px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.info-icon:hover + .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+.top-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    position: relative;
+}
+
+.button-container {
+    margin-bottom: 10px;
+}
+.dropdown-content{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: baseline;
+    margin-top: 10px;
+    gap: 10px;
+    width: 100%;
+}
+.dropdown {
+    display: flex;
+    flex-direction: column;
+    align-items: baseline;
+    justify-content: center;
+}
+
+#AIButton {
+    background-color: #21f321; /* Primary color */
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+
+
+
+.llm-response {
+    display: none; 
+    margin-top: 5px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    border-top-color: #000;
+    animation: spin 1s ease-in-out infinite;
+    visibility: hidden; /* Initially hidden */
+}
+.slider-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 8px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity .2s;
+}
+.slider:hover {
+    opacity: 1;
+}
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+.slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: #4CAF50;
+    cursor: pointer;
+}
+.tooltip-ai {
+    position: relative;
+    display: inline-block;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+.tooltip-ai .fas {
+    font-size: 1.2em;
+    color: #4CAF50; /* Change to your desired color */
+}
+
+.tooltip-ai .tooltiptext {
+    visibility: hidden;
+    width: 500px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Adjust position above the icon */
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip-ai:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    position: absolute;
+    top: 10px;
+    right: 20px;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+
+.cs-info-button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    padding: 5px 13px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    outline: none;
+}
+
+.cs-info-button:hover {
+    background-color: #0056b3;
+}
+
+.cs-info-button:focus {
+    box-shadow: 0 0 0 4px rgba(0,123,255,0.25);
+}
+
+
+.top-menu-saved-reactions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    text-align: center;
+    height: 11.5%;
+    background-color: #92d5f7;
+    font-size: 1.4em;
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+
+    box-sizing: border-box;
+    padding: 0 1%; /* Add some padding to ensure spacing between elements and the edges */
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    margin-left: 1%;
+}
+
+.search-bar {
+    position: relative;
+    width: 40%;
+    max-width: 500px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2;
+}
+
+.search-bar input[type="text"] {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid #ccc;
+    border-radius: 25px;
+    font-size: 16px;
+    box-shadow: 0px 3px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 18px;
+    color: #aaa;
+}
+.search-bar .filter-button {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.search-bar .filter-button i {
+    font-size: 18px; /* Ensures the icon matches the input field styling */
+}
+
+.saved-reaction-user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    margin-top: 0; /* Removed to align with the other elements */
+    margin-right: 0; /* Removed to align with the other elements */
+}
+
+.add-to-vmh-btn-container{
+    margin-left: 0.4%;
+}
+
+
+.icon img {
+    width: 15%;
+    height: 15%;
+    object-fit: contain; /* Ensures the image scales proportionally */
+}
+
+.custom-dropdown {
+    position: relative;
+    display: inline-block;
+    width: 200px;
+}
+
+.dropdown-trigger {
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+    z-index: 1;
+}
+
+.dropdown-menu div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.dropdown-menu div:hover {
+    background-color: #f1f1f1;
+}
+
+.custom-dropdown.active .dropdown-menu {
+    display: block;
+}
+
+#Filteredflag {
+    display: none; /* Initially hidden */
+    position: absolute; /* Position it relative to the page or a container */
+    background-color: #fff;
+    border: 1px solid #ccc;
+    width: 200px; /* Adjust as necessary */
+    z-index: 1000;
+    padding: 10px;
+    margin-top: 21%;
+    margin-left: 62%;
+}
+
+#FilterFlag{
+   
+    margin-left: 15%;
+}
+
+.dropdown-item {
+    padding: 5px 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0;
+}
+
+#arrow{
+    position: absolute;
+    right: 10px;
+    top: 10px; /* or any other top value */
+}
+
+
+
+Copy code
+/* Modal Background */
+#flagModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Black background with opacity */
+}
+
+/* Modal Content */
+#flagModal .modal-content {
+    background-color: #f4f4f4; /* Light background color */
+    margin: 10% auto; /* 10% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 40%; /* Could be more or less, depending on screen size */
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+    border-radius: 8px;
+    position: relative;
+}
+
+/* Close Button */
+#flagModal .modal-content .close {
+    color: #aaa;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#flagModal .modal-content .close:hover,
+#flagModal .modal-content .close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}

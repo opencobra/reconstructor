@@ -1,0 +1,698 @@
+
+.ui.grid .column {
+    padding: 10px;
+}
+
+.field-container {
+    padding: 10px;
+    border: 1px solid #ddd;
+    margin-bottom: 10px;
+}
+
+
+#getrxnfromvmhrhea,#getrxnfromtemplate{
+    flex: 0 0 auto; /* Prevent the buttons from stretching */
+
+}
+
+
+.getbuttoncontainer{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.header-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.inputs-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 20px;
+    font-size: small
+
+}
+
+.input-label-stich{
+    margin-right: 10px;
+}
+.inputs-group {
+    display: flex;
+    margin-top: 20px;
+    width: 100%;
+    height: 4.5vh;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 2%;
+}
+
+.remove-field-btn{
+    display: flex;
+    box-sizing: border-box;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: large;
+    width: 2%;
+}
+
+#prod_sch, #subs_sch {
+    display: flex;
+    width: 7%;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    font-size: medium;
+}
+
+#compartment{
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    font-size: 1.3em;
+}
+
+#subsystemField {
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    margin-right: 20px;
+    margin-left: 10px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+#substrates_type, #products_type, #compartment{
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 1.3em;
+}
+#compartment {
+    width: 7%;
+}
+#substrates_type, #products_type {
+    width: 15%;
+}
+
+#subsCompsApplyAllSelect,#prodsCompsApplyAllSelect {
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    margin-right: 20px;
+    margin-left: 10px;
+    font-weight: bold;
+    height: 45px;
+    width: 60px;
+    text-align: center;
+}
+
+#substrates, #products,.start-drawing-btn, .edit-drawing-btn {
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    width: 25%;
+    display: flex;
+    flex-direction: column; /* Stack children vertically */
+    align-items: center; /* Center children horizontally */
+    padding: 10px; /* Optional: Add padding for better spacing */
+}
+
+#subsystemField 
+{
+    margin-left: 10px;
+    height: 40px;
+    width: 25%;
+    font-weight: bold;
+}
+
+.subsystem-input {
+    margin-top: 10px;
+}
+
+
+#toggleApplyAllsubs, #toggleApplyAllprods {
+    border: none;
+    background-color: white;
+    cursor: pointer;
+    margin-right: 50px;
+}
+
+#toggleApplyAllsubs img, #toggleApplyAllprods img {
+    width: 24px;
+    height: 24px;
+}
+
+#substratelabel, #productslabel {
+    font-weight: bold;
+    font-size: medium;
+    margin-left: 5px;
+    margin-top: -5px;
+    margin-bottom: -25px;
+}
+
+#substratesDiv, #productsDiv {
+    border: none;
+    margin-right: 25px;
+    width: 90%;
+    margin-left: 55px;
+}
+
+#addSubstrate, #addProduct {
+    background-color: orange;
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: .5rem;
+    box-sizing: border-box;
+    color: #111827;
+    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    padding: .75rem 1rem;
+    text-align: center;
+    text-decoration: none #D1D5DB solid;
+    text-decoration-thickness: auto;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: 112px;
+    height: 40px;
+    margin-left: 65px;
+}
+
+.addSubstrate, .addProduct:hover {
+    background-color: rgb(249, 250, 251);
+}
+
+.addSubstrate, .addProduct:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.addSubstrate, .addProduct:focus-visible {
+    box-shadow: none;
+}
+
+#applyAllSubsComps , #applyAllProdsComps {
+    background-color: orange;
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: .5rem;
+    box-sizing: border-box;
+    color: #111827;
+    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    padding: .75rem 1rem;
+    text-align: center;
+    text-decoration: none #D1D5DB solid;
+    text-decoration-thickness: auto;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+
+    width: 100px;
+    margin-right: 15px;
+
+} 
+
+
+
+#applyAllSubsType ,#applyAllProdsType{
+    background-color: orange;
+    border: 1px solid rgb(209, 213, 219);
+    border-radius: .5rem;
+    box-sizing: border-box;
+    color: #111827;
+    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: .875rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    padding: .75rem 1rem;
+    text-align: center;
+    text-decoration: none #D1D5DB solid;
+    text-decoration-thickness: auto;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    width: 100px;
+    margin-right: 15px;
+}
+
+#applyAllOptionsSubs, #applyAllOptionsProds {
+    display: flex;
+    justify-content: center;
+    height: 15px;
+    margin-top: 40px;
+    margin-bottom: 40px ;
+    margin-left: -90px;
+}
+
+#subsTypeApplyAllSelect,#prodsTypeApplyAllSelect{    border: 2px solid #ccc;
+border-radius: 5px;
+margin-right: 10px;
+height: 40px;
+width: 120px;
+text-align: center;
+}
+
+.direction-dropdown {
+    margin-top: 50px;
+    margin-left: 45px;
+    font-weight: bold;
+}
+
+#reactionDirection {
+    height: 40px;
+    width: 80px;
+    margin-left: 10px;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.reactionDirectionlabel {
+    font-size: 1.1em;
+    margin-left: 25px;
+}
+
+.subsystem-input {
+    margin-top: 40px;
+    margin-left: 60px;
+    margin-bottom: 25px;
+}
+
+.input-label-type{
+    margin-left: 5%;
+}
+
+.infocomp{
+    margin-left: 20%;
+}
+
+.input-label-stich{
+    margin-left: 35px;
+}
+
+.done-field-btn-all, .done-field-btn, .applyAllSubsType{
+    background-color: rgb(247, 169, 67);
+    border: 1px solid #d5d9d9;
+    border-radius: 8px;
+    box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
+    box-sizing: border-box;
+    color: #0f1111;
+    cursor: pointer;
+    display: inline-block;
+    font-family: "Amazon Ember", sans-serif;
+    font-size: 13px;
+    padding: 0 10px 0 11px;
+    position: relative;
+    text-align: center;
+    text-decoration: none;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    vertical-align: middle;
+    font-weight: bold;
+    width: 10%;
+}
+.done-field-btn-all{
+    margin-left: 7.5%;
+}
+
+.done-field-btn-all,.applyAllSubsType,.done-field-btn:hover {
+    background-color: rgb(247, 169, 67);
+}
+
+
+#reactionFormContainer{
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Make sure children take full width */
+    justify-content: flex-start;
+}
+
+#reactants-div {
+    display: flex;
+    flex-direction: column;
+}
+
+.apply-all-options{
+    display: flex;
+    justify-content: center;
+    align-items: center;     
+}
+
+
+.status-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    background-color: grey; /* Default color */
+    margin-top: 2.5%;
+}
+
+
+
+.status-dot.found {
+    background-color: #4CAF50; /* Green for found */
+}
+
+.status-dot.not-found {
+    background-color: #f44336; /* Red for not found */
+}
+
+.status-dot:hover {
+    transform: translateY(100%);
+    transform: scale(1.2); /* Slightly enlarge on hover */
+}
+/* Tooltip styling */
+.status-dot::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    white-space: nowrap;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    display: none;
+    opacity: 0;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.status-dot:hover::after {
+    content: attr(data-tooltip);
+    display: block;
+    width: 200px; /* Adjust the width as needed */
+    background-color: #333; /* Background color for tooltip */
+    color: #fff; /* Text color */
+    text-align: center;
+    padding: 5px;
+    border-radius: 5px;
+    position: absolute;
+    bottom: 100%; /* Position above the dot */
+    left: 50%;
+    transform: translateX(-50%) translateY(-15px);
+    white-space: pre-line; /* Preserve newline characters */
+    z-index: 10;
+    opacity: 1;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+.status-dot::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent;
+    display: none;
+    opacity: 0;
+}
+
+.status-dot:hover::before {
+    display: block;
+    opacity: 1;
+}
+.substrates-name, .products-name {
+    width: 25%;
+}
+
+.substrates-name:disabled , .products-name:disabled {
+    background-color: #e7e7e7; /* Lighter background for disabled inputs */
+    color: #555; /* Darker text for better contrast */
+}
+
+.substrates-name:enabled, .products-name:enabled {
+    background-color: #fff; /* White background for enabled inputs */
+    border: 1px solid #ccc; /* Standard border for input */
+    color: #000; /* Default text color */
+}
+
+
+
+.ui.inverted.red.button.remove-field-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+}
+
+
+.info-symbol {
+    position: relative;
+    display: inline-block; /* Make sure it doesn't occupy the full width */
+    cursor: pointer; /* Changes the cursor to indicate it's interactive */
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: absolute;
+    z-index: 10; /* Ensure it overlaps other content */
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 5px;
+    margin-top: 5px; /* Adjusted to position below the symbol */
+    display: none;
+    box-shadow: 0 1px 3px rgba(0,0,0,.1);
+    white-space: nowrap;
+}
+
+.info-symbol:hover .tooltip {
+    display: block; /* Show the tooltip on hover */
+}
+
+
+.dropdown-content {
+    display: none; /* Hide the dropdown by default */
+    position: absolute; /* Position it just below the input field */
+    background-color: #f6f6f6; /* Light background for the dropdown */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
+    z-index: 1; /* Ensure it stacks above other content */
+    max-height: 200px; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    position: absolute; /* To ensure the dropdown overlays content below */
+    z-index: 1; /* Ensure dropdown is above other content */
+    background-color: #fff; /* Background color for the dropdown */
+    border: 1px solid #ddd; /* Add a light border */
+    border-top: none; /* Remove the top border to blend with the input field */
+
+}
+
+.dropdown-content div {
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+/* Hover effect for dropdown items */
+.dropdown-content div:hover {
+    background-color: #ddd;
+}
+
+/* Alternating row colors */
+.dropdown-content div:nth-child(odd) {
+    background-color: #f9f9f9; /* Lighter color for odd rows */
+}
+
+.dropdown-content div:nth-child(even) {
+    background-color: #ececec; /* Slightly darker color for even rows */
+}
+.dropdown-content div:hover {background-color: #ddd;} /* Hover effect for dropdown items */
+
+
+
+.subsystem-input {
+    position: relative; /* Make the parent relative to allow absolute positioning of the dropdown */
+    /* Other styles for the .subsystem-input */
+}
+
+.dropdown-content {
+    display: none; /* Hide the dropdown by default */
+    width: 26%;
+    margin-left: 17.5%;
+    top: 100%; /* Position it just below the input field */
+    left: 0; /* Align to the left of the parent */
+    background-color: #f6f6f6; /* Light background for the dropdown */
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
+    z-index: 1; /* Ensure it stacks above other content */
+    max-height: 200px; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    background-color: #fff; /* Background color for the dropdown */
+    border: 1px solid #ddd; /* Add a light border */
+    border-top: none; /* Remove the top border to blend with the input field */
+}
+
+.dropdown-content div {
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+/* Hover effect for dropdown items */
+.dropdown-content div:hover {
+    background-color: #ddd;
+}
+
+/* Alternating row colors */
+.dropdown-content div:nth-child(odd) {
+    background-color: #f9f9f9; /* Lighter color for odd rows */
+}
+
+.dropdown-content div:nth-child(even) {
+    background-color: #ececec; /* Slightly darker color for even rows */
+}
+
+
+.start-drawing-btn:hover, .edit-drawing-btn {
+    background: orange;
+    border: 1px solid rgb(209, 213, 219);
+}
+
+
+/* Modal container */
+#chemdoodleModal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgba(0, 0, 0, 0.7); /* Grey background with opacity */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center; /* Center horizontally */
+    align-items: center; /* Center vertically */
+}
+
+.modal-content-chemdoodle{
+    background-color: #fff;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 50%;
+    box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+
+.subsystem-input {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between Subsystem and Organ input fields */
+    width: 100%;
+}
+
+.organ-input-wrapper {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.tag {
+    background-color: #e0e0e0; /* Slightly grey background color */
+    color: #333; /* Darker text color for contrast */
+    padding: 5px 10px;
+    border-radius: 4px; /* Reduced border-radius for a box-like appearance */
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    border: 1px solid #ccc; /* Optional: Add a border for more definition */
+}
+
+.tags-input-container {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    padding: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    min-height: 40px;
+    width: 44%;
+    box-sizing: border-box;
+    cursor: text;
+    margin-left: 10px; /* Space between label and input field */
+}
+
+.organ-dropdown-content {
+    position: absolute;
+    display: none; /* Hide the dropdown by default */
+    width: 24%; /* Similar width as the .dropdown-content */
+    margin-left: 57.5%; /* Adjust based on your layout */
+    top: 100%; /* Position it just below the input field */
+    left: 0; /* Align to the left of the parent */
+    background-color: #fff; /* Background color for the dropdown */
+    min-width: 160px; /* Ensure a minimum width */
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
+    z-index: 1000; /* Ensure it stacks above other content */
+    max-height: 200px; /* Set a maximum height */
+    overflow-y: auto; /* Enable vertical scrolling */
+    border: 1px solid #ddd; /* Add a light border */
+    border-top: none; /* Remove the top border to blend with the input field */
+    border-radius: 4px; /* Retain the border radius */
+}
+
+.organ-dropdown-content div {
+    padding: 12px 16px; /* Adjust padding for better spacing */
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+/* Hover effect for dropdown items */
+.organ-dropdown-content div:hover {
+    background-color: #ddd;
+}
+
+/* Alternating row colors */
+.organ-dropdown-content div:nth-child(odd) {
+    background-color: #f9f9f9; /* Lighter color for odd rows */
+}
+
+.organ-dropdown-content div:nth-child(even) {
+    background-color: #ececec; /* Slightly darker color for even rows */
+}
+
+
+/* Container styling */
+.gene-field-container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.organ-btn {
+    border: none;
+    color: white;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 5px;
+    margin: 1px 1px;
+    border-radius: 12px; /* Rounded corners */
+    cursor: pointer;
+    height: auto;
+    width: auto;
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+

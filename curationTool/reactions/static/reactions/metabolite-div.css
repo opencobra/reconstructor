@@ -1,0 +1,38 @@
+.metabolite {
+    border: 1px solid #ddd;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+
+.metabolite p {
+    margin: 5px 0;
+}
+
+.metabolite-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+/* Base styles for the toggle button */
+.toggle-button {
+    background-color:#3198cc;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Styles for the toggle button when active */
+.toggle-button.active {
+    background-color:#003755;
+}
+
+/* Optional hover effect */
+.toggle-button:hover {
+    background-color: #003755;
+}

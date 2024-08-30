@@ -1,0 +1,695 @@
+body {
+    height: 100%;
+    margin: 0;
+    font-family: 'Poppins', sans-serif !important;
+    /* background-color: #e7f7ff !important;  */
+
+
+}
+
+
+.top-menu {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 11%;
+    background-color: #92d5f7;
+    font-size: 1.4em;
+    border: 2px solid #000;
+    box-sizing: border-box;
+    position: relative; /* Necessary for centering status */
+}
+
+.image-icon.item {
+    margin-right: auto; /* Keep the image icon on the far left */
+    margin-left: 2.7%;
+}
+
+.statusAndMessage {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%); /* Center the statusAndMessage */
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Center the content vertically */
+    gap: 1vh;
+}
+
+.item img {
+    height: 40%; /* Adjust the height of the icon if needed */
+    width: 40%; /* Maintain the aspect ratio */
+    margin-left:-1%
+}
+
+.user-info.item {
+    margin-right: 58px; /* Keep the user info button on the right */
+}
+
+
+
+
+.ui.secondary.vertical.pointing.menu {
+    display: flex;
+    flex-direction: column;
+    background-color: #b1e5ff; /* A lighter, sky-blue color that complements the existing blues in the image */
+    margin: 0;
+    padding: 0;
+    justify-content: flex-start;
+    height: 100%;
+    width: 120%; /* Ensure the menu takes full width of its container */
+    align-items: center;
+}
+
+.ui.secondary.vertical.pointing.menu {
+    box-shadow: inset -2px 0 0 0 #000 !important; /* Add a left border to the menu */
+}
+
+
+
+
+ .ui.fluid.button{
+    font-weight: bold ;
+background: #EED8C3;
+}
+
+.ui.fluid.button:hover {
+    background-color: #EED8C3;}
+
+
+
+.main-container{
+    display: flex;
+    flex-direction: row;
+    min-height: 120%; /* Allow it to auto-adjust based on content */
+    max-height: auto;
+    overflow: hidden; /* Ensures it contains floated children if any */
+}
+
+.main-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 10px;
+    height: auto;
+    margin-left: 1%;
+    background-color: #e7f7ff !important;
+    border-left: 2px solid black; /* Added this line */
+}
+
+.divs-container{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap:  10px;
+    padding: 10px    ;
+margin-left: 100px; ;}
+
+
+.content-div {
+    width: 47%; 
+    gap: 10px; /* Space between elements */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 15px;
+    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+    box-sizing: border-box;
+    height: 70vh;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    position: relative; /* Added to position the loader relative to this div */
+    background-color: white;
+}
+
+/* Custom Scrollbar Styles */
+.content-div::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+}
+
+.content-div::-webkit-scrollbar-track {
+    background: #f1f1f1; /* Track color */
+    border-radius: 10px; /* Rounded corners for the track */
+}
+
+.content-div::-webkit-scrollbar-thumb {
+    background-color: #888; /* Scrollbar thumb color */
+    border-radius: 10px; /* Rounded corners for the thumb */
+    border: 2px solid #f1f1f1; /* Adds space between thumb and track */
+}
+
+.content-div::-webkit-scrollbar-thumb:hover {
+    background-color: #555; /* Thumb color on hover */
+}
+.div-header {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 5px;
+}
+
+.fluid.ui.button {
+    font-size: 1.2rem;
+    display: grid;
+    align-items: center;
+    border: 0.5px solid #000;  /* Ensure the border is styled properly */
+    color: black !important;
+    border-radius: 2px;
+    height: 70px;
+    box-sizing: border-box;  /* Include the border in the element's width and height */
+    background-color: #003755;  
+
+    background-color: #3198cc;
+}
+
+.fluid.ui.button:hover {
+    background-color: #2078a4;  
+}
+
+.ui.button.active {
+    background-color: transparent !important;
+    box-shadow: none !important; /* Optional: Removes any shadow if there is */
+    color: inherit !important; /* Optional: Keeps the original text color */
+}
+
+.fluid.ui.button.active {
+    background-color: #06689c !important;
+
+}
+
+#saveReactionButton{
+    background-color: Coral;
+}
+#saveReactionButton:hover{
+    background-color: #fb4300;
+}
+#userIcon{
+    height: 20px;
+}
+
+#FormButtons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-top: 12px;
+}
+#submitBtn-form{
+    background-color: lightblue;
+}
+#submitBtn-form:hover{
+    background-color: #60b3ce;
+}
+
+/* Ensure full-screen coverage for the loader */
+#loadingIndicator {
+    position: fixed; /* Full screen */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 9999; /* On top of other elements */
+    background-color: rgba(128, 128, 128, 0.8); /* Semi-transparent grey background */
+    display: none; /* Hidden by default */
+}
+
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999; /* Lower than modal */
+}
+
+.spinner {
+    border: 5px solid rgba(0,0,0,0.1);
+    border-radius: 50%;
+    border-top: 5px solid #3498db;
+    width: 60px;
+    height: 60px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+/* Text color and styling */
+.loading-overlay p {
+    color: #000; /* Black text for visibility */
+    font-size: 18px;
+}
+
+/* Spinner animation */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+
+
+
+.ui.secondary.vertical.pointing.menu .bottom {
+    width: 100%;
+    
+    margin-top: auto; /* Push the bottom div to the end of the container */
+}
+
+
+
+  .status-dot-top {
+      height: 10px;
+      width: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-left: 5px;
+      vertical-align: middle; /* Ensure the dot is vertically aligned with the text */
+  }
+
+  .dot-grey {
+      background-color: grey;
+  }
+
+  .dot-blue {
+      background-color: blue;
+  }
+
+  .dot-green {
+      background-color: green;
+  }
+
+  .dot-orange {
+      background-color: orange;
+  }
+  
+  .dot-red{
+
+        background-color: red;
+  }
+
+
+/* Background overlay for the modal */
+.modal-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+    z-index: 900; /* Just below the modal */
+    display: none; /* Initially hidden */
+}
+
+/* Center the modal on the screen */
+.ui.modal.savereaction {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50%; /* Adjust width as needed */
+    max-width: 600px; /* Ensure modal doesn't exceed a certain width */
+    z-index: 1000;
+    padding: 20px; /* Padding inside the modal */
+    background-color: white; /* Modal background color */
+    border-radius: 8px; /* Rounded corners for a smooth look */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    display: none; /* Initially hidden */
+}
+
+/* Style for modal header */
+.ui.modal.savereaction .header {
+    font-size: 1.5em;
+    margin-bottom: 15px;
+    text-align: center; /* Center the header text */
+    font-weight: bold;
+}
+
+/* Style for modal content */
+.ui.modal.savereaction .content {
+    margin-bottom: 20px;
+}
+
+/* Input field styling */
+.ui.modal.savereaction .content .ui.input {
+    margin-bottom: 1em;
+}
+
+/* Style for modal actions (buttons) */
+.ui.modal.savereaction .actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Ensure buttons are consistent with Semantic UI styles */
+.ui.modal.savereaction .actions .ui.button {
+    padding: 10px 20px;
+}
+
+/* Modal background */
+.custom-error-modal {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+
+}
+
+/* Modal content box */
+.custom-modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 4px;
+    width: 50%;
+    margin: 15% auto; /* Center the modal */
+    max-width: 500px; /* Set a max-width to keep it contained */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal header */
+.custom-modal-header {
+    font-size: 20px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* Close button */
+.custom-close-icon {
+    font-size: 24px;
+    cursor: pointer;
+}
+
+/* Modal body */
+.custom-modal-body {
+    font-size: 16px;
+}
+
+
+/* The Modal (background) */
+.saved-reactions-modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    left: 0;
+    top: 0;
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(0,0,0); /* Fallback color */
+    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+  }
+  
+  /* Modal Content */
+  .saved-reactions-modal-content {
+    background-color: #fefefe;
+    margin: 15% auto; /* 15% from the top and centered */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%; /* Could be more or less, depending on screen size */
+  }
+  
+  /* The Close Button */
+  .close-saved-reactions {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close-saved-reactions:hover,
+  .close-saved-reactions:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+
+
+.eu-logo {
+    width: 140px;
+    height: 40px;
+    margin-bottom: 10px;    
+    
+}
+
+.login-message-box {
+    border: 1px solid #ddd;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+/* Styling for the message text */
+.login-message-text {
+    font-size: 1.1em;
+    color: #666;
+}
+.funding-container {
+    background-color: #f8f8f8; /* Background color */
+    text-align: center;
+    padding: 10px;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    font-size: 14px; /* Font size adjustment */
+    color: #333; /* Text color */
+    
+    /* Flexbox layout */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.eu-logo {
+    max-height: 50px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.logo-text {
+    flex-grow: 1; /* Make the text container grow to fill available space */
+    text-align: center; /* Center the text */
+    padding: 0 10px; /* Padding on the left and right of the text */
+}
+
+.right-logo {
+    max-height: 50px;
+    vertical-align: middle;
+    margin-left: 10px;
+}
+
+footer {
+    margin-top: auto;
+    padding: 10px 0; /* Additional padding if needed */
+    background-color: #f8f8f8;
+}
+
+
+/* Dark overlay */
+#modalOverlayCustom {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 999; /* Just below the modal */
+    left: 0;
+    top: 0;
+    width: 100%; /* Cover the entire screen */
+    height: 100%; /* Cover the entire screen */
+    background-color: rgba(0, 0, 0, 0.7); /* Darker background with opacity */
+}
+
+/* Modal styling */
+#createFlagModalCustom {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1000; /* Sit on top of the overlay */
+    left: 50%; /* Center horizontally */
+    top: 50%; /* Center vertically */
+    transform: translate(-50%, -50%); /* Adjust the centering */
+    width: 600px; /* Set the width */
+    background-color: #fefefe; /* Modal content background */
+    border: 1px solid #888; /* Optional border */
+    padding: 20px; /* Optional padding */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
+    border-radius: 8px; /* Optional rounded corners */
+}
+
+/* To display the modal and overlay */
+#modalOverlayCustom.active,
+#createFlagModalCustom.active {
+    display: block;
+}
+
+/* Additional styling for modal content if needed */
+#createFlagModalCustom .modal-content-custom {
+    height: 100%; /* Fill the modal container */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Space between header, form, and actions */
+}
+
+
+#organTags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* Adjust the spacing between tags */
+    border: 1px solid #000; /* Add border to the container */
+    padding: 8px; /* Add padding inside the container */
+    border-radius: 5px; /* Add rounded corners to the container */
+}
+
+#organTags:empty:before {
+    content: "(Optional)";
+    color: #999; /* Placeholder text color */
+}
+
+
+.tag {
+    padding: 5px 10px;
+    background-color: #e0e0e0;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    font-family: Arial, sans-serif;
+}
+
+.close-btn {
+    margin-left: 8px;
+    cursor: pointer;
+    color: red;
+}
+
+
+/* Styles for the modal overlay */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.75); /* Black background with some transparency */
+    z-index: 998; /* Slightly lower than modal container */
+    display: none;
+}
+
+/* Styles for the modal container */
+.modal-container {
+    position: fixed;
+    z-index: 999; /* Higher than overlay */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+
+
+/* Styles for the modal content */
+.modal-content-task {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+    width: 50%; /* Increased width to accommodate side-by-side buttons */
+    text-align: center;
+    position: relative;
+    top: 40%;
+    margin: auto;
+}
+
+
+/* Styles for the close button */
+.close-task {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+}
+
+.close-task:hover {
+    color: #000;
+}
+
+/* Button container styling */
+.modal-content-task .button-container {
+    display: flex;
+    justify-content: space-between; /* Distribute space evenly between buttons */
+    gap: 10px; /* Optional: Add some space between the buttons */
+}
+
+/* Button styling */
+.task-btn {
+    margin-top: 20px;
+    flex: 1; /* Make buttons take up equal space */
+}
+
+
+
+#reactionFoundMessage{
+    display: block;
+    text-align: center;
+}
+
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    background-color: #fff;
+    border: 1px solid #ccc;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    border: 1px solid #ccc;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+}
+
+.dropdown-menu.show {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #ddd;
+}
+
+#customDropdown{
+    width: 50%;
+}
