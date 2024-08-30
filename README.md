@@ -62,7 +62,40 @@ Ensure you have the following installed:
     - Focuses on list styling and reaction information presentation.
     - Customizes buttons for viewing and deleting reactions.
     - Ensures readability and clear layout for reaction lists.
+3. **leader_board.css**
+   - Styles for the **stats** page of the Reconstructor application.
+   - Focuses on the layout and presentation of the leaderboard and associated charts.
+   - Ensures a clean and responsive design with clear text and interactive elements.
+   - Customizes the table for displaying reaction statistics, including alternating row colors, hover effects, and column widths.
+   - Provides responsive adjustments for different screen sizes.
+   - Incorporates consistent styling for buttons, modals, and tooltips to enhance user interaction and readability.
+4. **reactioninfo.css**
+   - Styles for the **reaction information** section, focusing on input forms, buttons, and table-like data presentation.
+   - Provides a clean and consistent layout for entering and displaying reaction-related information.
+   - Ensures responsive and user-friendly design with hover and focus effects for interactivity.
+   - Customizes the appearance of dropdowns, input fields, and buttons for a cohesive look and feel.
+   - Implements flexible layouts for containers, making sure content is well-aligned and easy to interact with.
+   - Table-like structures are styled to resemble tables while maintaining a flexible layout using div elements.
+5. **reactants.css**
+   - Styles for the **reactants** section, focusing on the layout and interaction of various input fields, buttons, and dropdowns.
+   - Provides a consistent design for input containers, buttons, and tooltips related to reactants and products in chemical reactions.
+   - Ensures a responsive and user-friendly interface with clear visual feedback, such as hover effects and focus states.
+   - Customizes the appearance and behavior of dropdown menus, including options for substrates, products, compartments, and other reaction-related details.
+   - Implements flexible layouts for input groups and button containers, making sure content is well-aligned and easy to interact with.
+   - Includes specific styles for displaying and interacting with modal dialogs, tooltips, and status indicators, enhancing the overall user experience.
+6. **metabolite-div.css**
+   - Styles for the **metabolite** sections, focusing on the layout and presentation of metabolite information.
+   - Provides consistent styling for metabolite containers with padding, borders, and background colors to enhance readability.
+   - Customizes the header of each metabolite section, ensuring proper alignment and spacing between elements.
+   - Implements styles for a toggle button, including active and hover states, to allow user interaction with metabolite data.
+   - Ensures a user-friendly design with smooth transitions and visual feedback for interactive elements like buttons.
+
+
+
+
+
 ### JavaScript Files
+### **js**
 1. **chemdoodleIntegration.js**
     - Modular Integration with ChemDoodle: Provides functions to integrate and manage ChemDoodle sketcher within the application.
     - Modal Display Control: Contains `hideChemdoodlestatus` function for showing or hiding the ChemDoodle sketcher modal based on user interaction.
@@ -700,6 +733,550 @@ Ensure you have the following installed:
             - **Example Usage**:
                 - Calling `getDistinctColors(5)` might return an array of 5 distinct colors, excluding yellow tones.
 
+### **js_leaderboard**
+
+1. ### **leader_board.js**
+
+- **General Overview**
+    - Manages the loading and display of leaderboard data, including user interactions and chart updates.
+
+- **Functions**
+    - **loadLeaderBoardData()**:
+        - Fetches user reaction data from the server and displays the top 10 users on a leaderboard.
+        - **Logic**:
+            - **Data Fetching**:
+                - Fetches user reaction data from the endpoint `/user-reactions-vmh/`.
+            - **Data Processing**:
+                - Sorts the data by the number of reactions saved (in descending order) and limits the results to the top 10 users.
+            - **Table Population**:
+                - Populates the leaderboard table with the processed user data, creating rows dynamically.
+            - **Chart Creation**:
+                - Initializes a bar chart using Chart.js to display the reactions saved, added to VMH, and created by users.
+            - **Row Click Event**:
+                - Updates the chart to display stats for the clicked user when a row is clicked.
+            - **Row Double-Click Event**:
+                - Resets the chart to display the total stats when a row is double-clicked.
+            - **Error Handling**:
+                - Logs errors if data fetching fails or if the table body element is not found.
+
+    - **window.onload Event**:
+        - Handles the initialization logic when the page loads.
+        - **MutationObserver**:
+            - Observes the document body for the addition of the "View Leaderboard" button and attaches a click event listener to it, opening the leaderboard stats page in a new tab.
+        - **Leaderboard Data Loading**:
+            - Automatically loads the leaderboard data if the current page is the `/stats/` page.
+
+- **Error Handling**
+    - Includes basic error handling for failed data fetches and missing DOM elements.
+
+### **js_savedreactions**
+
+1. ### **dynamicEventListeners.js**
+
+- **General Overview**
+    - This script is responsible for attaching dynamic event listeners to elements within a modal, allowing for the addition and removal of various types of content dynamically.
+
+- **Functions**
+    - **attachDynamicEventListeners()**:
+        - Attaches a single event listener to a parent container to manage dynamic content within the modal.
+        - **Logic**:
+            - **Event Delegation**:
+                - A single `click` event listener is attached to the `modalReactionsList` container. This listener handles events triggered by child elements, making it possible to manage dynamically added content.
+            - **Add Button Handling**:
+                - Listens for clicks on buttons with the classes `add-reference`, `add-ext-link`, and `add-comment`.
+                - Determines the type of content being added (reference, external link, or comment) based on the button clicked.
+                - Creates a new `div` element corresponding to the content type and appends it to the parent section.
+                - Generates a new index for the item based on the number of existing items of the same type within the section.
+                - Adds HTML content to the new item, including an input field and a remove button.
+            - **Remove Button Handling**:
+                - Listens for clicks on buttons with the classes `remove-reference`, `remove-ext-link`, `remove-comment`, and `remove-gene-info`.
+                - Removes the corresponding parent element from the DOM when the remove button is clicked.
+
+- **Error Handling**
+    - No explicit error handling is implemented in this function, as it relies on the assumption that the event targets exist and match the expected classes.
+
+- **Notes**
+    - The function utilizes event delegation to efficiently manage events for dynamically added elements, reducing the need for multiple event listeners.
+    - The content added is customizable based on the type (reference, external link, or comment) and can be further extended to include other types by modifying the logic.
+
+
+2. ### **. flag_saved_reaction.js**
+
+- **General Overview**
+    - This script handles the functionality related to flagging saved reactions. It includes modal management, flag creation, and interaction with dropdowns for flag selection.
+
+- **Event Listeners**
+    - **DOMContentLoaded**:
+        - Sets up all event listeners and initializes the page once the DOM is fully loaded.
+    
+    - **#addFlag (click)**:
+        - Opens the flag modal and triggers the `fetchFlags(userID)` function to populate the dropdown with existing flags.
+
+    - **.custom-dropdown .dropdown-trigger (click)**:
+        - Toggles the visibility of the custom dropdown menu when the trigger is clicked.
+
+    - **.dropdown-menu (click)**:
+        - Handles the selection of a flag from the dropdown menu. Updates the dropdown trigger with the selected flag's name and color.
+
+    - **#AddFlagtosavedreaction (click)**:
+        - Gathers the selected reactions and flag information, then sends this data to the server to associate the flag with the selected reactions. Reloads the page upon successful submission.
+
+    - **#closeflagmodal (click)**:
+        - Closes the flag modal when the close button is clicked.
+
+    - **#createFlagButtonCustom (click)**:
+        - Toggles the display of fields for creating a new custom flag.
+
+    - **window (click)**:
+        - Closes the flag modal if a click occurs outside the modal content area.
+
+    - **#saveFlagButton (click)**:
+        - Collects the input for a new flag (name and color) and sends it to the server to create the flag. Adds the new flag to the dropdown menu upon successful creation.
+
+- **Functions**
+    - **rgbToHex(rgb)**:
+        - Converts an RGB color string to its hexadecimal representation.
+        - **Parameters**:
+            - `rgb`: The RGB color string to convert.
+        - **Returns**:
+            - A string representing the color in hexadecimal format.
+
+    - **getSelectedReactionIds()**:
+        - Retrieves the IDs of the reactions selected by the user. (Placeholder function for implementation.)
+        - **Returns**:
+            - An array of selected reaction IDs.
+
+    - **fetchFlags(userId)**:
+        - Fetches existing flags for the given user from the server and populates the dropdown menu with them.
+        - **Parameters**:
+            - `userId`: The ID of the user whose flags are to be fetched.
+
+    - **populateDropdown(flags)**:
+        - Populates the custom dropdown menu with the flags retrieved from the server.
+        - **Parameters**:
+            - `flags`: An array of flag objects containing flag name and color.
+
+    - **addFlagToDropdown(flag)**:
+        - Adds a newly created flag to the dropdown menu.
+        - **Parameters**:
+            - `flag`: The flag object containing the name and color to be added to the dropdown.
+
+    - **findDivByTextContent(text)**:
+        - Searches for a `div` element within the dropdown menu that matches the provided text content.
+        - **Parameters**:
+            - `text`: The text content to search for within the `div` elements.
+        - **Returns**:
+            - The `div` element that matches the text content or `null` if not found.
+
+- **Error Handling**
+    - Basic error handling is implemented for missing selections, failed fetch requests, and input validation for flag creation.
+
+- **Notes**
+    - The script relies heavily on event delegation and dynamic element manipulation to manage flags and dropdown interactions.
+    - All communication with the server is done through `fetch` with appropriate handling of CSRF tokens for secure requests.
+
+3. ### **Flagfilter.js**
+
+- **General Overview**
+    - This script handles the filtering of table rows based on the flags selected by the user from a dropdown menu. It includes functionality for fetching available flags, managing the selection of flags, and filtering table content accordingly.
+
+- **Event Listeners**
+    - **DOMContentLoaded**:
+        - Initializes the event listeners and setups the dropdown filtering logic once the DOM is fully loaded.
+
+    - **#FilterFlag (click)**:
+        - Hides the filter button and displays the dropdown when the filter button is clicked.
+        - Triggers `fetchFlags(userID)` to populate the dropdown with the user's flags.
+
+    - **#Filteredflag (click)**:
+        - Handles the selection of flags from the dropdown menu. Updates the list of selected flags and applies the filter to the table rows.
+
+    - **#arrow (click)**:
+        - Toggles the visibility of the dropdown and the filter button.
+
+- **Functions**
+    - **fetchFlags(userId)**:
+        - Fetches available flags for the given user from the server and calls `populateDropdown(flags)` to populate the dropdown menu.
+        - **Parameters**:
+            - `userId`: The ID of the user whose flags are being fetched.
+
+    - **populateDropdown(flags)**:
+        - Clears any existing dropdown items and populates the dropdown with the fetched flags. Adds an event listener to each flag for selection and filtering.
+        - **Parameters**:
+            - `flags`: An array of flag objects containing flag names and colors.
+
+    - **reapplySelectedFlagColors()**:
+        - Reapplies the background color to the flags in the dropdown that are currently selected.
+
+    - **hexToRgb(hex)**:
+        - Converts a hex color code to its RGB equivalent.
+        - **Parameters**:
+            - `hex`: The hex color code (e.g., `#ff0000`).
+        - **Returns**:
+            - A string representing the color in RGB format (e.g., `rgb(255, 0, 0)`).
+
+    - **darkenColor(color, factor)**:
+        - Darkens an RGB color by the given factor to visually indicate selection.
+        - **Parameters**:
+            - `color`: The color to darken (in hex format).
+            - `factor`: A number between 0 and 1 indicating how much to darken the color.
+        - **Returns**:
+            - A string representing the darkened color in RGB format.
+
+    - **filterTable()**:
+        - Filters the rows of the table based on the flags selected by the user. Only rows with flags matching the selected colors are displayed.
+        - **Logic**:
+            - Iterates through each row in the table, checks if any of the row's flags match the selected flags, and toggles the row's visibility accordingly.
+
+    - **resetFlagColors()**:
+        - Resets the background color of all items in the dropdown to their original state, clearing any selection visual indicators.
+
+    - **toggleDropdown()**:
+        - Toggles the display of the dropdown menu and the filter button. It also re-applies the selected flag colors when the dropdown is shown.
+        - **Logic**:
+            - If the dropdown is hidden, it becomes visible and the filter button is hidden. If the dropdown is visible, it is hidden and the filter button is shown.
+
+- **Notes**
+    - The script uses event delegation and dynamically populates the dropdown with flag items based on the user's saved flags.
+    - The filtering is based on comparing the selected flag colors with the flag icons present in each table row, allowing users to narrow down the displayed rows according to their selected flags.
+
+4. ### **handleAdd2VMH.js**
+
+- **General Overview**
+    - This script manages the process of adding selected reactions to the VMH (Virtual Metabolic Human) database. It includes handling modal interactions, data preparation, and submission to the server, as well as feedback to the user regarding the success or failure of the operation.
+
+- **Event Listeners**
+    - **DOMContentLoaded**:
+        - Initial setup and attachment of event listeners for modal interactions and the "Add to VMH" process.
+
+    - **#addToVMH (click)**:
+        - Initiates the process of preparing and adding the selected reactions to the VMH database when the "Add to VMH" button is clicked. Displays a modal with a loading indicator and updates the content as data is processed.
+
+    - **#confirmAddToVMH (click)**:
+        - Triggers the `addToVMH()` function to validate inputs and submit the prepared reaction data to the server.
+
+    - **.close-alert-btn (click)**:
+        - Closes the alert modal when the close button is clicked.
+
+    - **window (click)**:
+        - Closes the alert modal if the user clicks outside of it.
+
+    - **.close (click)**:
+        - Closes the main reaction modal or the response modal, depending on the context.
+
+    - **#backToHome (click)**:
+        - Redirects the user back to the homepage when the "Back to Home" button is clicked.
+
+- **Functions**
+    - **createSectionHTML(sectionTitle, className, items, reactionId, isExtLink = false, isRef = false, isGene = false)**:
+        - Generates HTML for a section (References, External Links, Comments, or Gene Info) based on the provided parameters. Handles the creation of input fields and buttons for dynamic interaction.
+        - **Parameters**:
+            - `sectionTitle`: The title of the section (e.g., "References").
+            - `className`: The class name for the section (e.g., "reference").
+            - `items`: An array of items to populate the section.
+            - `reactionId`: The ID of the reaction to which the section belongs.
+            - `isExtLink`, `isRef`, `isGene`: Booleans to indicate whether the section is for external links, references, or gene info.
+        - **Returns**:
+            - A string of HTML to be injected into the DOM.
+
+    - **createExtLinkSelect(item, reactionId, index)**:
+        - Creates a dropdown select element for external link types, pre-selecting the appropriate option based on the item data.
+        - **Parameters**:
+            - `item`: The current item object containing external link data.
+            - `reactionId`: The ID of the reaction.
+            - `index`: The index of the item in the list.
+        - **Returns**:
+            - A string of HTML for the select element.
+
+    - **createRefSelect(item, reactionId, index)**:
+        - Creates a dropdown select element for reference types (e.g., DOI, PMID).
+        - **Parameters**:
+            - `item`: The current item object containing reference data.
+            - `reactionId`: The ID of the reaction.
+            - `index`: The index of the item in the list.
+        - **Returns**:
+            - A string of HTML for the select element.
+
+    - **createGeneSectionHTML(sectionTitle, className, items, reactionId)**:
+        - Generates HTML for a section specifically for gene information, with input fields that are read-only.
+        - **Parameters**:
+            - `sectionTitle`, `className`, `items`, `reactionId`: Similar to `createSectionHTML`, but specialized for gene information.
+
+    - **callPrepareAddToVMH(reactionIds)**:
+        - Sends a POST request to the server to prepare the selected reactions for addition to the VMH database. Handles server responses and error handling.
+        - **Parameters**:
+            - `reactionIds`: An array of reaction IDs to be prepared.
+        - **Returns**:
+            - A promise that resolves to the server's response data or `null` in case of an error.
+
+    - **toggleDetails(event, headerElement)**:
+        - Toggles the visibility of detailed sections within a reaction entry in the modal. Also updates the toggle icon (`+` or `−`) based on the section's visibility.
+        - **Parameters**:
+            - `event`: The event object from the click event.
+            - `headerElement`: The header element that was clicked to toggle the details.
+
+    - **toggleInfo()**:
+        - Displays a modal with detailed information about confidence scores, including a table of evidence types and their corresponding scores.
+
+    - **addToVMH()**:
+        - Validates user input, prepares reaction data, updates loading indicators, and sends a POST request to add reactions to the VMH database. Handles both success and error responses, updating the user interface accordingly.
+
+- **Helper Functions**
+    - **setupTooltips()**:
+        - Initializes tooltips for the reaction entry fields, providing additional information on hover.
+
+    - **displayValidationMessage(show, message)**:
+        - Shows or hides a validation message in the modal based on input validation results.
+
+    - **setButtonState(disabled)**:
+        - Enables or disables the confirm button to prevent multiple submissions.
+
+    - **validateInputs()**:
+        - Checks if all required input fields are filled out correctly before allowing the submission.
+
+    - **formatTooltipContent(substance, type, comp)**:
+        - Formats content for tooltips that display information about substrates or products in the reaction entries.
+
+- **Error Handling**
+    - Comprehensive error handling is implemented for network errors, invalid input, and server-side errors, with appropriate user feedback provided via modals and console logs.
+
+- **Notes**
+    - The script is designed to be dynamic, allowing for the addition of multiple reactions to the VMH database in a single operation. It also includes advanced UI interactions, such as dynamic modal content generation and conditional element visibility.
+    - The use of async/await and promises ensures that server requests are handled efficiently, with appropriate feedback during the process.
+
+5. ### **. queryai.js**
+
+- **General Overview**
+    - This script handles the interaction with an AI model to generate and display predictions for a given gene. It includes user input handling, communication with the backend, and dynamic updating of the HTML content based on the AI's response.
+
+- **Event Listeners**
+    - **#AIButton (click)**:
+        - Toggles the visibility of the dropdown menu and the response container. If the AI response (`llm_html`) has been generated previously, it is displayed again when the dropdown is shown.
+
+    - **#submitGene (click)**:
+        - Sends a POST request to the backend with the entered gene and temperature settings to get AI-generated predictions.
+        - **Logic**:
+            - Disables the submit button and displays a loading spinner during the request.
+            - Handles the server response, displaying the formatted AI predictions or an error message if the request fails.
+
+    - **#temperatureSlider (input)**:
+        - Updates the displayed temperature value dynamically as the user adjusts the slider.
+
+- **Functions**
+    - **getCookie(name)**:
+        - Retrieves the value of a specified cookie from the document's cookies.
+        - **Parameters**:
+            - `name`: The name of the cookie to retrieve.
+        - **Returns**:
+            - The value of the specified cookie or `null` if the cookie is not found.
+
+    - **createLink(metabolite)**:
+        - Creates a hyperlink for a metabolite if it does not contain an underscore, linking to the corresponding page on the VMH website. If the metabolite contains an underscore, the underscore is removed, and the plain text is returned.
+        - **Parameters**:
+            - `metabolite`: The name of the metabolite to process.
+        - **Returns**:
+            - An HTML string with a link to the metabolite page or the plain metabolite name.
+
+    - **formatReaction(reaction)**:
+        - Formats an array of metabolites and reactions into a readable string, including hyperlinks for applicable metabolites.
+        - **Parameters**:
+            - `reaction`: An array of metabolites and reaction symbols (e.g., `->_`) to format.
+        - **Returns**:
+            - A formatted string representing the reaction, with appropriate links and symbols.
+
+- **Error Handling**
+    - **Error Handling for Fetch Requests**:
+        - If the server response is not OK or if there is a network error, the script displays an error message in the `errorContainer` and logs the error to the console.
+
+    - **Display of Errors**:
+        - Errors related to the AI response (e.g., no reactions predicted) or network issues are shown in a dedicated error container, making it clear to the user what went wrong.
+
+- **Dynamic Content Handling**
+    - The AI's response, once received, is dynamically formatted into HTML and displayed within the `llmResponseContainer`.
+    - The script caches the HTML content (`llm_html`) to avoid unnecessary recomputation or fetch requests when toggling the display of the AI's response.
+
+- **Notes**
+    - The script includes a mechanism to handle CSRF tokens automatically, ensuring that the POST request to the server is secure.
+    - The temperature slider allows the user to adjust the "creativity" or variability of the AI's predictions, with the current value displayed in real-time.
+    - The response handling logic is designed to provide immediate feedback to the user, either by showing the AI predictions or by displaying an error message if the predictions cannot be generated.
+
+6. ### **reactionChecking.js**
+
+- **General Overview**
+    - This script manages the selection of reactions by users through checkboxes on a webpage. It keeps track of the checked reactions by storing their IDs in an array.
+
+- **Global Variables**
+    - **checkedReactions**:
+        - An array that stores the IDs of reactions that have been checked by the user.
+
+- **Event Listeners**
+    - **DOMContentLoaded**:
+        - Initializes the script once the DOM is fully loaded. It sets up event listeners on all checkboxes with the class `.reaction-checkbox`.
+
+    - **Checkboxes (change)**:
+        - Attaches a `change` event listener to each checkbox.
+        - **Logic**:
+            - When a checkbox is checked:
+                - The reaction ID (stored in the `data-reaction-id` attribute of the checkbox) is added to the `checkedReactions` array if it is not already present.
+            - When a checkbox is unchecked:
+                - The reaction ID is removed from the `checkedReactions` array if it exists in the array.
+
+- **Functions**
+    - The script does not define additional functions but leverages the `change` event listener to dynamically update the `checkedReactions` array based on user interaction with the checkboxes.
+
+- **Notes**
+    - The `checkedReactions` array is intended to be used elsewhere in the application to perform actions on the selected reactions (e.g., submitting them for processing or deletion).
+    - The script ensures that the `checkedReactions` array remains synchronized with the user's checkbox selections, dynamically updating the array as the user checks or unchecks items.
+
+- **Use Cases**
+    - This script is useful in scenarios where users need to select multiple items (reactions) on a page and perform batch operations on them.
+
+7. ### **reactionViewandDelete.js**
+
+- **General Overview**
+    - This script handles user interactions for viewing, cloning, saving, and deleting reactions in a web application. It includes functions for navigating to reaction editing pages, cloning reactions, saving reactions with user flags, and confirming deletion of reactions.
+
+- **Event Listeners**
+    - **.view-btn (click)**:
+        - Attaches a click event listener to buttons with the class `.view-btn`.
+        - **Logic**:
+            - Redirects the user to an edit page for the selected reaction.
+            - The reaction ID is retrieved from the `reactions` array using the button's index and is included as a URL parameter.
+
+- **Functions**
+    - **cloneReaction(reactionId)**:
+        - Prompts the user to enter a name for the cloned reaction, then sends a POST request to the server to create an identical copy of the reaction with the new name.
+        - **Parameters**:
+            - `reactionId`: The ID of the reaction to be cloned.
+        - **Logic**:
+            - The function uses `FormData` to send the reaction ID, user ID, and new reaction name to the server.
+            - Upon success, the page is reloaded to reflect the newly cloned reaction.
+            - In case of an error, an alert is shown to the user.
+
+    - **savedReactionModal(userID, reactionId, saveReaction)**:
+        - Saves a reaction with a specific name and flag, selected by the user, to the user's saved reactions.
+        - **Parameters**:
+            - `userID`: The ID of the user saving the reaction.
+            - `reactionId`: The ID of the reaction being saved.
+            - `saveReaction`: The URL endpoint for saving the reaction.
+        - **Logic**:
+            - Retrieves the reaction's short name and selected flag details (name and color) from the modal inputs.
+            - Sends a POST request with the reaction data to the server.
+            - If successful, the modal is closed, and the user is notified of the successful save.
+            - If an error occurs, the user is alerted with an appropriate message.
+
+    - **confirmDelete(reactionName)**:
+        - Prompts the user to confirm the deletion of a reaction.
+        - **Parameters**:
+            - `reactionName`: The name of the reaction to be deleted.
+        - **Returns**:
+            - A boolean value indicating whether the user confirmed the deletion.
+
+- **Notes**
+    - The script assumes that the `reactions` array is globally available and contains the necessary reaction data, including primary keys (`pk`).
+    - The `csrftoken` variable must be correctly defined or fetched elsewhere in the application to ensure secure POST requests.
+    - The `savedReactionModal` function requires that the user be logged in and that the reaction exists before attempting to save it. Proper error handling is implemented to alert the user if these conditions are not met.
+    - The cloning and deletion functions are designed to provide clear prompts and confirmations to ensure users do not perform unintended actions.
+
+- **Error Handling**
+    - Errors during network requests (e.g., cloning or saving a reaction) are caught and displayed to the user via alerts.
+    - The script also includes basic validation and error messages when necessary inputs are missing (e.g., missing reaction name or user ID).
+
+8. ### **search_reaction.js**
+
+- **General Overview**
+    - This script enables a live search functionality for filtering a list of reactions displayed in a table. As the user types in the search input, the table rows are dynamically filtered based on the search query, matching against multiple columns.
+
+- **Event Listeners**
+    - **DOMContentLoaded**:
+        - Initializes the script once the DOM is fully loaded. It sets up the search functionality by attaching an event listener to the search input field.
+
+    - **#searchInput (input)**:
+        - Attaches an `input` event listener to the search input field (`#searchInput`).
+        - **Logic**:
+            - Captures the user's search query and converts it to lowercase for case-insensitive comparison.
+            - Iterates through all rows in the reaction list table (`#reactionList`) and checks if any of the relevant columns (reaction name, subsystem, substrates, products) contain the query.
+            - If a match is found in any of these columns, the row remains visible. Otherwise, the row is hidden.
+
+- **Functionality**
+    - **Live Search**:
+        - The script filters the table rows in real-time as the user types into the search input. This immediate feedback makes it easier for users to find specific reactions based on various criteria.
+        - **Columns Searched**:
+            - **Reaction Name**: The second column in the table, representing the name of the reaction.
+            - **Subsystem**: The third column, representing the subsystem associated with the reaction.
+            - **Substrates**: The fourth column, representing the substrates involved in the reaction.
+            - **Products**: The fifth column, representing the products of the reaction.
+
+- **Performance Considerations**
+    - The search operation is performed on all rows of the table each time the user types a character. For very large tables, this could potentially impact performance, so it is optimized for smaller datasets or tables with a moderate number of rows.
+
+- **Notes**
+    - The script assumes that the table structure is consistent and that the reaction name is in the second column, subsystem in the third, substrates in the fourth, and products in the fifth.
+    - The script uses `Array.from()` to convert the HTMLCollection of rows into an array for easier manipulation using array methods like `forEach`.
+
+- **Error Handling**
+    - The script does not include explicit error handling but relies on the assumption that the table and its rows exist and are correctly structured. If any of the cells or elements are missing, it could result in undefined behavior.
+
+9. ### **utilities.js**
+
+- **General Overview**
+    - This script provides utility functions used across different parts of the web application. These functions include tooltip management, input validation, display of validation messages, and button state management.
+
+- **Functions**
+
+    - **formatTooltipContent(element, type, compartment)**:
+        - Formats the content for a tooltip based on the provided element, type, and compartment.
+        - **Parameters**:
+            - `element`: A string representing the name or identifier of the element (e.g., a metabolite).
+            - `type`: The type of the element (e.g., substrate, product).
+            - `compartment`: The compartment in which the element is located.
+        - **Logic**:
+            - Trims the `element` to a maximum of 20 characters, appending '...' if it exceeds this length.
+            - Combines the formatted element, type, and compartment into a single string.
+        - **Returns**:
+            - A formatted string suitable for use as tooltip content.
+
+    - **setupTooltips()**:
+        - Attaches event listeners to elements with the class `.detail-item` or `.info-symbol` to display tooltips on mouse hover.
+        - **Logic**:
+            - On `mouseenter`, a tooltip is created and appended to the hovered element, displaying the content from the element's `data-tooltip-content` attribute.
+            - On `mouseleave`, the tooltip is removed from the DOM.
+
+    - **validateInputs()**:
+        - Validates that all input fields related to substrates and products are filled in, ensuring no empty fields are submitted.
+        - **Logic**:
+            - Iterates through all elements with the classes `.sub-name-input` and `.prod-name-input`.
+            - Checks if any of these input fields are empty (i.e., contain only whitespace).
+            - Returns `true` if all fields are valid, `false` otherwise.
+
+    - **displayValidationMessage(display, message = '')**:
+        - Displays or hides a validation message within a modal, providing feedback to the user.
+        - **Parameters**:
+            - `display`: A boolean value indicating whether to show (`true`) or hide (`false`) the validation message.
+            - `message`: The validation message text to display (default is an empty string).
+        - **Logic**:
+            - If the message container does not exist, it is created and styled.
+            - The message is inserted at the top of the modal content. If `display` is `false`, the message is removed.
+            - The modal scrolls to the top to ensure the message is visible to the user.
+
+    - **setButtonState(isDisabled)**:
+        - Enables or disables the confirmation button based on the provided state.
+        - **Parameters**:
+            - `isDisabled`: A boolean indicating whether to disable (`true`) or enable (`false`) the button.
+        - **Logic**:
+            - If `isDisabled` is `true`, the confirmation button is disabled and styled with a 'button-disabled' class.
+            - If `isDisabled` is `false`, the button is re-enabled and the 'button-disabled' class is removed.
+
+- **Notes**
+    - These utility functions are designed to be reusable across different modules of the application, helping to manage common tasks like displaying tooltips, validating form inputs, and managing button states.
+    - The `displayValidationMessage` function ensures that important validation messages are always prominently displayed to the user, improving the user experience during form submissions.
+    - The `setupTooltips` function assumes that elements requiring tooltips have their content stored in a `data-tooltip-content` attribute.
+
+- **Error Handling**
+    - The functions are designed to operate smoothly under normal conditions, but there is minimal explicit error handling, as they assume that the DOM elements they interact with exist and are properly structured.
+    - The `validateInputs` function assumes that the presence of input fields with specific classes indicates that they are required and must be validated.
+
+
 
 ### Django Application Files
 1. **views.py**
@@ -713,7 +1290,12 @@ Ensure you have the following installed:
     - Save User Reaction: Saves a user's reaction with additional details like a short name.
     - Saved Reactions: Renders a page listing all reactions saved by a specific user.
     - Delete Reaction: Handles the deletion of a saved reaction from a user's list.
-    - Add to VMH: Handles the addition of new reactions and their associated metabolites to the Virtual Metabolic Human (VMH) database. This process involves:
+    - Add to VMH: Handles the addition of new reactions and their associated metabolites to the Virtual Metabolic Human (VMH) database. This process 
+    - Gene Info: Parsing Gene Info and finding specific organs and subcellular location from uniprot and human protein atlas.
+    - Add flags: Adds a flag and adds user to that flag so it is user specific.
+    - Get user flags: Gets the user flag based on the user ID.
+
+    involves:
         - Validating the user's permission to add data to the VMH.
         - Extracting and processing reaction details from the request.
         - Generating unique abbreviations for new metabolites and reactions not currently in the VMH database.
@@ -762,3 +1344,10 @@ Ensure you have the following installed:
     - SMILES Conversion: Includes utilities for converting molecular identifiers into SMILES strings, generating InChIKeys, and calculating formulas and charges.
     - Metabolite and Reaction Abbreviation Generation: Generates unique abbreviations for new metabolites and reactions, facilitating their addition to the VMH database.
     - Error Handling and Feedback: Provides detailed error messages and success feedback, including the generation of unique identifiers for successfully added entities.
+
+
+## Architecture Overview
+
+Below is the architecture diagram for the project:
+
+![Architecture Diagram](architecture-diagram.png)
