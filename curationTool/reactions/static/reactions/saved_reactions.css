@@ -856,6 +856,14 @@ select, input[type="text"] {
     box-sizing: border-box;
     padding: 0 1%; /* Add some padding to ensure spacing between elements and the edges */
 }
+.saved-reaction-user-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    margin-top: 0; /* Removed to align with the other elements */
+    margin-right: 0; /* Removed to align with the other elements */
+}
 
 .icon {
     display: flex;
@@ -892,28 +900,62 @@ select, input[type="text"] {
     font-size: 18px;
     color: #aaa;
 }
-.search-bar .filter-button {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    color: #aaa;
-}
 
 .search-bar .filter-button i {
     font-size: 18px; /* Ensures the icon matches the input field styling */
 }
+.search-bar .filter-button i {
+    font-size: 18px; /* Ensures the icon matches the input field styling */
+}
 
-.saved-reaction-user-info {
+.filter-container {
+    position: relative; /* This allows the dropdown to be positioned relative to this container */
+    display: inline-block; /* Aligns the container inline with other elements */
+}
+
+#FilterFlag {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #aaa;
+    position: relative; /* Position button within the container */
+}
+
+#FilterFlag i {
+    font-size: 18px; /* Ensures the icon matches the input field styling */
+}
+
+#Filteredflag {
+    display: none; /* Initially hidden */
+    position: absolute; /* Position it relative to the container */
+    background-color: #fff;
+    width: 200px; /* Adjust as necessary */
+    z-index: 1000;
+    padding: 10px;
+    font-size: small;
+    height: auto; /* Allow the dropdown to grow with content */
+    top: 100%; /* Position directly below the button */
+    left: 0; /* Align with the left edge of the button */
+}
+.dropdown-item.selected {
+    background-color: #92d5f7; /* Light blue highlight for a professional look */
+    color: #005662; /* Text color for contrast */
+    border-radius: 4px; /* Adds a subtle rounding for a modern look */
+}
+
+
+
+.dropdown-item {
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease; /* Smooth transition for highlight */
+    padding: 5px 10px;
     display: flex;
     align-items: center;
-    justify-content: flex-end;
-    flex: 1;
-    margin-top: 0; /* Removed to align with the other elements */
-    margin-right: 0; /* Removed to align with the other elements */
+}
+
+.dropdown-item:hover {
+    background-color: #f0f0f0; /* Subtle gray background on hover */
 }
 
 .add-to-vmh-btn-container{
@@ -965,36 +1007,6 @@ select, input[type="text"] {
     display: block;
 }
 
-#Filteredflag {
-    display: none; /* Initially hidden */
-    position: absolute; /* Position it relative to the page or a container */
-    background-color: #fff;
-    border: 1px solid #ccc;
-    width: 200px; /* Adjust as necessary */
-    z-index: 1000;
-    padding: 10px;
-    margin-top: 62%;
-    margin-left: 58%;
-    font-size: small;
-    height: auto; /* Allow the modal to grow with content */
-    width: 35%; /* Set a fixed width */
-}
-
-#FilterFlag{
-   
-    margin-left: 15%;
-}
-
-.dropdown-item {
-    padding: 5px 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-}
-
-.dropdown-item:hover {
-    background-color: #f0f0f0;
-}
 
 #arrow{
     position: absolute;

@@ -42,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const action = urlParams.get('action');
 
     if (reactionId || action === 'edit') {
-
         fetch(getReaction + reactionId)
             .then(response => {
                 if (!response.ok) {

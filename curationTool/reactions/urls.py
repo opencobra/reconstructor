@@ -19,7 +19,6 @@ urlpatterns = [
     path('check_reaction_vmh/', views.check_reaction_vmh, name='check_reaction_vmh'),
     path('get_from_vmh/', views.get_from_vmh, name='get_from_vmh'),
     path('save_reaction/', views.save_user_reaction, name='save_reaction'),
-    path('saved_reactions/save_reaction/', views.save_user_reaction, name='save_reaction_duplicate'),
     path('reaction_ids/', views.get_all_reaction_ids, name='get_all_reaction_ids'),
     path('delete_reaction/', views.delete_reaction, name='delete_reaction'),
     path('chemdoodle_sketcher/', views.chemdoodle_sketcher, name='chemdoodle_sketcher'),

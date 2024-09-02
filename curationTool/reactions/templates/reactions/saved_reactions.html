@@ -24,10 +24,14 @@
         <div class="search-bar">
             <i class="fas fa-search search-icon"></i>
             <input type="text" id="searchInput" placeholder="Search reactions..." />
-            <button id="FilterFlag" class="filter-button"title="Filter by Flags">
-                <i class="fas fa-flag" style="cursor: pointer;"></i> <!-- Adding a flag icon -->
-            </button>
-            <div id="Filteredflag"></div>
+            <div class="filter-container">
+                <button id="FilterFlag" class="filter-button" title="Filter by Flags">
+                    <i class="fas fa-flag" style="cursor: pointer;"></i> <!-- Adding a flag icon -->
+                </button>
+                <div id="Filteredflag">
+                    <!-- Dropdown content populated dynamically -->
+                </div>
+            </div>
             <table id="reactionList">
                 <!-- Table content goes here -->
             </table>
@@ -114,7 +118,7 @@
             <label for="flagColorInput">Flag Color:</label>
             <input type="color" id="flagColorInput" value="#ffffff">
 
-            <button type="button" id="saveFlagButton" class="ui button">Save Flag</button>
+            <button type="button" id="saveFlagButton" class="ui button">Create New Flag</button>
         </div>
 
         </div>
@@ -132,7 +136,7 @@
         </div>
         <div class="add-to-vmh-btn-container">
             <button id="addToVMH" class="ui blue button add-to-vmh-btn">Add to VMH</button>
-            <button id="addFlag" class="ui blue button add-flag-btn">Flag Reaction</button>
+            <button id="addFlag" class="ui blue button add-flag-btn">Add Flag</button>
 
         </div>
 
@@ -213,14 +217,11 @@
     const userID = '{{ userID }}';
     var reactions = {{ reactions_json|safe }};
 </script>
-
-
         <script src="{% static 'reactions/js_savedreactions/reactionChecking.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/flag_saved_reaction.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/FlagFilter.js' %}"></script>
-        {% comment %} <script src="{% static 'reactions/js_savedreactions/queryai.js' %}"></script> {% endcomment %}
         <script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
         <script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>

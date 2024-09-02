@@ -5,13 +5,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     filterButton.addEventListener('click', function() {
         const userId = userID; // Replace with the actual user ID
-        
-        // Hide the button
-        filterButton.style.display = 'none';
-        
-        // Show the dropdown
+
+        if (dropdown.style.display === 'inline-block') {
+            // If dropdown is already open, close it
+            toggleDropdown();
+            return;
+        }
+
         dropdown.style.display = 'inline-block';
-        
+
         // Fetch flags and populate dropdown
         fetchFlags(userId);
     });
@@ -71,11 +73,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (selectedFlags.includes(color)) {
                     // If flag is already selected, remove it and restore original color
                     selectedFlags = selectedFlags.filter(c => c !== color);
-                    item.style.backgroundColor = ''; // Restore original background
+                    item.classList.remove('selected'); // Remove highlight class
                 } else {
-                    // Otherwise, add it to the selected flags and darken the entire item
+                    // Otherwise, add it to the selected flags and apply the highlight
                     selectedFlags.push(color);
-                    item.style.backgroundColor = darkenColor(flag.color, 0.5); // Darken the background
+                    item.classList.add('selected'); // Add highlight class
                 }
     
                 filterTable(); // Apply filter based on selected flags
@@ -83,24 +85,22 @@ document.addEventListener('DOMContentLoaded', function() {
     
             dropdown.appendChild(item);
         });
-    
-        console.log('Dropdown populated with flags');
+
+        // Reapply selected flags' highlights after populating the dropdown
+        reapplySelectedFlagHighlights();
     }
-    
-    // Helper function to reapply selected flags' background color
-    function reapplySelectedFlagColors() {
+
+    function reapplySelectedFlagHighlights() {
         const items = dropdown.querySelectorAll('.dropdown-item');
         items.forEach(item => {
             const color = item.getAttribute('data-color');
             if (selectedFlags.includes(color)) {
-                item.style.backgroundColor = darkenColor(color, 0.5); // Reapply darkened background
+                item.classList.add('selected'); // Apply consistent highlight
             } else {
-                item.style.backgroundColor = ''; // Restore original background
+                item.classList.remove('selected'); // Remove highlight
             }
         });
     }
-    
-
     function hexToRgb(hex) {
         hex = hex.replace(/^#/, '');
         
@@ -112,16 +112,14 @@ document.addEventListener('DOMContentLoaded', function() {
         return `rgb(${r}, ${g}, ${b})`;
     }
 
-    function darkenColor(color, factor) {
-        const rgb = hexToRgb(color).match(/\d+/g).map(Number);
-        const lightened = rgb.map(c => Math.min(255, Math.floor(c + (255 - c) * factor)));
-        return `rgb(${lightened.join(', ')})`;
-    }
-
     function filterTable() {
         const rows = document.querySelectorAll('tr');
 
         for (const row of rows) {
+            // ignore first row (header)
+            if (row.rowIndex === 0) {
+                continue;
+            }
             const flagIcons = row.querySelectorAll('.fas.fa-flag');
             let rowMatches = false;
 
@@ -140,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function resetFlagColors() {
         const items = dropdown.querySelectorAll('.dropdown-item');
         items.forEach(item => {
-            item.style.backgroundColor = ''; // Reset background color
+            item.classList.remove('selected'); // Reset all to non-highlighted
         });
     }
 
@@ -149,8 +147,8 @@ document.addEventListener('DOMContentLoaded', function() {
             // Show the dropdown
             dropdown.style.display = 'inline-block';
             
-            // Reapply the selected flags' background color
-            reapplySelectedFlagColors();
+            // Reapply the selected flags' highlights
+            reapplySelectedFlagHighlights();
         } else {
             // Hide the dropdown
             dropdown.style.display = 'none';
@@ -159,5 +157,4 @@ document.addEventListener('DOMContentLoaded', function() {
         // Toggle the filter button visibility
         filterButton.style.display = (dropdown.style.display === 'none') ? 'inline-block' : 'none';
     }
-    
 });

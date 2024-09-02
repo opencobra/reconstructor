@@ -158,41 +158,62 @@
     margin-left: 55px;
 }
 
-#addSubstrate, #addProduct {
-    background-color: orange;
-    border: 1px solid rgb(209, 213, 219);
-    border-radius: .5rem;
-    box-sizing: border-box;
-    color: #111827;
-    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: .875rem;
-    font-weight: 600;
-    line-height: 1.25rem;
-    padding: .75rem 1rem;
-    text-align: center;
-    text-decoration: none #D1D5DB solid;
-    text-decoration-thickness: auto;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+.button-container {
+    display: inline-block; /* Aligns button within the form layout */
+    margin: 0 10px; /* Adds some spacing around the button */
+    position: relative; /* Positions button relative to its container */
+  }
+  
+  .button_plus {
+    display: inline-block; /* Allows button to be aligned inline */
+    width: 35px;
+    height: 35px;
+    background: #fff;
     cursor: pointer;
+    border: 2px solid #095776;
+    position: relative; /* Change to relative to work within container */
+    top: 0; /* Reset to avoid unnecessary offsets */
+    left: 0; /* Reset to avoid unnecessary offsets */
+  }
+  
+  .button_plus:after {
+    content: '';
+    position: absolute;
+    transform: translate(-50%, -50%);
+    height: 4px;
+    width: 50%;
+    background: #095776;
+    top: 50%;
+    left: 50%;
+  }
+  
+  .button_plus:before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #095776;
+    height: 50%;
+    width: 4px;
+  }
+  
+  .button_plus:hover:before,
+  .button_plus:hover:after {
+    background: #fff;
+    transition: 0.2s;
+  }
+  
+  .button_plus:hover {
+    background-color: #095776;
+    transition: 0.2s;
+  }
+
+  #addSubstrate, #addProduct {
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    width: 112px;
-    height: 40px;
-    margin-left: 65px;
-}
-
-.addSubstrate, .addProduct:hover {
-    background-color: rgb(249, 250, 251);
-}
-
-.addSubstrate, .addProduct:focus {
-    outline: 2px solid transparent;
-    outline-offset: 2px;
-}
-
-.addSubstrate, .addProduct:focus-visible {
-    box-shadow: none;
+    margin-left: 160%;
 }
 
 #applyAllSubsComps , #applyAllProdsComps {
@@ -300,18 +321,18 @@ text-align: center;
     margin-left: 35px;
 }
 
-.done-field-btn-all, .done-field-btn, .applyAllSubsType{
-    background-color: rgb(247, 169, 67);
-    border: 1px solid #d5d9d9;
-    border-radius: 8px;
-    box-shadow: rgba(213, 217, 217, .5) 0 2px 5px 0;
+.done-field-btn-all, .done-field-btn, .applyAllSubsType {
+    background-color: #4CAF50; /* A professional green color for 'verify' */
+    border: none; /* Removes border for a cleaner look */
+    border-radius: 6px; /* Slightly smaller radius for a subtle curve */
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Softer shadow for a more modern look */
     box-sizing: border-box;
-    color: #0f1111;
+    color: #ffffff; /* White color for text to contrast with green background */
     cursor: pointer;
     display: inline-block;
-    font-family: "Amazon Ember", sans-serif;
-    font-size: 13px;
-    padding: 0 10px 0 11px;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* A clean, modern font */
+    font-size: 14px; /* Slightly larger for better readability */
+    padding: 8px 16px; /* More padding for a more balanced look */
     position: relative;
     text-align: center;
     text-decoration: none;
@@ -319,16 +340,19 @@ text-align: center;
     -webkit-user-select: none;
     touch-action: manipulation;
     vertical-align: middle;
-    font-weight: bold;
-    width: 10%;
-}
-.done-field-btn-all{
-    margin-left: 7.5%;
+    font-weight: 600; /* Semi-bold for better readability without being too heavy */
+    width: auto; /* Allows button to resize based on content */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
 }
 
-.done-field-btn-all,.applyAllSubsType,.done-field-btn:hover {
-    background-color: rgb(247, 169, 67);
+.done-field-btn-all {
+    margin-left: 10px; /* Simplified spacing */
 }
+
+.done-field-btn-all, .applyAllSubsType, .done-field-btn:hover {
+    background-color: #45a049; /* Darker green on hover for visual feedback */
+}
+
 
 
 #reactionFormContainer{

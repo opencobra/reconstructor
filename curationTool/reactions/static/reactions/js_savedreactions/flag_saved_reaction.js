@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const iconHTML = `<i class="fas fa-flag" style="color: ${color}; margin-right: 10px;"></i>`;
     
             // Set the combined content into the dropdown trigger
-            document.querySelector('.custom-dropdown .dropdown-trigger').innerHTML = textContent+iconHTML ;
+            document.querySelector('.custom-dropdown .dropdown-trigger').innerHTML = textContent + iconHTML;
     
             document.querySelector('.custom-dropdown').classList.remove('active');
         }
@@ -31,17 +31,14 @@ document.addEventListener('DOMContentLoaded', function() {
         const b = parseInt(result[2]).toString(16).padStart(2, '0');
         return `#${r}${g}${b}`;
     }
-    
+
     document.getElementById('AddFlagtosavedreaction').addEventListener('click', function() {
         const selectedReactionIds = getSelectedReactionIds();  // Implement this function to retrieve selected reactions
         const selectedFlagElement = document.querySelector('.dropdown-trigger');
-        console.log(selectedFlagElement);
-        var selectedFlagName = selectedFlagElement.textContent;  
-        selectedFlagName = selectedFlagName.trim();
+        var selectedFlagName = selectedFlagElement.textContent.trim();  
         const flagIcon = selectedFlagElement.querySelector('i');
-        var selectedFlagColor = flagIcon.style.color;
-        selectedFlagColor = rgbToHex(selectedFlagColor);
-        console.log(selectedFlagColor);
+        var selectedFlagColor = rgbToHex(flagIcon.style.color);
+
         if (!selectedReactionIds.length) {
             console.error('No reactions selected');
             return;
@@ -58,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             flag_name: selectedFlagName,
             flag_color: selectedFlagColor
         };
-        console.log("flag",data);
+
         fetch('/saved_reactions/save_flags_in_saved_reactions/', {
             method: 'POST',
             headers: {
@@ -91,11 +88,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('createFlagButtonCustom').addEventListener('click', function() {
         const newFlagFields = document.getElementById('newFlagFields');
-        if (newFlagFields.style.display === 'block') {
-            newFlagFields.style.display = 'none';
-        } else {
-            newFlagFields.style.display = 'block';
-        }
+        newFlagFields.style.display = (newFlagFields.style.display === 'block') ? 'none' : 'block';
     });
 
     window.addEventListener('click', function(event) {
@@ -126,7 +119,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    addFlagToDropdown(data.flag);
+                    resetDropdown();
                     document.getElementById('newFlagFields').style.display = 'none';
                 } else {
                     console.error(data.message);
@@ -134,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .catch(error => console.error('Error:', error));
         } else {
-            console.error('Flag name and color are required');
+            alert('Flag name and color are required');
         }
     });
 
@@ -153,6 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function populateDropdown(flags) {
         const dropdownMenu = document.querySelector('.custom-dropdown .dropdown-menu');
+        dropdownMenu.innerHTML = '';  // Clear the dropdown before populating it
     
         flags.forEach(flag => {
             const div = document.createElement('div');
@@ -160,31 +154,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 <i class="fas fa-flag" style="color: ${flag.color}; margin-right: 10px;"></i>
                 <span>${flag.name_flag}</span>`;
             div.setAttribute('data-color', flag.color);
-    
-    
             dropdownMenu.appendChild(div);
         });
     }
-    
-    
 
-    function addFlagToDropdown(flag) {
-        const dropdownMenu = document.querySelector('.custom-dropdown .dropdown-menu');
-        const div = document.createElement('div');
-        div.textContent = `${flag.name_flag}`;
-        div.setAttribute('data-color', flag.color);
-        dropdownMenu.appendChild(div);
-
-        document.querySelector('.custom-dropdown .dropdown-trigger').textContent = flag.name_flag;
+    function resetDropdown() {
+        fetchFlags(userID);  // Re-fetch flags and repopulate dropdown
     }
 
-    function findDivByTextContent(text) {
-        const divs = document.querySelectorAll('.dropdown-menu div');
-        for (let div of divs) {
-            if (div.textContent.trim() === text) {
-                return div;
-            }
-        }
-        return null;
-    }
 });

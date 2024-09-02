@@ -1,116 +1,97 @@
+// flags.js
+flagsLoaded = false;
 document.addEventListener('DOMContentLoaded', function () {
     const userId = sessionStorage.getItem('userID');
-    const createFlagModal = document.getElementById('createFlagModalCustom');
-    const modalOverlay = document.getElementById('modalOverlayCustom');
-    const createFlagButton = document.getElementById('createFlagButtonCustom');
-    const closeCreateFlagModal = document.getElementById('closeCreateFlagModalCustom');
-    const saveReactionModal = document.getElementById('saveReactionModal');
-    const submitCreateFlagButton = document.getElementById('submitCreateFlagCustom');
-
-    // Function to open the create flag modal and close the save reaction modal
-    function openCreateFlagModal() {
-        createFlagModal.classList.add('active');
-        modalOverlay.classList.add('active');
-        saveReactionModal.style.display = 'none';
-        document.getElementById('modalBackground').style.display = 'none';
+    // Utility function to fetch flags for a user
+    async function fetchFlags(userId) {
+        try {
+            const response = await fetch(`/flags/${userId}/`);
+            const data = await response.json();
+            if (data.status === 'success') {
+                return data.flags;
+            } else {
+                console.error('Failed to load flags:', data.message);
+                return [];
+            }
+        } catch (error) {
+            console.error('Error loading flags:', error);
+            return [];
+        }
     }
 
-    // Function to close the create flag modal and open the save reaction modal
-    function closeCreateFlagModalAndReopenSaveReaction() {
-        createFlagModal.classList.remove('active');
-        modalOverlay.classList.remove('active');
-        document.getElementById('modalBackground').style.display = 'block';
-        saveReactionModal.style.display = 'block';
+    // Utility function to populate dropdown with flags
+    function populateFlagDropdown(flags, dropdownMenu, selectedOption) {
+        dropdownMenu.innerHTML = ''; // Clear existing flags
+
+        flags.forEach(flag => {
+            const option = document.createElement('div');
+            option.style.padding = '10px';
+            option.style.cursor = 'pointer';
+            option.style.display = 'flex';
+            option.style.alignItems = 'center';
+            option.innerHTML = `<i class="fas fa-flag" style="color: ${flag.color}; margin-right: 10px;"></i><span>${flag.name_flag}</span>`;
+            
+            option.addEventListener('click', function() {
+                selectedOption.innerHTML = `${flag.name_flag}<i class="fas fa-flag" style="color: ${flag.color}; margin-right: 10px; display: inline-block;"></i>`;
+            });
+
+            dropdownMenu.appendChild(option);
+        });
     }
 
-    // Open the create flag modal when the create flag button is clicked
-    createFlagButton.addEventListener('click', openCreateFlagModal);
-
-    // Close the create flag modal when the close button or overlay is clicked
-    closeCreateFlagModal.addEventListener('click', closeCreateFlagModalAndReopenSaveReaction);
-    modalOverlay.addEventListener('click', closeCreateFlagModalAndReopenSaveReaction);
-
-    // Load existing flags for the user
-    function loadFlags() {
-        fetch(`/flags/${userId}/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const dropdownMenu = document.getElementById('dropdownMenu');
-                    const selectedOption = document.getElementById('selectedOption');
-                
-                    data.flags.forEach(flag => {
-                        const option = document.createElement('div');
-                        option.style.padding = '10px';
-                        option.style.cursor = 'pointer';
-                        option.style.display = 'flex';
-                        option.style.alignItems = 'center';
-                        
-                        option.innerHTML = `
-                        <span>${flag.name_flag}</span>
-                        <i class="fas fa-flag" style="color: ${flag.color}; margin-right: 10px;"></i>
-                        
-                    `;
-                    
-                    option.addEventListener('click', function() {
-                        selectedOption.innerHTML = `
-                        ${flag.name_flag}    
-                        <i class="fas fa-flag" style="color: ${flag.color}; margin-right: 10px; display: inline-block;"></i>
-                            
-                        `;
-                        dropdownMenu.style.display = 'none';
-                    });
-                    
-                
-                        dropdownMenu.appendChild(option);
-                    });
-                
-                    selectedOption.addEventListener('click', function() {
-                        dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
-                    });
-                
-                    document.addEventListener('click', function(event) {
-                        if (!event.target.closest('#customDropdown')) {
-                            dropdownMenu.style.display = 'none';
-                        }
-                    });
-                
-                } else {
-                    console.error('Failed to load flags:', data.message);
-                }
-                
-            })
-            .catch(error => console.error('Error loading flags:', error));
+    // Load flags and populate dropdown
+    async function loadFlags() {
+        if (!flagsLoaded) {
+            const flags = await fetchFlags(userId);
+            const dropdownMenu = document.getElementById('dropdownMenu');
+            const selectedOption = document.getElementById('selectedOption');
+            populateFlagDropdown(flags, dropdownMenu, selectedOption);
+            flagsLoaded = true;
+        }
     }
 
-    // Submit the new flag and reload flags
-    submitCreateFlagButton.addEventListener('click', function () {
+    // Event listeners for dropdown interaction
+    document.getElementById('customDropdown').addEventListener('click', function() {
+        const dropdownMenu = document.getElementById('dropdownMenu');
+        dropdownMenu.style.display = dropdownMenu.style.display === 'none' ? 'block' : 'none';
+    });
+
+    document.addEventListener('click', function(event) { 
+        if (!event.target.closest('#customDropdown')) {
+            document.getElementById('dropdownMenu').style.display = 'none';
+        }
+    });
+
+    // Add new flag
+    document.getElementById('submitCreateFlagCustom').addEventListener('click', async function () {
         const flagName = document.getElementById('newFlagNameCustom').value;
         const flagColor = document.getElementById('newFlagColorCustom').value;
 
-        fetch('/add_flag/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken
-            },
-            body: JSON.stringify({ user_id: userId, name_flag: flagName, color: flagColor })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    loadFlags(); // Reload the flags after adding a new one
-                    closeCreateFlagModalAndReopenSaveReaction(); // Close flag modal and reopen save reaction modal
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(error => console.error('Error creating flag:', error));
+        try {
+            const response = await fetch('/add_flag/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({ user_id: userId, name_flag: flagName, color: flagColor })
+            });
+
+            const data = await response.json();
+            if (data.status === 'success') {
+                flagsLoaded = false; // Reset flagsLoaded to reload flags
+                loadFlags();
+                document.getElementById('closeCreateFlagModalCustom').click();
+            } else {
+                alert(data.message);
+            }
+        } catch (error) {
+            console.error('Error creating flag:', error);
+        }
     });
 
-    var user = sessionStorage.getItem('userID');
-
-    if (user !== null) {
-        loadFlags(); // Load flags if user is logged in
+    // Initial load if user is logged in
+    if (userId !== null) {
+        loadFlags();
     }
 });

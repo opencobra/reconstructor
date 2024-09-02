@@ -192,7 +192,9 @@
                                     <input type="text" class="substrates-name" style="display: none;" name="substrates_name">
                                 </div>
                             </div>
-                            <button type="button" id="addSubstrate">Add Substrate</button><br>
+                            <div class="button-container">
+                                <div class="button_plus" id="addSubstrate"></div>
+                            </div>
                             <div class="direction-dropdown">
                                 <label class="reactionDirectionlabel" for="reactionDirection">Direction:</label>
                                 <select class="ui simple dropdown item" name="direction" id="reactionDirection">
@@ -280,7 +282,9 @@
                                     <input type="text" class="products-name" style="display: none;" name="products_name">
                                 </div>
                             </div>
-                            <button type="button" id="addProduct">Add Product</button><br>
+                            <div class="button-container">
+                                <div class="button_plus" id="addProduct"></div>
+                            </div>
                             <div class="subsystem-input">
                                 <label for="subsystemField" style="font-size: 1.2em; font-weight: bold;">Subsystem:</label>
                                 <input type="text" id="subsystemField" name="subsystem" autocomplete="off">
@@ -671,7 +675,7 @@
     </div>
     <div class="funding-container">
         <img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo">
-        <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997), the Swiss State Secretariat for Education, Research and Innovation (23.00232), and by United Kingdom Research and Innovation (10083717 & 10080153).</div>
+        <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).</div>
         <img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo">
 
     </div>
@@ -701,6 +705,7 @@
     <script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
     <script src="{% static 'reactions/js/login_modal.js' %}"></script>
     <script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
+    <script src="{% static 'reactions/js/flag_modals.js' %}"></script>
     <script src="{% static 'reactions/js/Flag.js' %}"></script>
     <script src="{% static 'reactions/js/register_modal.js' %}"></script>
     <script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>

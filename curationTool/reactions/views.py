@@ -52,36 +52,27 @@ from django.views.decorators.http import require_GET
 def get_user_flags(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
-        flags = user.flags.all()  # Retrieve all flags for this user
+        flags = user.flags.all()
         flags_data = [{'id': flag.id, 'name_flag': flag.name_flag, 'color': flag.color} for flag in flags]
         return JsonResponse({'status': 'success', 'flags': flags_data})
-    except User.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Invalid user'})
-
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @csrf_exempt
 @login_required
 def add_flag(request):
     if request.method == 'POST':
         try:
-            # Parse JSON data from request body
             data = json.loads(request.body)
-            
             user_id = data.get('user_id')
             flag_name = data.get('name_flag')
             flag_color = data.get('color')
-
             user = User.objects.get(pk=user_id)
         except User.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Invalid user'})
         
         if flag_name and flag_color:
-            flag, created = Flag.objects.get_or_create(
-                name_flag=flag_name,
-                color=flag_color,
-                user=user
-            )
-
+            flag, created = Flag.objects.get_or_create(name_flag=flag_name, color=flag_color, user=user)
             return JsonResponse({
                 'status': 'success',
                 'message': 'Flag added successfully',
@@ -89,8 +80,6 @@ def add_flag(request):
             })
         else:
             return JsonResponse({'status': 'error', 'message': 'Flag name and color are required'})
-
-    
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def get_vmh_subsystems():
@@ -930,8 +919,7 @@ def save_user_reaction(request):
 
         if user and reaction:
             reaction.short_name = short_name
-
-            if flag_name != 'None' and flag_color != 'null':
+            if flag_name.strip() not in ['None', 'Choose a flag'] and flag_color != 'null':
                 # Get or create the flag
                 flag = Flag.objects.get(name_flag=flag_name, color=flag_color)
 
@@ -950,38 +938,23 @@ def save_user_reaction(request):
 @csrf_exempt 
 def save_flags_in_saved_reactions(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        
-        userID = data.get('userID')
-        reaction_ids = data.get('reaction_ids',[])
-        reaction_ids = [int(reaction_id) for reaction_id in reaction_ids]
-
-        flag_name = data.get('flag_name')
-        flag_color = data.get('flag_color')
-        print(reaction_ids)
-        # Validate user
         try:
-            user = User.objects.get(pk=userID)
-        except User.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Invalid user ID'})
+            data = json.loads(request.body)
+            user_id = data.get('userID')
+            reaction_ids = data.get('reaction_ids', [])
+            flag_name = data.get('flag_name')
+            flag_color = data.get('flag_color')
 
-        if flag_name != 'None' and flag_color != 'null':
-                # Get or create the flag
-            flag = Flag.objects.get(name_flag=flag_name, color=flag_color)
+            user = User.objects.get(pk=user_id)
+            flag = Flag.objects.get(name_flag=flag_name, color=flag_color, user=user)
 
-        for reaction_id in reaction_ids:
-            try:
-                reaction = Reaction.objects.get(pk=reaction_id)
+            for reaction_id in reaction_ids:
+                reaction = get_object_or_404(Reaction, pk=reaction_id)
                 reaction.flags.add(flag)
-                reaction.save()
-            except Reaction.DoesNotExist:
-                return JsonResponse({'status': 'error', 'message': f'Invalid reaction ID: {reaction_id}'})
 
-            reaction.flags.add(flag)
-            reaction.save()
-
-        return JsonResponse({'status': 'success'})
-
+            return JsonResponse({'status': 'success'})
+        except Exception as e:
+            return JsonResponse({'status': 'error', 'message': str(e)})
     return JsonResponse({'status': 'error', 'message': 'Invalid request method'})
 
 def saved_reactions(request, modal=False):
