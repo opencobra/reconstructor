@@ -202,7 +202,6 @@
                                     <option value="bidirectional">&lt;=&gt;</option>
                                 </select>
                             </div>
-                            <br>
                             <!-- Products input field -->
                             <div class="field-container" id="productsDiv">
                                 <div class="header-container">
@@ -677,7 +676,6 @@
         <img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo">
         <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).</div>
         <img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo">
-
     </div>
 
 
@@ -699,6 +697,7 @@
         var updateSubsystemsUrl = "{% url 'update_subsystems' %}";
         var getPubMedInfo = "{% url 'get_pubmed_info' '__PMID__' %}".replace('__PMID__', '%s');
         var getDOIInfo = "{% url 'get_doi_info' '__DOI__' %}".replace('__DOI__', '%s');
+        var aboutUrl = "{% url 'about' %}";
         var subsystemList = [];
     </script>
     <script type="text/javascript"> var MEDIA_URL = '{{ MEDIA_URL }}';</script>

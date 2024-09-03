@@ -33,7 +33,7 @@ except:
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.get('DEBUG')
 
-ALLOWED_HOSTS = ['127.0.0.1','localhost','83.70.173.200','192.168.1.49', 'reconstructor.chatimd.org']
+ALLOWED_HOSTS = ['127.0.0.1','localhost','83.70.173.200','192.168.1.49', 'reconstructor.chatimd.org','reconstructor.humanmetabolism.org']
 
 
 

@@ -6,7 +6,6 @@
 .field-container {
     padding: 10px;
     border: 1px solid #ddd;
-    margin-bottom: 10px;
 }
 
 
@@ -33,9 +32,8 @@
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    margin-top: 20px;
-    font-size: small
-
+    font-size: small;
+    margin-bottom: 10px;
 }
 
 .input-label-stich{
@@ -43,7 +41,7 @@
 }
 .inputs-group {
     display: flex;
-    margin-top: 20px;
+    margin-top: 5px;
     width: 100%;
     height: 4.5vh;
     flex-direction: row;
@@ -97,17 +95,6 @@
     width: 15%;
 }
 
-#subsCompsApplyAllSelect,#prodsCompsApplyAllSelect {
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    margin-right: 20px;
-    margin-left: 10px;
-    font-weight: bold;
-    height: 45px;
-    width: 60px;
-    text-align: center;
-}
-
 #substrates, #products,.start-drawing-btn, .edit-drawing-btn {
     border: 2px solid #ccc;
     border-radius: 5px;
@@ -147,8 +134,6 @@
     font-weight: bold;
     font-size: medium;
     margin-left: 5px;
-    margin-top: -5px;
-    margin-bottom: -25px;
 }
 
 #substratesDiv, #productsDiv {
@@ -216,55 +201,56 @@
     margin-left: 160%;
 }
 
-#applyAllSubsComps , #applyAllProdsComps {
-    background-color: orange;
-    border: 1px solid rgb(209, 213, 219);
-    border-radius: .5rem;
+
+#applyAllSubsType, #applyAllProdsType, #applyAllSubsComps, #applyAllProdsComps {
+    align-items: center;
+    background-color: #FFEEB5; /* Slightly lighter orange background */
+    border: 1px solid #FFD580; /* Lighter border color */
+    border-radius: 11px; /* Consistent rounded corners */
     box-sizing: border-box;
-    color: #111827;
-    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: .875rem;
-    font-weight: 600;
-    line-height: 1.25rem;
-    padding: .75rem 1rem;
-    text-align: center;
-    text-decoration: none #D1D5DB solid;
-    text-decoration-thickness: auto;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    color: #8A4F0F; /* Darker text for better contrast */
     cursor: pointer;
+    display: flex;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 33px; /* Adjusted line height */
+    padding: 2px 6px; /* Consistent padding */
+    text-align: left;
+    text-decoration: none;
+    text-shadow: none;
+    text-underline-offset: 1px;
+    transition: border .2s ease-in-out, box-shadow .2s ease-in-out;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    white-space: nowrap;
+    word-break: break-word;
+  }
+  
+  #applyAllSubsType:active, #applyAllProdsType:active, #applyAllSubsComps:active, #applyAllProdsComps:active,
+  #applyAllSubsType:hover, #applyAllProdsType:hover, #applyAllSubsComps:hover, #applyAllProdsComps:hover,
+  #applyAllSubsType:focus, #applyAllProdsType:focus, #applyAllSubsComps:focus, #applyAllProdsComps:focus {
+    outline: 0;
+  }
+  
+  #applyAllSubsType:active, #applyAllProdsType:active, #applyAllSubsComps:active, #applyAllProdsComps:active {
+    background-color: #FFB347; /* Darker orange for active state */
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+    color: #FFFFFF; /* White text on active state */
+  }
+  
+  #applyAllSubsType:hover, #applyAllProdsType:hover, #applyAllSubsComps:hover, #applyAllProdsComps:hover {
+    background-color: #FFE5CC; /* Slightly lighter background on hover */
+    border-color: #FFAB66; /* Slightly darker border on hover */
+  }
+  
+  #applyAllSubsType:active:hover, #applyAllProdsType:active:hover, #applyAllSubsComps:active:hover, #applyAllProdsComps:active:hover,
+  #applyAllSubsType:focus:hover, #applyAllProdsType:focus:hover, #applyAllSubsComps:focus:hover, #applyAllProdsComps:focus:hover {
+    background-color: #FFB347; /* Darker orange for hover-active/focus state */
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+    color: #FFFFFF;
+  }
 
-    width: 100px;
-    margin-right: 15px;
-
-} 
-
-
-
-#applyAllSubsType ,#applyAllProdsType{
-    background-color: orange;
-    border: 1px solid rgb(209, 213, 219);
-    border-radius: .5rem;
-    box-sizing: border-box;
-    color: #111827;
-    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: .875rem;
-    font-weight: 600;
-    line-height: 1.25rem;
-    padding: .75rem 1rem;
-    text-align: center;
-    text-decoration: none #D1D5DB solid;
-    text-decoration-thickness: auto;
-    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    cursor: pointer;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    width: 100px;
-    margin-right: 15px;
-}
 
 #applyAllOptionsSubs, #applyAllOptionsProds {
     display: flex;
@@ -273,20 +259,31 @@
     margin-top: 40px;
     margin-bottom: 40px ;
     margin-left: -90px;
+    gap: 10px;
 }
 
-#subsTypeApplyAllSelect,#prodsTypeApplyAllSelect{    border: 2px solid #ccc;
-border-radius: 5px;
-margin-right: 10px;
-height: 40px;
-width: 120px;
-text-align: center;
+#subsTypeApplyAllSelect, #prodsTypeApplyAllSelect ,#subsCompsApplyAllSelect,#prodsCompsApplyAllSelect {
+    border: 1px solid #ccc; /* Reduced border width for a slimmer look */
+    border-radius: 4px; /* Slightly smaller radius for a subtle curve */ /* Slightly reduced margin for better spacing */
+    height: 40px; /* Reduced height for a slimmer appearance */
+    width: 100px; /* Slightly reduced width for a more compact design */
+    text-align: center;
+    box-sizing: border-box; /* Ensures padding and border are included in the width and height */
+    font-size: 14px; /* Adjusted font size for better readability */
+    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* Modern font stack */
+    transition: border-color 0.2s ease; /* Smooth transition for hover effect */
 }
+
+#subsTypeApplyAllSelect:hover, #prodsTypeApplyAllSelect:hover, #subsCompsApplyAllSelect:hover, #prodsCompsApplyAllSelect:hover {
+    border-color: #999; /* Slightly darker border color on hover for visual feedback */
+}
+
 
 .direction-dropdown {
-    margin-top: 50px;
     margin-left: 45px;
     font-weight: bold;
+    margin-top: 25px;
+    margin-bottom: 25px;
 }
 
 #reactionDirection {
@@ -314,45 +311,66 @@ text-align: center;
 }
 
 .infocomp{
-    margin-left: 20%;
+    margin-left: 17%;
 }
 
 .input-label-stich{
     margin-left: 35px;
 }
 
-.done-field-btn-all, .done-field-btn, .applyAllSubsType {
-    background-color: #4CAF50; /* A professional green color for 'verify' */
-    border: none; /* Removes border for a cleaner look */
-    border-radius: 6px; /* Slightly smaller radius for a subtle curve */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Softer shadow for a more modern look */
+/* CSS */
+.done-field-btn-all, .done-field-btn {
+    align-items: center;
+    background-color: #E6F4E6; /* Slightly lighter green background */
+    border: 1px solid #B0E0B0; /* Lighter green border */
+    border-radius: 11px; /* Consistent rounded corners */
     box-sizing: border-box;
-    color: #ffffff; /* White color for text to contrast with green background */
+    color: #2E7D32; /* Darker green text color for contrast */
     cursor: pointer;
-    display: inline-block;
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* A clean, modern font */
-    font-size: 14px; /* Slightly larger for better readability */
-    padding: 8px 16px; /* More padding for a more balanced look */
-    position: relative;
-    text-align: center;
+    display: flex;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 23px; /* Adjusted line height */
+    padding: 2px 6px; /* Consistent padding */
+    text-align: left;
     text-decoration: none;
+    text-shadow: none;
+    text-underline-offset: 1px;
+    transition: border .2s ease-in-out, box-shadow .2s ease-in-out;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
-    vertical-align: middle;
-    font-weight: 600; /* Semi-bold for better readability without being too heavy */
-    width: auto; /* Allows button to resize based on content */
-    transition: background-color 0.3s ease, box-shadow 0.3s ease; /* Smooth transition for hover effects */
-}
-
+    white-space: nowrap;
+    word-break: break-word;
+  }
+  
+  .done-field-btn-all:active, .done-field-btn:active,
+  .done-field-btn-all:hover, .done-field-btn:hover,
+  .done-field-btn-all:focus, .done-field-btn:focus {
+    outline: 0;
+  }
+  
+  .done-field-btn-all:active, .done-field-btn:active {
+    background-color: #4CAF50; /* Darker green for active state */
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+    color: #FFFFFF; /* White text on active state */
+  }
+  
+  .done-field-btn-all:hover, .done-field-btn:hover {
+    background-color: #D3EFD3; /* Slightly lighter green background on hover */
+    border-color: #A3D3A3; /* Slightly darker green border on hover */
+  }
+  
+  .done-field-btn-all:active:hover, .done-field-btn:active:hover,
+  .done-field-btn-all:focus:hover, .done-field-btn:focus:hover {
+    background-color: #4CAF50; /* Darker green for hover-active/focus state */
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+    color: #FFFFFF;
+  }
+  
 .done-field-btn-all {
-    margin-left: 10px; /* Simplified spacing */
+    margin-left: 10px; /* Slightly reduced spacing */
 }
-
-.done-field-btn-all, .applyAllSubsType, .done-field-btn:hover {
-    background-color: #45a049; /* Darker green on hover for visual feedback */
-}
-
 
 
 #reactionFormContainer{

@@ -73,7 +73,7 @@ function hideLoaderdiv() {
         return span;
     }
     let textElement = document.createElement('div');
-    textElement.textContent = 'Reaction Formula: ';
+    textElement.textContent = 'VMH Formula: ';
     textElement.style.marginRight = '10px';  // Add some space between the text and the div
     textElement.style.display = 'flex';  // Adjust display type for better control
     textElement.style.justifyContent   = 'center';  // Center the text horizontally
@@ -282,6 +282,7 @@ function hideLoaderdiv() {
     let saveAllButton = document.createElement('button');
     saveAllButton.textContent = 'Save All';
     saveAllButton.style.marginTop = '20px';
+    saveAllButton.style.marginLeft = '10px';
     saveAllButton.id = 'save-all-button';
 
 

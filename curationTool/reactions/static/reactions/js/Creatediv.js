@@ -47,7 +47,16 @@ function refreshSideButtons() {
         }
     }
 }
-
-window.onload = function() {
+document.addEventListener('DOMContentLoaded', function() {
     refreshSideButtons();
-}
+    
+    // Add event listener to item about-item to go to the about page (in new tab)
+    var aboutButton = document.getElementById('item about-item');
+    
+    // Check if the element exists to prevent errors
+
+    aboutButton.addEventListener('click', function() {  
+        // Open the About page in a new tab
+        window.open(aboutUrl, '_blank');
+    });
+});

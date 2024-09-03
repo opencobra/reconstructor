@@ -20,6 +20,7 @@
     <div class="top-menu-saved-reactions">
         <div class= "icon">
             <img src="{% static 'reactions/website-icon.png' %}" alt="icon">
+            <button id="backToHome" id = "back-btn" class="ui blue button back-btn">Home Page</button>
         </div>
         <div class="search-bar">
             <i class="fas fa-search search-icon"></i>
@@ -131,13 +132,11 @@
             </div>
         </div>
         <div class="header">
-            <h1></h1>
-            <button id="backToHome" id = "back-btn" class="ui blue button back-btn">Back</button>
-        </div>
-        <div class="add-to-vmh-btn-container">
-            <button id="addToVMH" class="ui blue button add-to-vmh-btn">Add to VMH</button>
-            <button id="addFlag" class="ui blue button add-flag-btn">Add Flag</button>
-
+            <button id="addToVMH" class="ui blue button add-to-vmh-btn">
+                <img src="{% static 'reactions/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon">
+                Add Reaction(s) to VMH
+            </button>
+            <button id="addFlag" class="ui blue button add-flag-btn">Flag Reaction(s)</button>
         </div>
 
     

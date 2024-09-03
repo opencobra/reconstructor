@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us</title>
+
+    <!-- Include new custom CSS for the About page -->
+    <link rel="stylesheet" type="text/css" href="{% static 'reactions/about.css' %}">
+    <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon_top.ico' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Menu Header similar to the provided theme -->
+    <div class="top-menu">
+        <div class="icon">
+            <img src="{% static 'reactions/website-icon.png' %}" alt="icon">
+            <button onclick="window.location.href = '/';" id="backToHome" class="home-button">Home Page</button>
+        </div>
+    </div>
+
+    <!-- Main Content for About Page -->
+    <div class="content">
+        <h1>About Reconstructor</h1>
+        <p>Reconstructor is a metabolic reconstruction tool that helps researchers analyze curated and predicted reactions efficiently.
+            It ensures mass and charge balance, provides detailed metabolite information, and integrates data across various platforms. The tool streamlines the reconstruction process, 
+            enhancing quality control and enabling the discovery of novel reactions.</p>
+        <p><a href="https://github.com/opencobra/reconstructor">Source Code</a>.</p>
+        <br>
+        <p><strong>Citation:</strong></p>
+        <div style="text-align: center;">
+            <textarea style="width: 100%;" rows="3" readonly>
+    Alwer, S., Sathe, V., Brennan, A., and McGoldrick J. "Reconstructor: a Manual and AI Enabled
+    Reconstruction Interface." Available at: https://github.com/opencobra/reconstructor.
+            </textarea>
+        </div>
+    </div>
+    
+    
+    <div class="funding-container">
+        <img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo">
+        <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).</div>
+        <img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo">
+    </div>
+</body>
+</html>

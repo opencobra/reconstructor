@@ -12,7 +12,7 @@ urlpatterns = [
     path('add_flag/', views.add_flag, name='add_user_flag'),
     path('saved_reactions/add_flag/', views.add_flag, name='add_user_flag'),
     path('saved_reactions/save_flags_in_saved_reactions/', views.save_flags_in_saved_reactions, name='save_flags_in_saved_reactions'),
-
+    path('about/', views.about_view, name='about'),
     path('', views.input_reaction, name='input_reaction'),
     path('saved_reactions/', views.saved_reactions, name='saved_reactions'),
     path('get_ai_response/', views.get_ai_response, name='get_ai_response'),

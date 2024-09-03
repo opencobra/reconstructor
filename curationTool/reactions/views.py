@@ -47,7 +47,8 @@ import os
 from reactions.utils.GPT_functions import get_gene_name, get_vmh_met_from_inchi, metanetx_to_inchi, get_ncbi_gene_id, get_vmh_synonyms, get_gene_reactions, extract_compounds, vmh_to_normal, get_cid_vmh_api, get_cid_api, get_metanetx_id, get_metanetx_id_by_name, parse_metabolic_reactions, parse_metabolic_reactions_gpt, help_format_answer_with_gpt, askGPT4, pubchem_similarity_search, jaccard_similarity, flatten_extend, evaluate_predictions, check_match, print_output
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
-
+def about_view(request):
+    return render(request, 'reactions/about.html')
 @login_required
 def get_user_flags(request, user_id):
     try:
@@ -89,7 +90,7 @@ def get_vmh_subsystems():
 
     # Fetch subsystems from VMH
     while True:
-        response = requests.get(endpoint)
+        response = requests.get(endpoint, verify=False)
         data = response.json()['results']
         subsystems.extend([subsystem['name'] for subsystem in data])
         endpoint = response.json().get('next')
@@ -283,7 +284,7 @@ def get_gene_info(request):
         # If not found in Entrez, check VMH
         vmh_base_url = 'https://www.vmh.life/'
         vmh_endpoint = f"{vmh_base_url}_api/genes/?gene_number={gene_input}"
-        vmh_response = requests.get(vmh_endpoint)
+        vmh_response = requests.get(vmh_endpoint, verify=False)
         
         if vmh_response.status_code != 200:
             return JsonResponse({'error': True, 'message': f'VMH API returned error {vmh_response.status_code} for gene number `{gene_input}`'}, status=500)
