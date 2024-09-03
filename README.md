@@ -17,6 +17,11 @@ Ensure you have the following installed:
 3. Execute the following commands:\
 `pip install -r requirements. txt`\
 `python manage.py runserver`
+## Architecture Overview
+
+Below is the architecture diagram for the project:
+
+![Architecture Diagram](Reconstruction-Interface-Architecture.png)
 ## Code Structure
 ### HTML Files
 1. **Home_page.html**
@@ -1344,10 +1349,3 @@ Ensure you have the following installed:
     - SMILES Conversion: Includes utilities for converting molecular identifiers into SMILES strings, generating InChIKeys, and calculating formulas and charges.
     - Metabolite and Reaction Abbreviation Generation: Generates unique abbreviations for new metabolites and reactions, facilitating their addition to the VMH database.
     - Error Handling and Feedback: Provides detailed error messages and success feedback, including the generation of unique identifiers for successfully added entities.
-
-
-## Architecture Overview
-
-Below is the architecture diagram for the project:
-
-![Architecture Diagram](Reconstruction-Interface-Architecture.png)
