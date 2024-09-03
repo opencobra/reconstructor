@@ -339,7 +339,7 @@ def verify_metabolite(request):
     if input_type == 'VMH':
         BASE_URL = 'https://www.vmh.life/'
         endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={main_input}"
-        response = requests.get(endpoint)
+        response = requests.get(endpoint, verify=False)
         if response.status_code == 200:
             data = response.json()
             if data['count'] > 0:
