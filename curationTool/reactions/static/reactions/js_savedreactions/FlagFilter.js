@@ -113,8 +113,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function filterTable() {
-        const rows = document.querySelectorAll('tr');
-
+        const reactionListBody = document.querySelector('#reactionList tbody');
+        const rows = reactionListBody.querySelectorAll('tr'); // Only select rows in tbody
+        
         for (const row of rows) {
             // ignore first row (header)
             if (row.rowIndex === 0) {
