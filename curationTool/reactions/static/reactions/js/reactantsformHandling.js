@@ -299,11 +299,6 @@ function confirmAll() {
 }
 
 
-
-
-
-
-
 function setupTooltips() {
     document.querySelectorAll('.info-symbol').forEach(item => {
         item.addEventListener('mouseenter', function () {

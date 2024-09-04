@@ -19,6 +19,7 @@ function setupTooltips() {
         });
     });
 }
+
 function validateInputs() {
     // Check for any empty non-VMH input fields
     let allInputsValid = true;

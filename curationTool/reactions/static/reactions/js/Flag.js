@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Utility function to fetch flags for a user
     async function fetchFlags(userId) {
         try {
-            const response = await fetch(`/flags/${userId}/`);
+            const response = await fetch(`flags/${userId}/`);
             const data = await response.json();
             if (data.status === 'success') {
                 return data.flags;

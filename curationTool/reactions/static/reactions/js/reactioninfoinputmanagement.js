@@ -9,14 +9,9 @@ async function fetchPubMedInfo(pmid) {
                 'Content-Type': 'application/json',
             },
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error("Could not fetch PubMed info:", error);
         return data = { status: 'error', message: 'Failed to fetch PubMed data.' };
     }
 }
@@ -30,14 +25,9 @@ async function fetchDOIInfo(doi) {
                 'Content-Type': 'application/json',
             },
         });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
         const data = await response.json();
         return data;
     } catch (error) {
-        console.error("Could not fetch DOI info:", error);
         return { status: 'error', message: 'Failed to fetch DOI data.' };
     }
 }

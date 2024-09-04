@@ -158,3 +158,52 @@
 .gene-info-button:hover {
     background-color: #0056b3;
 }
+.tooltip-container {
+    position: relative; /* Required to position the tooltip text */
+    display: inline-block; /* Allows inline styling */
+    cursor: pointer; /* Shows a pointer cursor */
+}
+
+/* Tooltip text styling */
+.tooltip-text {
+    visibility: hidden; /* Hidden by default */
+    background-color: rgba(50, 50, 50, 0.9); /* Semi-transparent dark background */
+    color: #fff; /* White text color */
+    text-align: left; /* Left align text */
+    border-radius: 6px; /* Slightly larger rounded corners */
+    padding: 10px 15px; /* Increased padding for better readability */
+    position: absolute; /* Position relative to the container */
+    z-index: 1000; /* High z-index to sit on top */
+    bottom: 100%; /* Position above the tooltip container */
+    left: 50%; /* Center align the tooltip */
+    transform: translateX(-50%); /* Center the tooltip horizontally */
+    opacity: 0; /* Start as invisible */
+    transition: opacity 0.3s, max-height 0.3s ease; /* Smooth fade-in effect and resizing */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+    white-space: normal; /* Allow text wrapping */
+    overflow: hidden; /* Hide overflow content */
+    overflow-wrap: break-word; /* Break long words to avoid overflow */
+    word-break: break-word; /* Ensure long words break properly */
+    overflow: scroll;
+    width: 350px;
+    height: 150px;
+}
+
+/* Arrow for tooltip */
+.tooltip-text::after {
+    content: ''; /* Required for pseudo-element */
+    position: absolute; /* Position relative to tooltip text */
+    top: 100%; /* Place arrow below the tooltip text */
+    left: 50%; /* Center align arrow */
+    transform: translateX(-50%); /* Center align arrow */
+    border-width: 6px; /* Size of the arrow */
+    border-style: solid;
+    border-color: rgba(50, 50, 50, 0.9) transparent transparent transparent; /* Arrow color matching tooltip background */
+}
+
+/* Show tooltip text on hover */
+.tooltip-container:hover .tooltip-text {
+    visibility: visible; /* Make visible */
+    opacity: 1; /* Full opacity */
+}
+

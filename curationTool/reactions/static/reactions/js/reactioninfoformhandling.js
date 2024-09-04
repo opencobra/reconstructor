@@ -22,7 +22,13 @@ document.querySelectorAll('.content-div').forEach(function(div) {
             extLinkType = '';  // Set external link type to an empty string
             refType = identifierType;      // Set reference type to an empty string
             setupSubmitHandler("submitAddInforef","infoTextInputref");
-
+            // update placeholder text based on the selected reference type
+            if (identifierType.trim() !== '') {
+                document.getElementById('infoTextInputref').placeholder = `Enter ${identifierType}`;
+            }
+            else {
+                document.getElementById('infoTextInputref').placeholder = 'Select PMID or DOI from dropdown';
+            }
 
         } else if (nameAttr === 'extlinks-div') {
             const extType = document.getElementById('extType').value;
@@ -31,6 +37,13 @@ document.querySelectorAll('.content-div').forEach(function(div) {
             extLinkType = extType;  // Set external link type to the selected value
             refType = '';      // Set reference type to an empty string
             setupSubmitHandler("submitAddInfoext","infoTextInputext");
+            // update placeholder text based on the selected external link type (only if not empty)
+            if (extType.trim() !== '') {
+                document.getElementById('infoTextInputext').placeholder = `Enter ${extType} ID`;
+            }
+            else {
+                document.getElementById('infoTextInputext').placeholder = 'Select External link type from dropdown';
+            }
 
         } else {
             infoType = 'Gene Info';
@@ -64,7 +77,10 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             alert("Please log in.");
             return;
         }
-
+        if (!reactionId && infoType !== 'Gene Info') {
+            alert("Please create and save a reaction first.");
+            return;
+        }
         // Prepare the data to be submitted
         var data = {
             userID: userID,
@@ -117,7 +133,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
     });
 }
 
-
     function AddOrganLocation(data) {
         const url = '/gene_details_view/';
         fetch(url, {
@@ -151,6 +166,31 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 
     function submitData(data) {
         var infotype = data.infoType;
+        if (infotype === 'Reference' || infotype === 'External Link') {
+            // assert that both extLinkType and refType cannot be empty string (strip whitespace)
+            if (data.extLinkType.trim() === '' && data.refType.trim() === '') {
+                alert('Select type from dropdown');
+                return;
+            } 
+        }
+        if (data.infoType === 'Reference') {
+            foundData = fetchPubMedInfo(data.infoText);
+            foundData = foundData.then(function(result) {
+                let refFoundData = result.status;
+                let refTitle = '';
+                let refAbstract = '';
+                let refAuthor = '';
+                let refFoundMessage = '';
+                if (refFoundData === 'success') {
+                    refTitle = result.title;
+                    refAbstract = result.abstract;
+                    refAuthor = result.author;
+                }
+                else {
+                    refFoundMessage = result.message;
+                }
+            });
+        }
         fetch(addInfo2Reaction, {
             method: 'POST',
             body: JSON.stringify(data),
@@ -164,7 +204,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
         .then(obj => {
             if (obj.status === 200) {
 
-                
                 // Refactored to use POST request instead of GET
                 fetch(getReactionDetails, {
                     method: 'POST',
@@ -177,7 +216,6 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 })
                 .then(response => response.json())
                 .then(details => {
-    
                     // Conditionally display tab content based on infotype
                     switch (infotype) {
                         case 'Comment':
@@ -203,6 +241,7 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
     
             } else {
                 console.error('Error:', obj.body);
+                alert(obj.body.message);
             }
         })
 
@@ -352,15 +391,9 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 });
         
             } else if (tableId === 'refs-content') {
-                const typeField = document.createElement('span');
-                typeField.textContent = item.ref_type;
-                row.appendChild(typeField);
-        
-                const identifierField = document.createElement('span');
-                identifierField.textContent = item.info;
-                row.appendChild(identifierField);
-        
-            } else if (tableId === 'ext-links-content') {
+                createTooltip(item, row);
+            }            
+             else if (tableId === 'ext-links-content') {
                 const typeField = document.createElement('span');
                 typeField.textContent = item.ext_link_type;
                 row.appendChild(typeField);
@@ -652,3 +685,51 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 });
         }
     }
+    // Function to create tooltip content
+function createTooltipContent(title, author, abstract) {
+    const tooltipContent = document.createElement('div');
+    tooltipContent.innerHTML = `
+        <strong>Title:</strong> ${title}<br>
+        <strong>Author:</strong> ${author}<br>
+        <strong>Abstract:</strong> ${abstract}
+    `;
+    return tooltipContent;
+}
+
+// Updated function to handle tooltip creation and data fetching
+function createTooltip(item, row) {
+    const typeField = document.createElement('span');
+    typeField.textContent = item.ref_type;
+    row.appendChild(typeField);
+
+    // Create a container for the identifier and tooltip
+    const identifierField = document.createElement('span');
+    identifierField.textContent = item.info;
+    identifierField.classList.add('tooltip-container'); // Add tooltip container class
+    // Determine which function to fetch data from
+    const fetchPmidorDoi = item.ref_type === 'pmid' ? fetchPubMedInfo(item.info) : fetchDOIInfo(item.info);
+
+    fetchPmidorDoi.then(result => {
+        let refFoundData = result.status;
+        let refTitle = result.title || 'N/A';
+        let refAbstract = result.abstract || 'N/A';
+        let refAuthor = result.author || 'N/A';
+
+        if (refFoundData === 'success') {
+            // Set tooltip content for found reference
+            const tooltipElement = document.createElement('div');
+            tooltipElement.classList.add('tooltip-text'); // Add tooltip text class
+
+            const content = createTooltipContent(refTitle, refAuthor, refAbstract);
+            tooltipElement.innerHTML = ''; // Clear existing text
+            tooltipElement.appendChild(content);
+            identifierField.style.color = 'green'; // Color green if found
+            identifierField.appendChild(tooltipElement);
+        } else {
+            identifierField.style.color = 'red'; // Color red if not found
+        }
+    });
+
+    // Append the tooltip element to the identifier field
+    row.appendChild(identifierField);
+}
