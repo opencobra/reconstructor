@@ -45,11 +45,11 @@ from time import sleep
 from urllib3.exceptions import InsecureRequestWarning
 import os
 from reactions.utils.GPT_functions import get_gene_name, get_vmh_met_from_inchi, metanetx_to_inchi, get_ncbi_gene_id, get_vmh_synonyms, get_gene_reactions, extract_compounds, vmh_to_normal, get_cid_vmh_api, get_cid_api, get_metanetx_id, get_metanetx_id_by_name, parse_metabolic_reactions, parse_metabolic_reactions_gpt, help_format_answer_with_gpt, askGPT4, pubchem_similarity_search, jaccard_similarity, flatten_extend, evaluate_predictions, check_match, print_output
-from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
 def about_view(request):
     return render(request, 'reactions/about.html')
-@login_required
+
+
 def get_user_flags(request, user_id):
     try:
         user = User.objects.get(pk=user_id)
@@ -60,7 +60,6 @@ def get_user_flags(request, user_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 @csrf_exempt
-@login_required
 def add_flag(request):
     if request.method == 'POST':
         try:
@@ -1882,7 +1881,6 @@ def get_rxn_template(request):
         return JsonResponse({'error': 'Invalid request'}, status=400)
 
         
-@login_required
 def search_reactions(request):
     user = request.user
     query = request.GET.get('q', '')
@@ -1935,8 +1933,6 @@ def get_user_reactions_and_vmh(request):
         return JsonResponse({'error': str(e)}, status=500)
     
 
-
-@login_required
 def create_reaction(request):
     if request.method == 'POST':
         data = json.loads(request.body)
