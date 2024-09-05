@@ -72,6 +72,7 @@ def add_flag(request):
             return JsonResponse({'status': 'error', 'message': 'Invalid user'})
         
         if flag_name and flag_color:
+            flag_name = flag_name.strip()
             flag, created = Flag.objects.get_or_create(name_flag=flag_name, color=flag_color, user=user)
             return JsonResponse({
                 'status': 'success',
@@ -947,7 +948,6 @@ def save_flags_in_saved_reactions(request):
 
             user = User.objects.get(pk=user_id)
             flag = Flag.objects.get(name_flag=flag_name, color=flag_color, user=user)
-
             for reaction_id in reaction_ids:
                 reaction = get_object_or_404(Reaction, pk=reaction_id)
                 reaction.flags.add(flag)
