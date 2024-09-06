@@ -13,6 +13,7 @@
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/atommapping.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/metabolite-div.css' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'reactions/register_modal.css' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'reactions/ask_ai.css' %}">
     <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon_top.ico' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 
@@ -698,6 +699,7 @@
         var getPubMedInfo = "{% url 'get_pubmed_info' '__PMID__' %}".replace('__PMID__', '%s');
         var getDOIInfo = "{% url 'get_doi_info' '__DOI__' %}".replace('__DOI__', '%s');
         var aboutUrl = "{% url 'about' %}";
+        var getAIresponse = "{% url 'get_ai_response' %}";
         var subsystemList = [];
     </script>
     <script type="text/javascript"> var MEDIA_URL = '{{ MEDIA_URL }}';</script>

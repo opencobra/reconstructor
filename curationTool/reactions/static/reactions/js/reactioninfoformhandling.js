@@ -116,6 +116,7 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             .then(response => {
                 if (response.processed_string) {
                     data.infoText = response.processed_string;
+                    console.log(data);
                     AddOrganLocation(data);
                 } else {
                     if (response.error) {
@@ -129,8 +130,118 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
                 console.error('Error:', error);
                 alert('Gene info not added');
             });
+            // fetch gene predictions
+            fetch(getAIresponse, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  // Ensure CSRF token is included if needed
+                },
+                body: JSON.stringify({
+                    key: geneinfo,  // Gene data
+                    temperature: 0.5  // Temperature value
+                })
+            }).then(response => {
+                response.json().then(response => {
+                    if (response.status != 'success') {
+                        alert(response.error_message);
+                    }
+                    else {
+                        predictions = response.predictions;
+                        displayGenePredictions(predictions);
+                    }
+                });
+            }).catch(error => {
+                console.error('Error fetching gene predictions:', error);
+            });
         }
     });
+}
+function displayGenePredictions(predictions) {
+    // Get the gene info container div
+    const geneInfoContainer = document.getElementsByName('gene_info-div')[0];
+
+    // Create a line separator
+    const separator = document.createElement('hr');
+    separator.classList.add('separator-line');
+    geneInfoContainer.appendChild(separator);
+
+    // Add global title for the predictions section
+    const title = document.createElement('h3');
+    title.textContent = 'GPT Predicted Reactions';
+    title.classList.add('predictions-title');
+    geneInfoContainer.appendChild(title);
+
+    // Iterate through each gene in predictions and create toggles
+    for (const [gene, reactions] of Object.entries(predictions)) {
+        const geneToggleContainer = document.createElement('div');
+        geneToggleContainer.classList.add('gene-toggle-container');
+
+        // Create a container for the gene title and arrow toggle
+        const geneTitleContainer = document.createElement('div');
+        geneTitleContainer.classList.add('gene-title-container');
+
+        // Add a title for each gene
+        const geneTitle = document.createElement('h4');
+        geneTitle.textContent = `GPT predicted reactions for Gene: ${gene}`;
+        geneTitle.classList.add('gene-title');
+        geneTitleContainer.appendChild(geneTitle);
+
+        // Create an arrow div that will toggle the visibility of the predictions
+        const arrowDown = document.createElement('div');
+        arrowDown.classList.add('arrow-down');
+        geneTitleContainer.appendChild(arrowDown);
+
+        // Append the gene title container to the gene toggle container
+        geneToggleContainer.appendChild(geneTitleContainer);
+
+        // Check if reactions is a string, parse it if necessary
+        let reactionListArray = reactions;
+        if (typeof reactions === 'string') {
+            try {
+                reactionListArray = JSON.parse(reactions); // Parse if it's a JSON string
+            } catch (error) {
+                console.error("Failed to parse reactions: ", error);
+                continue;  // Skip this gene if parsing fails
+            }
+        }
+
+        // Create a div to hold the list of reactions, hidden by default
+        const reactionList = document.createElement('ol');  // Ordered list
+        reactionList.classList.add('reaction-list');
+        reactionList.style.display = 'none';  // Initially hidden
+
+        // Check if the reaction list is empty
+        if (reactionListArray.length === 0) {
+            const noReactionsMessage = document.createElement('p');
+            noReactionsMessage.textContent = `No GPT predicted reactions for Gene: ${gene}`;
+            noReactionsMessage.classList.add('no-reactions-message');
+            reactionList.appendChild(noReactionsMessage);
+        } else {
+            // Iterate through the list of reactions for each gene
+            reactionListArray.forEach((reaction) => {
+                const listItem = document.createElement('li');
+                listItem.textContent = reaction;
+                reactionList.appendChild(listItem);
+            });
+        }
+
+        // Append the reaction list to the gene toggle container
+        geneToggleContainer.appendChild(reactionList);
+
+        // Add toggle functionality to the arrow
+        arrowDown.addEventListener('click', function () {
+            this.classList.toggle('active');
+            if (reactionList.style.display === 'none') {
+                reactionList.style.display = 'block';
+            } else {
+                reactionList.style.display = 'none';
+            }
+        });
+
+        // Append the toggle container to the gene info container
+        geneInfoContainer.appendChild(geneToggleContainer);
+    }
 }
 
     function AddOrganLocation(data) {

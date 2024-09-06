@@ -50,7 +50,7 @@ def get_vmh_met_from_inchi(inchi, met):
         return schema['results'][0]['abbreviation']
     except: 
         
-        return met + "_"
+        return met
     
     
 def get_gene_reactions(ncbi_id):
@@ -240,11 +240,14 @@ def help_format_answer_with_gpt(raw_answer):
     return answer
 
 def askGPT4(geneName, temperature):
+    import json
     # what is the protein associated with gene X
     # metabolic reactions catalyzed by the protein Y
-    print("geneName: ", geneName)
-    print("temperature: ", temperature)
-    os.environ["OPENAI_API_KEY"] = "sk-proj-KDaeymwJ58UELawwkqwVT3BlbkFJ3raLweuqMjdC0HqzDHzE"
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+    config_path = os.path.join(base_dir, 'config.json')
+    with open(config_path, 'r') as config_file:
+        config = json.load(config_file)
+        os.environ["OPENAI_API_KEY"] = config['API_KEY']
     question = "what are all the metabolic reaction(s) catalyzed by the gene: " + geneName + "? only give the chemical reactions and no other information. Note there may be more than 1 reaction."
     message=[{"role": "user", "content": question}]
     client = OpenAI()

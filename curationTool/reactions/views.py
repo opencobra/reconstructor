@@ -1039,25 +1039,20 @@ def get_ai_response(request):
     if request.method == 'POST':
         userID = request.session.get('userID')
         user = validate_user_ID(userID)
+        if not user.cred_add_to_vmh:
+            return JsonResponse({'status': 'error', 'error_message': 'User does not have permission to access this feature'}, status=403)
         if user:
             try:
                 data = json.loads(request.body)  # Parse the JSON data from the request body
                 input_text = data.get('key')  # This should match the key you send in the JSON
                 temperature = data.get('temperature', 0.5)  # Get temperature value, default to 0.5 if not provided
-                if input_text:
-                    BASE_URL = 'https://rest.genenames.org/search/symbol/'
-                    endpoint = f"{BASE_URL}{input_text.strip()}"
-                    headers = {'Accept': 'application/json'}  # Specify that we want the response in JSON format.
-                    gene_response = requests.get(endpoint, headers=headers)
-                    if gene_response.status_code == 200:
-                        data = gene_response.json()
-                        numFound = data['response']['numFound']
-                        if numFound == 0:
-                            return JsonResponse({'status': 'error', 'error_message': f'Gene symbol `{input_text}` not found in HGNC'}, status=400)
-                    llm_response_html = get_gpt_predictions(input_text, temperature)
-                    return JsonResponse({'status': 'success', 'llm_response_html': llm_response_html})
-                else:
-                    return JsonResponse({'status': 'error', 'error_message': 'No input provided'}, status=400)
+                genes = input_text.split(' ')
+                genes = [gene for gene in genes if gene not in ['and', 'or', 'AND', 'OR']]
+                predictions = {}
+                for gene in genes:
+                    llm_response_html = get_gpt_predictions(gene, temperature)
+                    predictions[gene] = llm_response_html
+                return JsonResponse({'status': 'success', 'predictions': predictions})
             except json.JSONDecodeError:
                 return JsonResponse({'status': 'error', 'error_message': 'Invalid JSON'}, status=400)
         else:

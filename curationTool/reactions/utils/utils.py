@@ -147,7 +147,6 @@ def parse_xml(xml_data):
 
 
 def fetch_and_map_gene_expression(gene_name, df, mapping):
-    print(gene_name, df, mapping)
     filtered_df = df[(df['Gene name'] == gene_name) & (df['Level'].isin(['Medium', 'High']))]
     unique_tissues = filtered_df['Tissue'].unique()
     mapped_tissues = {mapping[tissue] for tissue in unique_tissues if tissue in mapping and mapping[tissue] != "/"}
