@@ -57,6 +57,8 @@ function createRefSelect(item, reactionId, index) {
 // }
 
 function createGeneSectionHTML(sectionTitle, className, items, reactionId) {
+    console.log(items);
+    console.log(reactionId);
     let sectionHTML = `
         <div class="${className}-section">
             <p>${sectionTitle}</p>
@@ -315,6 +317,15 @@ document.getElementById('addToVMH').addEventListener('click', async function() {
                 let ext_links = reaction.fields.ext_links || [];
                 let comments = reaction.fields.comments || [];
                 let gene_info = reaction.fields.gene_info || [];
+
+                gene_info = gene_info.map(item => {
+                    if (item.info) {
+                        // Split the 'info' field and update it
+                        item.info = item.info.split(';')[0];
+                    }
+                    return item;
+                });
+
                 listItem.innerHTML += createSectionHTML('References', 'reference', references, reaction.pk, false,true);
                 listItem.innerHTML += createSectionHTML('External Links', 'ext-link', ext_links, reaction.pk, true,false);
                 listItem.innerHTML += createSectionHTML('Comments', 'comment', comments, reaction.pk);      
