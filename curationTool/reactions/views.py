@@ -393,7 +393,7 @@ def input_reaction(request):
                 if reaction_id not in reactions_by_user:
                     return JsonResponse({'message': 'You did not create this reaction. Only the creator can edit it.', 'status': 'error'})
             except Reaction.DoesNotExist:
-                return JsonResponse({'error': 'Reaction not found.'}, status=404)
+                return JsonResponse({'message': 'Reaction not found', 'status': 'error'})
         else:
             # Create a new Reaction object if action is not 'edit'
             reaction = Reaction()
@@ -433,10 +433,11 @@ def input_reaction(request):
 
         all_errors = subs_errors + prod_errors
         if any(elem is not None for elem in all_errors):
+            print(all_errors)
+
             error_message = "\n".join([error for error in all_errors if error is not None])
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                # Return error message in JsonResponse for AJAX requests
-                return JsonResponse({'error': error_message})
+                return JsonResponse({'status': 'error', 'message': error_message})
             else:
                 # Return error message in context for non-AJAX requests
                 context = {'form': form, 'error_message': error_message}
@@ -444,7 +445,6 @@ def input_reaction(request):
 
         metabolite_formulas, metabolite_charges, metabolite_mol_file_strings = get_mol_info(subs_mols + prod_mols)
         metabolite_names = substrates_names + products_names
- 
         reaction_rxn_file = construct_reaction_rxnfile(subs_mols, subs_sch, prod_mols, prod_sch, substrates_names, products_names)
         reaction.save()
 

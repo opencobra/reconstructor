@@ -2,7 +2,7 @@
 <EC_BLAST>
   <ANNOTATION>
     <MAPPING STATUS="SELECTED">
-      <AAM>[O:1]=[O:2]&gt;&gt;[O:1]=[O:2]</AAM>
+      <AAM>[C:1]([H:7])([H:9])([H:10])[N+:35]([C:15]([H:16])([H:19])[H:20])([C:21]([H:23])([H:24])[H:25])[C:26]([C:8]([O:6][C:4](/[C:3](/[H:2])=[C:27](\[H:28])/[C:29]([H:31])([H:33])[C:34]([H:36])([H:37])[H:38])=[O:5])([H:11])[C:12]([H:13])([H:14])[C:17](=[O:18])[O-:22])([H:30])[H:32]&gt;&gt;[O:39]=[O:40]</AAM>
       <RANK_REACTANT>{}</RANK_REACTANT>
       <RANK_PRODUCT>{}</RANK_PRODUCT>
     </MAPPING>
