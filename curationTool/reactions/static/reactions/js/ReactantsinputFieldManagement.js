@@ -327,6 +327,9 @@ function addFieldWithData(container, name, schName, value, schValue, compValue, 
         hiddenInput.className = inputName + '-name';
         hiddenInput.name = inputName + '_name';
         hiddenInput.style.display = "none";
+        if (metab_name){
+            hiddenInput.value = metab_name;
+        }
         inputsGroup.appendChild(hiddenInput);
 
         selectInputType.addEventListener('change', function() {
@@ -434,6 +437,7 @@ async function updateFormFields(data) {
     let promises = [];
 
     // Create substrate fields with correct type
+    console.log(data);
     if (data.substrates_names) {
         data.substrates.forEach((substrate, index) => {
             if (substrate === 'empty') {

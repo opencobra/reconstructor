@@ -146,21 +146,19 @@ function loadLeaderBoardData() {
     .catch(error => console.error('Error fetching user data:', error));
 }
 
-window.onload = function() {
-  const observer = new MutationObserver((mutationsList, observer) => {
-    const viewLeaderBoardButton = document.getElementById('view-leader-board');
-    if (viewLeaderBoardButton) {
-      viewLeaderBoardButton.addEventListener('click', () => {
-        window.open(`${window.location.origin}/stats/`, '_blank');
-      });
-      observer.disconnect(); // Stop observing once the button is found
-    }
-  });
+document.addEventListener('DOMContentLoaded', function() {
+  const viewLeaderBoardButton = document.getElementById('view-leader-board');
+  
+  // Add click event for opening leaderboard if the button is present
+  if (viewLeaderBoardButton) {
+    viewLeaderBoardButton.addEventListener('click', () => {
+      window.open(`${window.location.origin}/stats/`, '_blank');
+    });
+  }
 
-  observer.observe(document.body, { childList: true, subtree: true });
-
-  // Optionally load leaderboard data if on the leaderboard page
+  // Automatically load leaderboard data if already on the stats page
   if (window.location.pathname === '/stats/') {
     loadLeaderBoardData();
   }
-};
+});
+

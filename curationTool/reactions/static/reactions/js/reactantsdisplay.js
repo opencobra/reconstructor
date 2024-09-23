@@ -94,9 +94,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });
 
-
-
-
 function createnewreaction() {
     // Get the input element by its ID
     const resetbutton = document.getElementById('ResetButton');

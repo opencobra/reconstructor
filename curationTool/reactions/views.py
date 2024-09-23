@@ -342,8 +342,13 @@ def verify_metabolite(request):
         response = requests.get(endpoint, verify=False)
         if response.status_code == 200:
             data = response.json()
-            if data['count'] > 0:
-                return JsonResponse({'found': True, 'abbr': data['results'][0]['abbreviation'], 'name': data['results'][0]['fullName'], 'miriam': data['results'][0]['miriam'],'input_type':input_type})
+            res = data.get('results', [])
+            if res:
+                inchi_string, smile = res[0].get('inchiString', ''), res[0].get('smile', '')
+                if not smile and not inchi_string:
+                    return JsonResponse({'error': True, 'message': f'Metabolite {main_input} does not have SMILES or inchi String on VMH'}, status=404)
+                else:
+                    return JsonResponse({'found': True, 'abbr': data['results'][0]['abbreviation'], 'name': data['results'][0]['fullName'], 'miriam': data['results'][0]['miriam'],'input_type':input_type})
             else:
                 return JsonResponse({'error': True, 'message': f'Metabolite `{main_input}` not found in VMH'}, status=404)
         else:
@@ -382,16 +387,9 @@ def input_reaction(request):
         form = ReactionForm(request.POST, request.FILES)
         user_id = request.POST.get('userID')
         if action == 'edit':
-            # Retrieve the existing Reaction object using the provided reaction_id
-            
-            #TODO: CHECK IF NOT USER
-
             reaction_id = request.POST.get('reaction_id')
             try:
                 reaction = Reaction.objects.get(id=reaction_id)
-                reactions_by_user = get_user_created_reactions(user_id)
-                if reaction_id not in reactions_by_user:
-                    return JsonResponse({'message': 'You did not create this reaction. Only the creator can edit it.', 'status': 'error'})
             except Reaction.DoesNotExist:
                 return JsonResponse({'message': 'Reaction not found', 'status': 'error'})
         else:
@@ -504,7 +502,6 @@ def input_reaction(request):
         reaction.metabolite_charges = json.dumps(metabolite_charges)
         reaction.metabolite_mol_file_strings = json.dumps(metabolite_mol_file_strings)
         reaction.save()
-
         if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             data = {
                 'visualization': json.loads(reaction.visualization),
