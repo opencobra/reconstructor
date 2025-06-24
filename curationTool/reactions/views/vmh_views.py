@@ -600,7 +600,7 @@ def add_to_vmh(request):
         reaction_gene_info,
         reaction_comments,
         reaction_confidence_scores)
-    matlab_session = None # MatlabSessionManager() if not matlab_session else matlab_session
+    matlab_session = MatlabSessionManager() if not matlab_session else matlab_session
     matlab_result = add_reaction_matlab(json_paths, matlab_session)
     # Cleanup temporary JSON files
     for path in json_paths:
