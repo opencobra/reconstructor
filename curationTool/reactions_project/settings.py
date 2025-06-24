@@ -89,8 +89,8 @@ WSGI_APPLICATION = 'reactions_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        # 'NAME': 'curationToolDB',
-        'NAME': 'curationtooldb1',
+        'NAME': 'curationToolDB',
+        #'NAME': 'curationtooldb1',
         'USER': 'saleh',
         'PASSWORD': '1curationTool1',
         'HOST': 'localhost',  

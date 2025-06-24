@@ -70,7 +70,7 @@ def input_reaction(request):
     action = request.POST.get('action')
     form = ReactionForm(request.POST, request.FILES)
     user_id = request.POST.get('userID')
-    user = User.objects.get(pk=user_id) if user_id else None
+    user = User.objects.get(pk=user_id) if (user_id and user_id != 'null') else None
 
     if action == 'edit':
         reaction_id = request.POST.get('reaction_id')

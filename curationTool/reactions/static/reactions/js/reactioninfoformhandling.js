@@ -143,10 +143,13 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
             }).then(response => {
                 response.json().then(response => {
                     if (response.status != 'success') {
+			console.log(response);	
                         if (response.reason === 'permission_denied') {
                             return;
                         }
-                        alert(response.error_message);
+			else {
+                            alert(response.error_message);
+			}
                     }
                     else {
                         predictions = response.predictions;
