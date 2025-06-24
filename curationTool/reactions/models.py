@@ -131,9 +131,8 @@ class Flag(models.Model):
         related_name='flags')
     created_at = models.DateTimeField(auto_now_add=True)
 
-
-def __str__(self):
-    return f"{self.name_flag or 'Unnamed Flag'} ({self.color}) by {self.user.name}"
+    def __str__(self):
+        return f"{self.name_flag or 'Unnamed Flag'} ({self.color}) by {self.user.name}"
 
 
 class ReactionTemplate(models.Model):

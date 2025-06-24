@@ -1003,7 +1003,7 @@ def saved_reactions(request, modal=False):
             'reactions_json': reactions_json,
             'userID': userID,
             'user_name': user.name,
-            'combined_reactions_details': combined_reactions_details
+            'combined_reactions_details': combined_reactions_details,
         }
 
         if modal:
@@ -1382,19 +1382,21 @@ def edit_reaction_info(request):
         reaction = Reaction.objects.get(pk=reaction_id)
 
         if new_name is not None:
-            user_reactions = User.objects.get(pk=user_id).saved_reactions.all()
+            new_name = new_name.strip()
+            if new_name != reaction.short_name:
+                user_reactions = User.objects.get(pk=user_id).saved_reactions.exclude(pk=reaction_id)
 
-            # Check if the new name is already used by another reaction
-            if user_reactions.filter(short_name=new_name).exists():
-                return JsonResponse(
-                    {
-                        "error": f'Reaction name "{new_name}" already exists.',
-                        "original_name": reaction.short_name,
-                    },
-                    status=400,
-                )
+                # Only check for duplicates if name is actually changing
+                if user_reactions.filter(short_name=new_name).exists():
+                    return JsonResponse(
+                        {
+                            "error": f'Reaction name "{new_name}" already exists.',
+                            "original_name": reaction.short_name,
+                        },
+                        status=400,
+                    )
 
-            reaction.short_name = new_name
+                reaction.short_name = new_name
 
         if new_description is not None:
             reaction.description = new_description

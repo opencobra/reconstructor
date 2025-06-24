@@ -1,7 +1,7 @@
 import random
 import requests
 import json
-from reactions.utils.MatlabSessionManager import MatlabSessionManager
+# from reactions.utils.MatlabSessionManager import MatlabSessionManager
 
 
 def check_reaction_abbr_exists(abbr):
@@ -57,12 +57,13 @@ def gen_metabolite_abbr(
     if found:
         return abbr
     else:
-        matlab_session = MatlabSessionManager()
-        result = matlab_session.execute('generateVMHMetAbbr', metabolite_name)
-        abbr = result['result'] if result['status'] == 'success' else metabolite_name
-        # abbr = abbr[-1] if isinstance(abbr, list) else abbr
-        exists = check_met_abbr_exists(abbr)
-        while exists:
-            abbr = abbr + '_'
-            exists = check_met_abbr_exists(abbr)
-        return abbr
+        # matlab_session = MatlabSessionManager()
+        # result = matlab_session.execute('generateVMHMetAbbr', metabolite_name)
+        # abbr = result['result'] if result['status'] == 'success' else metabolite_name
+        # # abbr = abbr[-1] if isinstance(abbr, list) else abbr
+        # exists = check_met_abbr_exists(abbr)
+        # while exists:
+        #     abbr = abbr + '_'
+        #     exists = check_met_abbr_exists(abbr)
+        # return abbr
+        pass
