@@ -1,6 +1,10 @@
 curationTool/media/
 curationTool/staticfiles
-config.json
+__pycache__/
 curationTool/rdt-2.4.1-jar-with-dependencies.jar
-media/
+curationTool/*.xml
+curationTool/*.rxn
+config.json
 staticfiles/
+.venv/
+
