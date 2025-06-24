@@ -52,7 +52,7 @@ from reactions.utils.add_to_vmh_utils import (
     smiles_to_charged_formula,
     get_nonfound_metabolites
 )
-# from reactions.utils.MatlabSessionManager import MatlabSessionManager
+from reactions.utils.MatlabSessionManager import MatlabSessionManager
 from reactions.utils.utils import get_external_ids, get_mol_weights
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):
@@ -527,7 +527,7 @@ def add_to_vmh(request):
     reaction_identifiers, reaction_names = [
         reaction['abbreviation'] for reaction in reactions], [
         reaction.short_name for reaction in reaction_objs]
-    matlab_session = None # if all_vmh  else  MatlabSessionManager() 
+    matlab_session = None  if all_vmh  else  MatlabSessionManager() 
     if not all_vmh:
         unique_abbrs, unique_mols, unique_types, unique_names = get_nonfound_metabolites(
             reaction_objs, subs_abbr, prods_abbr, search_func=search_metabolites_vmh)
