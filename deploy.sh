@@ -1,6 +1,6 @@
 #/home/saleh/reconstructor/.venv/bin/python
 set -euo pipefail
-cd /home/saleh/reconstructor
+cd reconstructor  
 
 echo "Pulling latest code…"
 git fetch --prune
