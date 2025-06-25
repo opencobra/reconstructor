@@ -1,4 +1,4 @@
-#/home/saleh/reconstructor/.venv/bin/python
+#!/bin/bash
 set -euo pipefail
 cd /home/saleh/reconstructor
 
