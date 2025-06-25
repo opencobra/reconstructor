@@ -1,6 +1,0 @@
-*.pyc
-__pycache__/
-*.pyc
-curationTool/media/
-config.json
-curationTool/rdt-2.4.1-jar-with-dependencies.jar

@@ -84,9 +84,11 @@ li {
 .reactions-table {
     width: 100%; /* Full width to utilize available space */
     border-collapse: collapse; /* Collapse borders for a clean look */
-    table-layout: fixed; /* Fixed table layout for equal column width */
     margin-top: 1.5%; /* Space above the table */
     border: 1px solid #ddd; /* Border around the entire table */
+    white-space: normal;          /* allow wrapping at spaces/hyphens */
+    overflow-wrap: anywhere;      /* break in the middle if there’s no good place */
+    word-wrap: break-word;
 }
 
 /* Table Header */
@@ -99,11 +101,10 @@ li {
 }
 
 /* Table Data Cells */
-.reactions-table td, .reactions-table th {
+.reactions-table td {
     text-align: center; /* Center-align text */
     padding: 8px; /* Spacing inside data cells */
-    border: 1px solid #ddd; /* Border for data cells */
-    white-space: nowrap; /* Prevent wrapping by default */
+    border: 1px solid #ddd; /* Border for data cells */     
 }
 
 /* Enhance appearance for the checkbox and button container for actions */
@@ -117,33 +118,50 @@ li {
 /* Select column - minimal width */
 .reactions-table th:first-child, 
 .reactions-table td:first-child {
-    width: 3%; /* Minimize width */
+    width: 5%; /* Minimize width */
     min-width: 50px; /* Minimum width to accommodate checkbox comfortably */
 }
 
 /* Name, Subsystem, Substrates, Products columns - allow more space but limit maximum width */
 .reactions-table th:nth-child(2), .reactions-table td:nth-child(2), /* Name column */
-.reactions-table th:nth-child(3), .reactions-table td:nth-child(3), /* Subsystem column */
-.reactions-table th:nth-child(4), .reactions-table td:nth-child(4), /* Substrates column */
-.reactions-table th:nth-child(5), .reactions-table td:nth-child(5) { /* Products column */
+.reactions-table th:nth-child(3), .reactions-table td:nth-child(3), /* Description column */
+.reactions-table th:nth-child(4), .reactions-table td:nth-child(4), /* Subsystem column */
+.reactions-table th:nth-child(5), .reactions-table td:nth-child(5) { /* Substrates column */
+    max-width: 20%; /* Maximum width limit */
+    white-space: normal; /* Allow wrapping */
+    word-wrap: break-word; /* Break words to wrap */
+}
+
+.reactions-table th:nth-child(6), .reactions-table td:nth-child(6),
+.reactions-table th:nth-child(7), .reactions-table td:nth-child(7) { /* Products column */
+    max-width: 20%; /* Maximum width limit */
+    white-space: normal; /* Allow wrapping */
+    word-wrap: break-word; /* Break words to wrap */
+}
+
+.reactions-table th:nth-child(8), .reactions-table td:nth-child(8) { /* Gene info column */
     max-width: 20%; /* Maximum width limit */
     white-space: normal; /* Allow wrapping */
     word-wrap: break-word; /* Break words to wrap */
 }
 
 /* Balanced Mass and Balanced Charge columns - intermediate width */
-.reactions-table th:nth-child(6), .reactions-table td:nth-child(6), /* Balanced Mass column */
-.reactions-table th:nth-child(7), .reactions-table td:nth-child(7) { /* Balanced Charge column */
-    white-space: normal; /* Allow wrapping */
-    max-width: 5%; /* Smaller maximum width since these might not require as much space */
+.reactions-table th:nth-child(9), .reactions-table td:nth-child(9), /* Balanced Mass column */
+.reactions-table th:nth-child(10), .reactions-table td:nth-child(10) { /* Balanced Charge column */
+    white-space: normal;/* Allow wrapping */
+    max-width: 6%; /* Smaller maximum width since these might not require as much space */
 }
 
+
+
 /* Actions column - adjust according to content */
-.reactions-table th:last-child, 
+.reactions-table thead th:last-child {
+    /* no flex here – behaves like a normal <th> */
+    min-width: 120px;        /* still set a width if you like */
+    text-align: center;
+}
 .reactions-table td:last-child {
     min-width: 120px; /* Minimum width to fit buttons without wrapping */
-    width: 100%; /* Set fixed width to maintain alignment */
-    display: flex; /* Use flexbox to align buttons */
     flex-direction: column; /* Stack buttons vertically */
     justify-content: center; /* Center-align buttons vertically */
     align-items: center; /* Center-align items horizontally */
