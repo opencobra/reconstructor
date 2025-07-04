@@ -152,15 +152,13 @@ margin-left: 100px; ;}
 
 .fluid.ui.button {
     font-size: 1.2rem;
-    display: grid;
-    align-items: center;
+    display: grid !important;
+    place-items: center !important;
     border: 0.5px solid #000;  /* Ensure the border is styled properly */
     color: white !important;
     border-radius: 2px;
     height: 70px;
     box-sizing: border-box;  /* Include the border in the element's width and height */
-    background-color: #003755;  
-
     background-color: #3198cc;
 }
 
@@ -174,7 +172,7 @@ margin-left: 100px; ;}
 }
 
 .fluid.ui.button.active {
-    background-color: #06689c !important;
+    background: linear-gradient(180deg,rgba(12,74,110,.95),#073651) !important;
 
 }
 
