@@ -149,7 +149,7 @@ li {
 .reactions-table th:nth-child(9), .reactions-table td:nth-child(9), /* Balanced Mass column */
 .reactions-table th:nth-child(10), .reactions-table td:nth-child(10) { /* Balanced Charge column */
     white-space: normal;/* Allow wrapping */
-    max-width: 6%; /* Smaller maximum width since these might not require as much space */
+    width: 6%; /* Smaller maximum width since these might not require as much space */
 }
 
 
@@ -157,11 +157,11 @@ li {
 /* Actions column - adjust according to content */
 .reactions-table thead th:last-child {
     /* no flex here – behaves like a normal <th> */
-    min-width: 120px;        /* still set a width if you like */
+    width: 10%;       /* still set a width if you like */
     text-align: center;
 }
 .reactions-table td:last-child {
-    min-width: 120px; /* Minimum width to fit buttons without wrapping */
+    width: 10%; /* Minimum width to fit buttons without wrapping */
     flex-direction: column; /* Stack buttons vertically */
     justify-content: center; /* Center-align buttons vertically */
     align-items: center; /* Center-align items horizontally */
