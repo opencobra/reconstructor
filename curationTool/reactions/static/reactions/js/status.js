@@ -20,7 +20,7 @@ function setLoggedInStatusBasedOnUrl(reactionData) {
             status = "Creating Reaction";
             dotClass = "dot-red"; 
         } else {
-            status = `Editing reaction <br>
+            status = `Editing reaction 
                       <span class="reaction-name" data-tooltip-this="${reactionDescription}">${reactionName}</span>`;
             dotClass = "dot-orange";
         }
