@@ -43,6 +43,7 @@ urlpatterns = [
     path('flags/<int:user_id>/', flag_views.get_user_flags, name='get_user_flags'),
     path('add_flag/', flag_views.add_flag, name='add_user_flag'),
     path('saved_reactions/add_flag/', flag_views.add_flag, name='add_user_flag'),
+    path('saved_reactions/remove_flag/', flag_views.remove_flag, name='remove_user_flag'),
     path('saved_reactions/save_flags_in_saved_reactions/', flag_views.save_flags_in_saved_reactions, name='save_flags_in_saved_reactions'),
 
     path('get_gene_info/', gene_views.get_gene_info, name='get_gene_info'),
