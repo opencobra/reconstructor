@@ -227,6 +227,17 @@
           </select>
           <button id="applyMassConfidence" class="ui blue button">Apply</button>
         </div>
+
+        <div class="sort-controls">
+          <label for="sortBy">Sort by:</label>
+          <select id="sortBy" class="ui dropdown">
+            <option value="">-- Select --</option>
+            <option value="flag">Flag</option>
+            <option value="subsystem">Subsystem</option>
+            <option value="substrates">Substrates</option>
+            <option value="products">Products</option>
+          </select>
+        </div>
       </div>
 
       <div class="table-scroll-container">
@@ -374,6 +385,7 @@
     <script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
     <script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
     <script src="{% static 'reactions/js_savedreactions/delete_flag.js' %}"></script>
+    <script src="{% static 'reactions/js_savedreactions/sort_table.js' %}"></script>
   </body>
   {% comment %}
   <div id="descriptionModal" class="ui modal">

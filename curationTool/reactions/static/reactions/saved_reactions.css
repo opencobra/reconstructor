@@ -79,6 +79,14 @@ li {
 .false-symbol {
     color: red;
 }
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1rem;
+}
+
 /* Container for each reaction entry */
 /* Table base styling */
 .reactions-table {
