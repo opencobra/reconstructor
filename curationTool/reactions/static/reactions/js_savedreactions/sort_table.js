@@ -37,5 +37,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tbody.innerHTML = '';
     sortedRows.forEach(row => tbody.appendChild(row));
+      
+    rebindCheckboxListeners(); 
+
   });
 });

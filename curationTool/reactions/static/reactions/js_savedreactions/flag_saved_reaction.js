@@ -33,7 +33,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('AddFlagtosavedreaction').addEventListener('click', function() {
-        const selectedReactionIds = getSelectedReactionIds();  // Implement this function to retrieve selected reactions
+        const selectedReactionIds = Array.from(document.querySelectorAll('.reaction-checkbox:checked'))
+    .map(cb => cb.dataset.reactionId);  // Implement this function to retrieve selected reactions
         const selectedFlagElement = document.querySelector('.dropdown-trigger');
         var selectedFlagName = selectedFlagElement.textContent.trim();  
         const flagIcon = selectedFlagElement.querySelector('i');
