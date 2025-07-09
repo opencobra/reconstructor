@@ -229,130 +229,132 @@
         </div>
       </div>
 
-      {% if reactions %}
-      <table class="reactions-table" id="reactionList">
-        <thead>
-          <tr>
-            <th>Select</th>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Subsystem</th>
-            <th>Substrates</th>
-            <th>Direction</th>
-            <th>Products</th>
-            <th>Gene Info</th>
-            <th>Mass Balanced?</th>
-            <th>Charge Balanced?</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in combined_reactions_details %}
-          <tr>
-            <td>
-              <input
-                type="checkbox"
-                class="reaction-checkbox"
-                data-reaction-id="{{ item.reaction.id }}"
-              />
-            </td>
-            <td>
-              <span
-                class="reaction-name"
-                data-reaction-id="{{ item.reaction.id }}"
-                data-current-name="{{ item.details.short_name }}"
-              >
-                {{ item.details.short_name }}
-              </span>
-              <input
-                type="text"
-                class="reaction-name-input"
-                data-reaction-id="{{ item.reaction.id }}"
-                value="{{ item.details.short_name }}"
-                style="display: none; width: 100px"
-              />
-              {% for flag in item.details.flags %}
-              <i
-                class="fas fa-flag flag-icon"
-                style="color: {{ flag.color }}; margin-left: 5px; cursor: pointer;"
-                data-flag-id="{{ flag.id }}"
-                data-flag-name="{{ flag.name }}"
-                data-reaction-id="{{ item.reaction.id }}"
-                title="{{ flag.name_flag }}"
-              ></i>
-              {% endfor %}
-            </td>
-            <td>
-              {% if item.details.description %}
-              <button
-                class="ui button view-description-btn"
-                data-description="{{ item.details.description }}"
-                data-reaction-id="{{ item.reaction.id }}"
-                data-content="{{ item.details.description|escape }}"
-              >
-                View Description
-              </button>
-              {% else %}
-              <span
-                class="no-description"
-                data-reaction-id="{{ item.reaction.id }}"
-                data-description=""
-              >
-                No Description
-              </span>
-              {% endif %}
-            </td>
-            <td>{{ item.details.subsystem }}</td>
-            <td>{{ item.details.subs_details }}</td>
-            <td>{{ item.details.direction }}</td>
-            <td>{{ item.details.prods_details }}</td>
-            <td>{{ item.details.gene_info|join:", " }}</td>
-            <td>
-              {% if item.details.balanced_count %}
-              <span class="true-symbol">&#10004;</span>
-              {% else %}
-              <span class="false-symbol">&#10008;</span>
-              {% endif %}
-            </td>
-            <td>
-              {% if item.details.balanced_charge %}
-              <span class="true-symbol">&#10004;</span>
-              {% else %}
-              <span class="false-symbol">&#10008;</span>
-              {% endif %}
-            </td>
-            <td>
-              <form
-                method="POST"
-                action="{% url 'delete_reaction' %}"
-                onsubmit="return confirmDelete('{{ item.reaction.short_name }}')"
-                style="display: inline"
-              >
-                {% csrf_token %}
-                <input type="hidden" name="userID" value="{{ userID }}" />
+      <div class="table-scroll-container">
+        {% if reactions %}
+        <table class="reactions-table" id="reactionList">
+          <thead>
+            <tr>
+              <th>Select</th>
+              <th>Name</th>
+              <th>Description</th>
+              <th>Subsystem</th>
+              <th>Substrates</th>
+              <th>Direction</th>
+              <th>Products</th>
+              <th>Gene Info</th>
+              <th>Mass Balanced?</th>
+              <th>Charge Balanced?</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in combined_reactions_details %}
+            <tr>
+              <td>
                 <input
-                  type="hidden"
-                  name="reaction_id"
-                  value="{{ item.reaction.id }}"
+                  type="checkbox"
+                  class="reaction-checkbox"
+                  data-reaction-id="{{ item.reaction.id }}"
                 />
-                <button type="submit" class="delete-btn">Delete</button>
-              </form>
-              <button class="view-btn">Edit</button>
-              <button
-                type="button"
-                class="clone-btn"
-                onclick="cloneReaction({{ item.reaction.id }})"
-              >
-                Clone
-              </button>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      {% else %}
-      <p>No reactions saved.</p>
-      {% endif %}
+              </td>
+              <td>
+                <span
+                  class="reaction-name"
+                  data-reaction-id="{{ item.reaction.id }}"
+                  data-current-name="{{ item.details.short_name }}"
+                >
+                  {{ item.details.short_name }}
+                </span>
+                <input
+                  type="text"
+                  class="reaction-name-input"
+                  data-reaction-id="{{ item.reaction.id }}"
+                  value="{{ item.details.short_name }}"
+                  style="display: none; width: 100px"
+                />
+                {% for flag in item.details.flags %}
+                <i
+                  class="fas fa-flag flag-icon"
+                  style="color: {{ flag.color }}; margin-left: 5px; cursor: pointer;"
+                  data-flag-id="{{ flag.id }}"
+                  data-flag-name="{{ flag.name }}"
+                  data-reaction-id="{{ item.reaction.id }}"
+                  title="{{ flag.name_flag }}"
+                ></i>
+                {% endfor %}
+              </td>
+              <td>
+                {% if item.details.description %}
+                <button
+                  class="ui button view-description-btn"
+                  data-description="{{ item.details.description }}"
+                  data-reaction-id="{{ item.reaction.id }}"
+                  data-content="{{ item.details.description|escape }}"
+                >
+                  View Description
+                </button>
+                {% else %}
+                <span
+                  class="no-description"
+                  data-reaction-id="{{ item.reaction.id }}"
+                  data-description=""
+                >
+                  No Description
+                </span>
+                {% endif %}
+              </td>
+              <td>{{ item.details.subsystem }}</td>
+              <td>{{ item.details.subs_details }}</td>
+              <td>{{ item.details.direction }}</td>
+              <td>{{ item.details.prods_details }}</td>
+              <td>{{ item.details.gene_info|join:", " }}</td>
+              <td>
+                {% if item.details.balanced_count %}
+                <span class="true-symbol">&#10004;</span>
+                {% else %}
+                <span class="false-symbol">&#10008;</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if item.details.balanced_charge %}
+                <span class="true-symbol">&#10004;</span>
+                {% else %}
+                <span class="false-symbol">&#10008;</span>
+                {% endif %}
+              </td>
+              <td>
+                <form
+                  method="POST"
+                  action="{% url 'delete_reaction' %}"
+                  onsubmit="return confirmDelete('{{ item.reaction.short_name }}')"
+                  style="display: inline"
+                >
+                  {% csrf_token %}
+                  <input type="hidden" name="userID" value="{{ userID }}" />
+                  <input
+                    type="hidden"
+                    name="reaction_id"
+                    value="{{ item.reaction.id }}"
+                  />
+                  <button type="submit" class="delete-btn">Delete</button>
+                </form>
+                <button class="view-btn">Edit</button>
+                <button
+                  type="button"
+                  class="clone-btn"
+                  onclick="cloneReaction({{ item.reaction.id }})"
+                >
+                  Clone
+                </button>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% else %}
+        <p>No reactions saved.</p>
+        {% endif %}
+      </div>
     </div>
     <script type="text/javascript">
       const addToVMHUrl = "{% url 'add_to_vmh' %}";

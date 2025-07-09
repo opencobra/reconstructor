@@ -92,7 +92,9 @@ li {
 }
 
 /* Table Header */
-.reactions-table th {
+.reactions-table thead th {
+    position: sticky;
+    top: -1px;
     background-color: #f4f4f4; /* Light grey background for the header */
     color: #333; /* Dark text color for contrast */
     text-align: center; /* Center-align text */
@@ -105,6 +107,13 @@ li {
     text-align: center; /* Center-align text */
     padding: 8px; /* Spacing inside data cells */
     border: 1px solid #ddd; /* Border for data cells */     
+}
+
+/* Make the table container scrollable */
+.table-scroll-container {
+  max-height: calc(100vh - 200px); /* Adjust as needed */
+  overflow-y: auto;
+  margin-top: 10px;
 }
 
 /* Enhance appearance for the checkbox and button container for actions */
@@ -867,6 +876,7 @@ select, input[type="text"] {
 
 
 .top-menu-saved-reactions {
+    position: sticky;
     display: flex;
     justify-content: space-between;
     align-items: center;
