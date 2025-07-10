@@ -1,957 +1,933 @@
 body {
-    height: 100%;
-    margin: 0;
-    font-family: 'Poppins', sans-serif !important;
-    /* background-color: #e7f7ff !important;  */
-
-
+	height: 100%;
+	margin: 0;
+	font-family: 'Poppins', sans-serif !important;
+	/* background-color: #e7f7ff !important;  */
 }
 
 .top-menu {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    height: 11%;
-    background-color: #92d5f7;
-    font-size: 1.4em;
-    border: 2px solid #000;
-    box-sizing: border-box;
-    position: relative; /* Necessary for centering status */
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	width: 100%;
+	height: 11%;
+	background-color: #92d5f7;
+	font-size: 1.4em;
+	border: 2px solid #000;
+	box-sizing: border-box;
+	position: relative; /* Necessary for centering status */
 }
 
 .image-icon.item {
-    margin-right: auto; /* Keep the image icon on the far left */
-    margin-left: 2.7%;
+	margin-right: auto; /* Keep the image icon on the far left */
+	margin-left: 2.7%;
 }
 
 .statusAndMessage {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%); /* Center the statusAndMessage */
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Center the content vertically */
-    gap: 1vh;
+	position: absolute;
+	left: 50%;
+	transform: translateX(-50%); /* Center the statusAndMessage */
+	display: flex;
+	flex-direction: column;
+	align-items: center; /* Center the content vertically */
+	gap: 1vh;
 }
 
 .item img {
-    height: 40%; /* Adjust the height of the icon if needed */
-    width: 40%; /* Maintain the aspect ratio */
-    margin-left:-1%
+	height: 40%; /* Adjust the height of the icon if needed */
+	width: 40%; /* Maintain the aspect ratio */
+	margin-left: -1%;
 }
 
 .user-info.item {
-    margin-right: 58px; /* Keep the user info button on the right */
-}
-
-
-.ui.secondary.vertical.pointing.menu {
-    display: flex;
-    flex-direction: column;
-    background-color: #b1e5ff; /* A lighter, sky-blue color that complements the existing blues in the image */
-    margin: 0;
-    padding: 0;
-    justify-content: flex-start;
-    height: 100%;
-    width: 120%; /* Ensure the menu takes full width of its container */
-    align-items: center;
+	margin-right: 58px; /* Keep the user info button on the right */
 }
 
 .ui.secondary.vertical.pointing.menu {
-    box-shadow: inset -2px 0 0 0 #000 !important; /* Add a left border to the menu */
+	display: flex;
+	flex-direction: column;
+	background-color: #b1e5ff; /* A lighter, sky-blue color that complements the existing blues in the image */
+	margin: 0;
+	padding: 0;
+	justify-content: flex-start;
+	height: 100%;
+	width: 120%; /* Ensure the menu takes full width of its container */
+	align-items: center;
 }
 
+.ui.secondary.vertical.pointing.menu {
+	box-shadow: inset -2px 0 0 0 #000 !important; /* Add a left border to the menu */
+}
 
-
-
-.ui.fluid.button{
-    font-weight: bold ;
-background: #EED8C3;
+.ui.fluid.button {
+	font-weight: bold;
+	background: #eed8c3;
 }
 
 .ui.fluid.button:hover {
-    background-color: #EED8C3;}
+	background-color: #eed8c3;
+}
 
-
-
-.main-container{
-    display: flex;
-    flex-direction: row;
-    min-height: 120%; /* Allow it to auto-adjust based on content */
-    max-height: auto;
-    overflow: hidden; /* Ensures it contains floated children if any */
+.main-container {
+	display: flex;
+	flex-direction: row;
+	min-height: 120%; /* Allow it to auto-adjust based on content */
+	max-height: auto;
+	overflow: hidden; /* Ensures it contains floated children if any */
 }
 
 .main-content {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    gap: 10px;
-    height: auto;
-    margin-left: 1%;
-    background-color: #e7f7ff !important;
-    border-left: 2px solid black; /* Added this line */
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 10px;
+	height: auto;
+	margin-left: 1%;
+	background-color: #e7f7ff !important;
+	border-left: 2px solid black; /* Added this line */
 }
 
-.divs-container{
-    width: 100%;
-    display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-    gap:  10px;
-    padding: 10px    ;
-margin-left: 100px; ;}
-
+.divs-container {
+	width: 100%;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 10px;
+	padding: 10px;
+	margin-left: 100px;
+}
 
 .content-div {
-    width: 47%; 
-    gap: 10px; /* Space between elements */
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 15px;
-    box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
-    box-sizing: border-box;
-    height: 70vh;
-    overflow-y: scroll;
-    overflow-x: hidden;
-    position: relative; /* Added to position the loader relative to this div */
-    background-color: white;
+	width: 47%;
+	gap: 10px; /* Space between elements */
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 15px;
+	box-shadow: 0px 10px 15px rgba(0, 0, 0, 0.3);
+	box-sizing: border-box;
+	height: 70vh;
+	overflow-y: scroll;
+	overflow-x: hidden;
+	position: relative; /* Added to position the loader relative to this div */
+	background-color: white;
 }
 
 /* Custom Scrollbar Styles */
 .content-div::-webkit-scrollbar {
-    width: 8px; /* Width of the scrollbar */
+	width: 8px; /* Width of the scrollbar */
 }
 
 .content-div::-webkit-scrollbar-track {
-    background: #f1f1f1; /* Track color */
-    border-radius: 10px; /* Rounded corners for the track */
+	background: #f1f1f1; /* Track color */
+	border-radius: 10px; /* Rounded corners for the track */
 }
 
 .content-div::-webkit-scrollbar-thumb {
-    background-color: #888; /* Scrollbar thumb color */
-    border-radius: 10px; /* Rounded corners for the thumb */
-    border: 2px solid #f1f1f1; /* Adds space between thumb and track */
+	background-color: #888; /* Scrollbar thumb color */
+	border-radius: 10px; /* Rounded corners for the thumb */
+	border: 2px solid #f1f1f1; /* Adds space between thumb and track */
 }
 
 .content-div::-webkit-scrollbar-thumb:hover {
-    background-color: #555; /* Thumb color on hover */
+	background-color: #555; /* Thumb color on hover */
 }
 .div-header {
-    font-size: 1.5em;
-    font-weight: bold;
-    margin-bottom: 10px;
-    border-bottom: 2px solid #ccc;
-    padding-bottom: 5px;
+	font-size: 1.5em;
+	font-weight: bold;
+	margin-bottom: 10px;
+	border-bottom: 2px solid #ccc;
+	padding-bottom: 5px;
 }
 
 .fluid.ui.button {
-    font-size: 1.2rem;
-    display: grid !important;
-    place-items: center !important;
-    border: 0.5px solid #000;  /* Ensure the border is styled properly */
-    color: white !important;
-    border-radius: 2px;
-    height: 70px;
-    box-sizing: border-box;  /* Include the border in the element's width and height */
-    background-color: #3198cc;
+	font-size: 1.2rem;
+	display: grid !important;
+	place-items: center !important;
+	border: 0.5px solid #000; /* Ensure the border is styled properly */
+	color: white !important;
+	border-radius: 2px;
+	height: 70px;
+	box-sizing: border-box; /* Include the border in the element's width and height */
+	background-color: #3198cc;
 }
 
 .fluid.ui.button:hover {
-    background-color: #2078a4;  
+	background-color: #2078a4;
 }
 
 .ui.button.active {
-    background-color: transparent !important;
-    box-shadow: none !important; /* Optional: Removes any shadow if there is */
+	background-color: transparent !important;
+	box-shadow: none !important; /* Optional: Removes any shadow if there is */
 }
 
 .fluid.ui.button.active {
-    background: linear-gradient(180deg,rgba(12,74,110,.95),#073651) !important;
-
+	background: linear-gradient(180deg, rgba(12, 74, 110, 0.95), #073651) !important;
 }
 
-#saveReactionButton{
-    background-color: Coral;
+#saveReactionButton {
+	background-color: Coral;
 }
-#saveReactionButton:hover{
-    background-color: #fb4300;
+#saveReactionButton:hover {
+	background-color: #fb4300;
 }
-#userIcon{
-    height: 20px;
+#userIcon {
+	height: 20px;
 }
 
 #FormButtons {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-top: 12px;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 15px;
+	margin-top: 12px;
 }
-#submitBtn-form{
-    background-color: lightblue;
+#submitBtn-form {
+	background-color: lightblue;
 }
-#submitBtn-form:hover{
-    background-color: #60b3ce;
+#submitBtn-form:hover {
+	background-color: #60b3ce;
 }
 
 /* Ensure full-screen coverage for the loader */
 #loadingIndicator {
-    position: fixed; /* Full screen */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 9999; /* On top of other elements */
-    background-color: rgba(128, 128, 128, 0.8); /* Semi-transparent grey background */
-    display: none; /* Hidden by default */
+	position: fixed; /* Full screen */
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	z-index: 9999; /* On top of other elements */
+	background-color: rgba(128, 128, 128, 0.8); /* Semi-transparent grey background */
+	display: none; /* Hidden by default */
 }
 
-
 .loading-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(255, 255, 255, 0.7);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 9999; /* Lower than modal */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(255, 255, 255, 0.7);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	z-index: 9999; /* Lower than modal */
 }
 
 .spinner {
-    border: 5px solid rgba(0,0,0,0.1);
-    border-radius: 50%;
-    border-top: 5px solid #3498db;
-    width: 60px;
-    height: 60px;
-    animation: spin 2s linear infinite;
+	border: 5px solid rgba(0, 0, 0, 0.1);
+	border-radius: 50%;
+	border-top: 5px solid #3498db;
+	width: 60px;
+	height: 60px;
+	animation: spin 2s linear infinite;
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
-
 
 /* Text color and styling */
 .loading-overlay p {
-    color: #000; /* Black text for visibility */
-    font-size: 18px;
+	color: #000; /* Black text for visibility */
+	font-size: 18px;
 }
 
 /* Spinner animation */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+	0% {
+		transform: rotate(0deg);
+	}
+	100% {
+		transform: rotate(360deg);
+	}
 }
 
 .status-container {
-    display: flex;
-    align-items: center;
-    text-align: center;
+	display: flex;
+	align-items: center;
+	text-align: center;
 }
 
 .reaction-name {
-    cursor: pointer;
-    color: #007BFF;
-    position: relative;
-    display: inline-block; /* Ensures text takes only as much space as needed */
-    font-weight: bold;
-    margin-top: 5px; /* Slight gap between text */
+	cursor: pointer;
+	color: #007bff;
+	position: relative;
+	display: inline-block; /* Ensures text takes only as much space as needed */
+	font-weight: bold;
+	margin-top: 5px; /* Slight gap between text */
 }
 
 .reaction-name:hover::after {
-    content: attr(data-tooltip-this);
-    position: absolute;
-    top: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #222;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 4px;
-    white-space: nowrap;
-    font-size: 14px;
-    z-index: 9999;
+	content: attr(data-tooltip-this);
+	position: absolute;
+	top: 125%;
+	left: 50%;
+	transform: translateX(-50%);
+	background-color: #222;
+	color: #fff;
+	padding: 5px 10px;
+	border-radius: 4px;
+	white-space: nowrap;
+	font-size: 14px;
+	z-index: 9999;
 }
-
 
 .ui.secondary.vertical.pointing.menu .bottom {
-    width: 100%;
-    
-    margin-top: auto; /* Push the bottom div to the end of the container */
+	width: 100%;
+
+	margin-top: auto; /* Push the bottom div to the end of the container */
 }
 
+.status-dot-top {
+	height: 10px;
+	width: 10px;
+	border-radius: 50%;
+	display: inline-block;
+	margin-left: 5px;
+	vertical-align: middle; /* Ensure the dot is vertically aligned with the text */
+}
 
+.dot-grey {
+	background-color: grey;
+}
 
-  .status-dot-top {
-      height: 10px;
-      width: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-left: 5px;
-      vertical-align: middle; /* Ensure the dot is vertically aligned with the text */
-  }
+.dot-blue {
+	background-color: blue;
+}
 
-  .dot-grey {
-      background-color: grey;
-  }
+.dot-green {
+	background-color: green;
+}
 
-  .dot-blue {
-      background-color: blue;
-  }
+.dot-orange {
+	background-color: orange;
+}
 
-  .dot-green {
-      background-color: green;
-  }
-
-  .dot-orange {
-      background-color: orange;
-  }
-  
-  .dot-red{
-
-        background-color: red;
-  }
-
+.dot-red {
+	background-color: red;
+}
 
 /* Background overlay for the modal */
 .modal-background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
-    z-index: 900; /* Just below the modal */
-    display: none; /* Initially hidden */
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+	z-index: 900; /* Just below the modal */
+	display: none; /* Initially hidden */
 }
 
 /* Center the modal on the screen */
 .ui.modal.savereaction {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 50%; /* Adjust width as needed */
-    max-width: 600px; /* Ensure modal doesn't exceed a certain width */
-    z-index: 1000;
-    padding: 20px; /* Padding inside the modal */
-    background-color: white; /* Modal background color */
-    border-radius: 8px; /* Rounded corners for a smooth look */
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-    display: none; /* Initially hidden */
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 50%; /* Adjust width as needed */
+	max-width: 600px; /* Ensure modal doesn't exceed a certain width */
+	z-index: 1000;
+	padding: 20px; /* Padding inside the modal */
+	background-color: white; /* Modal background color */
+	border-radius: 8px; /* Rounded corners for a smooth look */
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+	display: none; /* Initially hidden */
 }
 
 /* Style for modal header */
 .ui.modal.savereaction .header {
-    font-size: 1.5em;
-    margin-bottom: 15px;
-    text-align: center; /* Center the header text */
-    font-weight: bold;
+	font-size: 1.5em;
+	margin-bottom: 15px;
+	text-align: center; /* Center the header text */
+	font-weight: bold;
 }
 
 /* Style for modal content */
 .ui.modal.savereaction .content {
-    margin-bottom: 20px;
+	margin-bottom: 20px;
 }
 
 /* Input field styling */
 .ui.modal.savereaction .content .ui.input {
-    margin-bottom: 1em;
+	margin-bottom: 1em;
 }
 
 /* Style for modal actions (buttons) */
 .ui.modal.savereaction .actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
 }
 
 /* Ensure buttons are consistent with Semantic UI styles */
 .ui.modal.savereaction .actions .ui.button {
-    padding: 10px 20px;
+	padding: 10px 20px;
 }
 
 /* Modal background */
 .custom-error-modal {
-    display: none; /* Hidden by default */
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-
+	display: none; /* Hidden by default */
+	position: fixed;
+	z-index: 1000;
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.5);
 }
 
 /* Modal content box */
 .custom-modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 4px;
-    width: 50%;
-    margin: 15% auto; /* Center the modal */
-    max-width: 500px; /* Set a max-width to keep it contained */
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+	background-color: #fff;
+	padding: 20px;
+	border-radius: 4px;
+	width: 50%;
+	margin: 15% auto; /* Center the modal */
+	max-width: 500px; /* Set a max-width to keep it contained */
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Modal header */
 .custom-modal-header {
-    font-size: 20px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
+	font-size: 20px;
+	font-weight: bold;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 10px;
 }
 
 /* Close button */
 .custom-close-icon {
-    font-size: 24px;
-    cursor: pointer;
+	font-size: 24px;
+	cursor: pointer;
 }
 
 /* Modal body */
 .custom-modal-body {
-    font-size: 16px;
+	font-size: 16px;
 }
-
 
 /* The Modal (background) */
 .saved-reactions-modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-  }
-  
-  /* Modal Content */
-  .saved-reactions-modal-content {
-    background-color: #fefefe;
-    margin: 15% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-  }
-  
-  /* The Close Button */
-  .close-saved-reactions {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-  }
-  
-  .close-saved-reactions:hover,
-  .close-saved-reactions:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	left: 0;
+	top: 0;
+	width: 100%; /* Full width */
+	height: 100%; /* Full height */
+	overflow: auto; /* Enable scroll if needed */
+	background-color: rgb(0, 0, 0); /* Fallback color */
+	background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+}
 
+/* Modal Content */
+.saved-reactions-modal-content {
+	background-color: #fefefe;
+	margin: 15% auto; /* 15% from the top and centered */
+	padding: 20px;
+	border: 1px solid #888;
+	width: 80%; /* Could be more or less, depending on screen size */
+}
+
+/* The Close Button */
+.close-saved-reactions {
+	color: #aaa;
+	float: right;
+	font-size: 28px;
+	font-weight: bold;
+}
+
+.close-saved-reactions:hover,
+.close-saved-reactions:focus {
+	color: black;
+	text-decoration: none;
+	cursor: pointer;
+}
 
 .eu-logo {
-    width: 140px;
-    height: 40px;
-    margin-bottom: 10px;    
-    
+	width: 140px;
+	height: 40px;
+	margin-bottom: 10px;
 }
 
 .login-message-box {
-    border: 1px solid #ddd;
-    padding: 15px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
+	border: 1px solid #ddd;
+	padding: 15px;
+	background-color: #f9f9f9;
+	border-radius: 5px;
 }
 
 /* Styling for the message text */
 .login-message-text {
-    font-size: 1.1em;
-    color: #666;
+	font-size: 1.1em;
+	color: #666;
 }
 .funding-container {
-    background-color: #f8f8f8; /* Background color */
-    text-align: center;
-    padding: 10px;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    font-size: 14px; /* Font size adjustment */
-    color: #333; /* Text color */
-    
-    /* Flexbox layout */
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+	background-color: #f8f8f8; /* Background color */
+	text-align: center;
+	padding: 10px;
+	box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+	width: 100%;
+	font-size: 14px; /* Font size adjustment */
+	color: #333; /* Text color */
+
+	/* Flexbox layout */
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
 }
 
 .eu-logo {
-    max-height: 50px;
-    vertical-align: middle;
-    margin-right: 10px;
+	max-height: 50px;
+	vertical-align: middle;
+	margin-right: 10px;
 }
 
 .logo-text {
-    flex-grow: 1; /* Make the text container grow to fill available space */
-    text-align: center; /* Center the text */
-    padding: 0 10px; /* Padding on the left and right of the text */
+	flex-grow: 1; /* Make the text container grow to fill available space */
+	text-align: center; /* Center the text */
+	padding: 0 10px; /* Padding on the left and right of the text */
 }
 
 .right-logo {
-    max-height: 50px;
-    vertical-align: middle;
-    margin-left: 10px;
+	max-height: 50px;
+	vertical-align: middle;
+	margin-left: 10px;
 }
 
 footer {
-    margin-top: auto;
-    padding: 10px 0; /* Additional padding if needed */
-    background-color: #f8f8f8;
+	margin-top: auto;
+	padding: 10px 0; /* Additional padding if needed */
+	background-color: #f8f8f8;
 }
-
 
 /* Dark overlay */
 #modalOverlayCustom {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 999; /* Just below the modal */
-    left: 0;
-    top: 0;
-    width: 100%; /* Cover the entire screen */
-    height: 100%; /* Cover the entire screen */
-    background-color: rgba(0, 0, 0, 0.7); /* Darker background with opacity */
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 999; /* Just below the modal */
+	left: 0;
+	top: 0;
+	width: 100%; /* Cover the entire screen */
+	height: 100%; /* Cover the entire screen */
+	background-color: rgba(0, 0, 0, 0.7); /* Darker background with opacity */
 }
 
 /* Modal styling */
 #createFlagModalCustom {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top of the overlay */
-    left: 50%; /* Center horizontally */
-    top: 50%; /* Center vertically */
-    transform: translate(-50%, -50%); /* Adjust the centering */
-    width: 600px; /* Set the width */
-    background-color: #fefefe; /* Modal content background */
-    border: 1px solid #888; /* Optional border */
-    padding: 20px; /* Optional padding */
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
-    border-radius: 8px; /* Optional rounded corners */
+	display: none; /* Hidden by default */
+	position: fixed; /* Stay in place */
+	z-index: 1000; /* Sit on top of the overlay */
+	left: 50%; /* Center horizontally */
+	top: 50%; /* Center vertically */
+	transform: translate(-50%, -50%); /* Adjust the centering */
+	width: 600px; /* Set the width */
+	background-color: #fefefe; /* Modal content background */
+	border: 1px solid #888; /* Optional border */
+	padding: 20px; /* Optional padding */
+	box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2); /* Optional shadow for depth */
+	border-radius: 8px; /* Optional rounded corners */
 }
 
 /* To display the modal and overlay */
 #modalOverlayCustom.active,
 #createFlagModalCustom.active {
-    display: block;
+	display: block;
 }
 
 /* Additional styling for modal content if needed */
 #createFlagModalCustom .modal-content-custom {
-    height: 100%; /* Fill the modal container */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between; /* Space between header, form, and actions */
+	height: 100%; /* Fill the modal container */
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between; /* Space between header, form, and actions */
 }
 
-
 #organTags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px; /* Adjust the spacing between tags */
-    border: 1px solid #000; /* Add border to the container */
-    padding: 8px; /* Add padding inside the container */
-    border-radius: 5px; /* Add rounded corners to the container */
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px; /* Adjust the spacing between tags */
+	border: 1px solid #000; /* Add border to the container */
+	padding: 8px; /* Add padding inside the container */
+	border-radius: 5px; /* Add rounded corners to the container */
 }
 
 #organTags:empty:before {
-    content: "(Optional)";
-    color: #999; /* Placeholder text color */
+	content: '(Optional)';
+	color: #999; /* Placeholder text color */
 }
 
-
 .tag {
-    padding: 5px 10px;
-    background-color: #e0e0e0;
-    border-radius: 3px;
-    display: inline-flex;
-    align-items: center;
-    font-family: Arial, sans-serif;
+	padding: 5px 10px;
+	background-color: #e0e0e0;
+	border-radius: 3px;
+	display: inline-flex;
+	align-items: center;
+	font-family: Arial, sans-serif;
 }
 
 .close-btn {
-    margin-left: 8px;
-    cursor: pointer;
-    color: red;
+	margin-left: 8px;
+	cursor: pointer;
+	color: red;
 }
-
 
 /* Styles for the modal overlay */
 .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.75); /* Black background with some transparency */
-    z-index: 998; /* Slightly lower than modal container */
-    display: none;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(0, 0, 0, 0.75); /* Black background with some transparency */
+	z-index: 998; /* Slightly lower than modal container */
+	display: none;
 }
 
 /* Styles for the modal container */
 .modal-container {
-    position: fixed;
-    z-index: 999; /* Higher than overlay */
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+	position: fixed;
+	z-index: 999; /* Higher than overlay */
+	left: 0;
+	top: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
-
-
-
 
 /* Styles for the modal content */
 .modal-content-task {
-    background-color: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-    width: 50%; /* Increased width to accommodate side-by-side buttons */
-    text-align: center;
-    position: relative;
-    top: 40%;
-    margin: auto;
+	background-color: white;
+	padding: 20px;
+	border-radius: 8px;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+	width: 50%; /* Increased width to accommodate side-by-side buttons */
+	text-align: center;
+	position: relative;
+	top: 40%;
+	margin: auto;
 }
-
 
 /* Styles for the close button */
 .close-task {
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 20px;
-    font-weight: bold;
-    color: #333;
-    cursor: pointer;
+	position: absolute;
+	top: 10px;
+	right: 15px;
+	font-size: 20px;
+	font-weight: bold;
+	color: #333;
+	cursor: pointer;
 }
 
 .close-task:hover {
-    color: #000;
+	color: #000;
 }
 
 /* Button container styling */
 .modal-content-task .button-container {
-    display: flex;
-    justify-content: space-between; /* Distribute space evenly between buttons */
-    gap: 10px; /* Optional: Add some space between the buttons */
+	display: flex;
+	justify-content: space-between; /* Distribute space evenly between buttons */
+	gap: 10px; /* Optional: Add some space between the buttons */
 }
 
 /* Button styling */
 .task-btn {
-    margin-top: 20px;
-    flex: 1; /* Make buttons take up equal space */
+	margin-top: 20px;
+	flex: 1; /* Make buttons take up equal space */
 }
 
-
-
-#reactionFoundMessage{
-    display: block;
-    text-align: center;
+#reactionFoundMessage {
+	display: block;
+	text-align: center;
 }
-
 
 .dropdown {
-    position: relative;
-    display: inline-block;
+	position: relative;
+	display: inline-block;
 }
 
 .dropdown-toggle {
-    background-color: #fff;
-    border: 1px solid #ccc;
-    padding: 5px 10px;
-    cursor: pointer;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	padding: 5px 10px;
+	cursor: pointer;
 }
 
 .dropdown-menu {
-    display: none;
-    position: absolute;
-    background-color: #fff;
-    min-width: 160px;
-    border: 1px solid #ccc;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-    z-index: 1;
+	display: none;
+	position: absolute;
+	background-color: #fff;
+	min-width: 160px;
+	border: 1px solid #ccc;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
 }
 
 .dropdown-menu.show {
-    display: block;
+	display: block;
 }
 
 .dropdown-item {
-    padding: 8px 16px;
-    cursor: pointer;
+	padding: 8px 16px;
+	cursor: pointer;
 }
 
 .dropdown-item:hover {
-    background-color: #ddd;
+	background-color: #ddd;
 }
 
-#customDropdown{
-    width: 50%;
+#customDropdown {
+	width: 50%;
 }
 
 .template-selection-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #f9f9f9;
-    max-height: 200px; /* Optional: limit height */
-    overflow-y: auto; /* Enable scrolling for many templates */
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	padding: 10px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	background-color: #f9f9f9;
+	max-height: 200px; /* Optional: limit height */
+	overflow-y: auto; /* Enable scrolling for many templates */
 }
 
 .template-button {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    background-color: #ffffff;
-    color: #333;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
+	padding: 8px 12px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	background-color: #ffffff;
+	color: #333;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
 }
 
 .template-button:hover {
-    background-color: #f1f1f1;
-    border-color: #bbb;
+	background-color: #f1f1f1;
+	border-color: #bbb;
 }
 
 .template-button.selected {
-    background-color: #007bff;
-    color: #fff;
-    border-color: #007bff;
+	background-color: #007bff;
+	color: #fff;
+	border-color: #007bff;
 }
 .template-buttons {
-    gap: 10px;
+	gap: 10px;
 }
-.editTemplateActions{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-top: 12px;
+.editTemplateActions {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 15px;
+	margin-top: 12px;
 }
 
 .autocomplete-container {
-    position: relative;
-    display: inline-block;
-    width: 25%;
+	position: relative;
+	display: inline-block;
+	width: 25%;
 }
 .autocomplete-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: white;
-    border: 1px solid #ccc;
-    z-index: 1000;
-    max-height: 200px;
-    overflow-y: auto;
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: white;
+	border: 1px solid #ccc;
+	z-index: 1000;
+	max-height: 200px;
+	overflow-y: auto;
 }
 .autocomplete-input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+	width: 100%;
+	padding: 5px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
 }
 .autocomplete-option {
-    padding: 5px 10px;
-    cursor: pointer;
+	padding: 5px 10px;
+	cursor: pointer;
 }
 .autocomplete-option:hover {
-    background-color: #f0f0f0;
+	background-color: #f0f0f0;
 }
 .metab-abbr {
-    font-weight: bold;
+	font-weight: bold;
 }
 .metab-name {
-    margin-left: 5px;
+	margin-left: 5px;
 }
 
 /* User dropdown styling */
 .ui.dropdown .menu {
-    margin-top: 10px !important;
-    border-radius: 8px !important;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+	margin-top: 10px !important;
+	border-radius: 8px !important;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
 }
 
 #userDropdown {
-    margin-right: 10px;
+	margin-right: 10px;
 }
 
 .ui.dropdown .menu .item {
-    padding: 12px 16px !important;
-    font-size: 14px;
+	padding: 12px 16px !important;
+	font-size: 14px;
 }
 
 .ui.dropdown .menu .item:hover {
-    background: #f5f5f5 !important;
+	background: #f5f5f5 !important;
 }
 
 .ui.dropdown .divider {
-    margin: 5px 0 !important;
+	margin: 5px 0 !important;
 }
 /* More specific selector to override the inline-block */
 .ui.items > .item > .content > .header.savedMetabolite-header {
-    display: flex !important;          /* Override inline-block with flex */
-    align-items: center;               /* Center items vertically */
-    justify-content: space-between;    /* Space between left content and delete button */
-    cursor: pointer;
-    padding: 10px;
-    border-bottom: 1px solid #ccc;
+	display: flex !important; /* Override inline-block with flex */
+	align-items: center; /* Center items vertically */
+	justify-content: space-between; /* Space between left content and delete button */
+	cursor: pointer;
+	padding: 10px;
+	border-bottom: 1px solid #ccc;
 }
 
 /* Group the toggle, abbr, and name neatly */
 .savedMetabolite-header .left-section {
-    display: flex;
-    align-items: center;
-    gap: 10px;                         /* Space between items */
+	display: flex;
+	align-items: center;
+	gap: 10px; /* Space between items */
 }
 
 /* Delete button styling */
 .delete-btn {
-    background-color: #e74c3c;
-    color: white;
-    border: none;
-    padding: 6px 12px;
-    cursor: pointer;
-    border-radius: 4px;
-    transition: background-color 0.3s ease;
+	background-color: #e74c3c;
+	color: white;
+	border: none;
+	padding: 6px 12px;
+	cursor: pointer;
+	border-radius: 4px;
+	transition: background-color 0.3s ease;
 }
 
 .delete-btn:hover {
-    background-color: #c0392b;
+	background-color: #c0392b;
 }
 
 /* Toggle arrow rotation */
 .savedMetabolite-header .toggle-arrow {
-    transition: transform 0.3s ease;
-    display: inline-block;
+	transition: transform 0.3s ease;
+	display: inline-block;
 }
 
 .savedMetabolite-header.active .toggle-arrow {
-    transform: rotate(90deg);
+	transform: rotate(90deg);
 }
 
 /* Compact layout adjustments */
 .compact-info-grid {
-    padding: 10px 0;
-    row-gap: 10px;  /* Space between rows */
+	padding: 10px 0;
+	row-gap: 10px; /* Space between rows */
 }
 
 .compact-info-list .item {
-    display: flex;
-    justify-content: space-between;
-    padding: 4px 0;
-    font-size: 0.9em;
-    border-bottom: 1px dashed #ddd;
+	display: flex;
+	justify-content: space-between;
+	padding: 4px 0;
+	font-size: 0.9em;
+	border-bottom: 1px dashed #ddd;
 }
 
 .compact-info-list .item:last-child {
-    border-bottom: none;
+	border-bottom: none;
 }
 
 .compact-info-list strong {
-    min-width: 120px;  /* Fixed width for alignment */
-    font-weight: bold;
-    color: #555;
+	min-width: 120px; /* Fixed width for alignment */
+	font-weight: bold;
+	color: #555;
 }
 
 .ui.form.small-form .field {
-    margin-bottom: 8px;
+	margin-bottom: 8px;
 }
 
 .readonly-field {
-    background-color: #f9f9f9;
-    border: 1px solid #ddd;
-    padding: 5px;
-    cursor: not-allowed;
-    color: #555;
+	background-color: #f9f9f9;
+	border: 1px solid #ddd;
+	padding: 5px;
+	cursor: not-allowed;
+	color: #555;
 }
 
 .structure-controls {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 10px;
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 10px;
 }
 .external-links-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-    flex-direction: row;
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	margin-top: 10px;
+	flex-wrap: wrap;
+	flex-direction: row;
 }
-.reactions-toggle-container{
-    gap: 10px;
-    margin-top: 10px;
+.reactions-toggle-container {
+	gap: 10px;
+	margin-top: 10px;
 }
-.twofields{
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    flex-direction: column;
+.twofields {
+	display: flex;
+	justify-content: space-between;
+	gap: 10px;
+	flex-direction: column;
 }
-.links-container{
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-    flex-direction: row;
-    
+.links-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	margin-top: 10px;
+	flex-wrap: wrap;
+	flex-direction: row;
 }
 #savedMetabolitesSearchContainer {
-    display: flex;
-    align-items: center;
-  }
+	display: flex;
+	align-items: center;
+}
 
 #savedMetabolitesSearchContainer input#metaboliteSearchInput {
-    width: 100%;
-    padding: 8px 12px;
-    font-size: 14px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+	width: 100%;
+	padding: 8px 12px;
+	font-size: 14px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 #savedMetabolitesSearchContainer input#metaboliteSearchInput:focus {
-    outline: none;
-    border-color: #66afe9;
-    box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
-    }
-  
+	outline: none;
+	border-color: #66afe9;
+	box-shadow: 0 0 5px rgba(102, 175, 233, 0.6);
+}
+
 .share-checkbox {
-    transform: scale(1.5);  /* Adjust the value as needed (e.g., 1.5 = 150% size) */
-    margin-right: 8px;      /* Add spacing to keep alignment clean */
-    cursor: pointer;        /* Optional: Adds a pointer cursor for better UX */
+	transform: scale(1.5); /* Adjust the value as needed (e.g., 1.5 = 150% size) */
+	margin-right: 8px; /* Add spacing to keep alignment clean */
+	cursor: pointer; /* Optional: Adds a pointer cursor for better UX */
 }

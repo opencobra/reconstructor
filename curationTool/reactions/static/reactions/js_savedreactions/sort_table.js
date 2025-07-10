@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Reset to original order if no sort selected
     if (!sortKey) {
       tbody.innerHTML = '';
-      originalRows.forEach(row => tbody.appendChild(row.cloneNode(true)));
+      originalRows.forEach((row) => tbody.appendChild(row.cloneNode(true)));
       return;
     }
 
@@ -36,9 +36,9 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     tbody.innerHTML = '';
-    sortedRows.forEach(row => tbody.appendChild(row));
-      
-    rebindCheckboxListeners(); 
 
+    sortedRows.forEach((row) => tbody.appendChild(row));
+
+    rebindCheckboxListeners();
   });
 });
