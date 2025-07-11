@@ -1,146 +1,163 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Constructor — Home</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/Home_page.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/reactants.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/reactioninfo.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/cheminfo.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/atommapping.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/metabolite-div.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/register_modal.css' %}">
-    <link rel="stylesheet" type="text/css" href="{% static 'reactions/ask_ai.css' %}">
-    <link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon.ico' %}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Constructor — Home</title>
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/Home_page.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/reactants.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/reactioninfo.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/cheminfo.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/atommapping.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/metabolite-div.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/register_modal.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/ask_ai.css' %}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon.ico' %}" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css">    
-    <script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="custom-error-modal" id="error-modal">
-        <div class="custom-modal-content">
-            <div class="custom-modal-header">
-                Error
-                <span class="custom-close-icon" id="close-button">&times;</span>
-            </div>
-            <div class="custom-modal-body">
-                <div id="error-message">Default error message</div>
-            </div>
-        </div>
-    </div>
-    <div class="top-menu">
-        <div class="image-icon item">
-            <img src="{% static 'reactions/website-icon.png' %}" alt="Website Icon">
-        </div>
-        <div class="statusAndMessage">
-            <div class="status-item" id="statusTitle"></div>
-            <div id="reactionFoundMessage"></div>
-        </div>
-        <div class="user-info item">
-            <div class="ui dropdown" id="userDropdown">
-                <button class="ui button" id="userDisplay">
-                    <i class="icon user"></i>
-                    User : None
-                </button>
-                <div class="menu">
-                    <div class="item" id="dropdown-saved-reactions">Saved Reactions</div>
-                    <div class="item" id="dropdown-saved-metabolites">Saved Metabolites</div>
-                </div>
-            </div>
-            <button class="ui blue button" id="loginButton">Log In</button>
-        </div>
-    </div>
-    
-    <div class="main-container">
-        <div class = "side-buttons">
-            <div class="ui secondary vertical pointing menu">
-                <div class="fluid ui button dynamic-button-side-button" id= "reactants-button">Reactants </div>
-                <div class="fluid ui button dynamic-button-side-button" id= "atommapping-button">Atom Mapping</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "cheminfo-button">Chem Info</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "metinfo-button">Metabolite Info</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "references-button">References</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "extlinks-button">External Links</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "geneinfo-button">Gene Info</div>
-                <div class="fluid ui button dynamic-button-side-button" id= "comments-button">Comments</div>
-            <div class ="bottom"> <div class = "fluid ui button" id="view-leader-board" >View Stats</div>
-                <div class ="fluid ui button" id="item about-item">About</div> </div>
-            </div>
-        </div>
-        <div class="main-content">
-            <div id="FormButtons">
-                <div id="createReactionButtons">
-                    <button id="submitBtn-form" class="ui button" style="color: black;">
-                        <img src="{% static 'reactions/beaker_1.png' %}" alt="Icon" style="width:16px; height:16px; vertical-align:middle; margin-right:5px;">
-                    Create Reaction</button>
-                </div>
-                
-                <div class="skip-atom-mapping">
-                    <input type="checkbox" id="skipAtomMapping" name="skip_atom_mapping">
-                    <label for="skipAtomMapping">Skip atom mapping (faster)</label>
-                </div>
-                <button id="saveReactionButton" type="button" class="ui button" style="color: black;">
-                    <img src="{% static 'reactions/save_icon.png' %}" alt="Icon" style="width:16px; height:16px; vertical-align:middle; margin-right:5px;"> Locally save reaction
-                </button>
-                <button id="ResetButton" type="button" class="ui red button" style="color: black;">
-                    <img src="{% static 'reactions/reset.png' %}" alt="Icon" style="width:16px; height:16px; vertical-align:middle; margin-right:5px;">
-                    Reset
-                </button>
-            </div> 
-            <div class="divs-container">
-                <div class="content-div" name = "reactants-div" style="display: block;">
-                    <div class="div-header">Reactants</div>
-                    <div id="reactionFormContainer" class = "container">
-                        <div class="getbuttoncontainer">
-                            <button class="ui violet button" id="getrxnfromvmhrhea">Get Reaction From Rhea and VMH</button>
-                            <button class="ui violet button" id="getrxnfromtemplateBtn">Reaction Templates</button>
-                        </div>
-                        <!-- Form for inputting reaction data -->
-                        <form method="post" id="reactionForm">
-                            {% csrf_token %}
-                            <!-- Substrates input field -->
-                            <div class="field-container" id="substratesDiv">
-                                <div class="header-container">
-                                    <label id="substratelabel">Substrates:</label>
-                                    <button type="button" id="toggleApplyAllsubs" title="Apply options to all substrates">
-                                        <img src="{% static 'reactions/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px;">
-                                    </button>
-                                </div>
-                                <div class="apply-all-options" id="applyAllOptionsSubs" style="display: none;">
-                                    <select id="subsCompsApplyAllSelect">
-                                        <option value="c">c</option>
-                                        <option value="e">e</option>
-                                        <option value="g">g</option>
-                                        <option value="m">m</option>
-                                        <option value="l">l</option>
-                                        <option value="n">n</option>
-                                        <option value="r">r</option>
-                                        <option value="x">x</option>
-                                        <option value="-">-</option>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+		<script src="https://3Dmol.csb.pitt.edu/build/3Dmol-min.js"></script>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+	</head>
+	<body>
+		<div class="custom-error-modal" id="error-modal">
+			<div class="custom-modal-content">
+				<div class="custom-modal-header">
+					Error
+					<span class="custom-close-icon" id="close-button">&times;</span>
+				</div>
+				<div class="custom-modal-body">
+					<div id="error-message">Default error message</div>
+				</div>
+			</div>
+		</div>
+		<div class="top-menu">
+			<div class="image-icon item">
+				<img src="{% static 'reactions/website-icon.png' %}" alt="Website Icon" />
+			</div>
+			<div class="statusAndMessage">
+				<div class="status-item" id="statusTitle"></div>
+				<div id="reactionFoundMessage"></div>
+			</div>
+			<div class="user-info item">
+				<div class="ui dropdown" id="userDropdown">
+					<button class="ui button" id="userDisplay">
+						<i class="icon user"></i>
+						User : None
+					</button>
+					<div class="menu">
+						<div class="item" id="dropdown-saved-reactions">Saved Reactions</div>
+						<div class="item" id="dropdown-saved-metabolites">Saved Metabolites</div>
+					</div>
+				</div>
+				<button class="ui blue button" id="loginButton">Log In</button>
+			</div>
+		</div>
 
-                                    </select>
-                                    <button type="button" id="applyAllSubsComps">Apply All</button>
-                                    <select id="subsTypeApplyAllSelect">
-                                        <option value="VMH">VMH</option>
-                                        <option value="ChEBI ID">ChEBI ID</option>
-                                        <option value="ChEBI Name">ChEBI Name</option>
-                                        <option value="SwissLipids">SwissLipids</option>
-                                        <option value="PubChem ID">PubChem ID</option>
-                                        <option value="MDL Mol file">MDL Mol file</option>
-                                        <option value="Draw">Draw</option>
-                                        <option value="Saved">My Metabolites</option>
-                                    </select>
-                                    <button type="button" id="applyAllSubsType">Apply All</button>
-                                </div>
-                                 <div class="inputs-header">
-                                                <label class="input-label-stich">Stoichiometry</label>
-                                    <div class="infocomp">
-                                        <span class="info-symbol" data-tooltip-content="
+		<div class="main-container">
+			<div class="side-buttons">
+				<div class="ui secondary vertical pointing menu">
+					<div class="fluid ui button dynamic-button-side-button" id="reactants-button">Reactants</div>
+					<div class="fluid ui button dynamic-button-side-button" id="atommapping-button">Atom Mapping</div>
+					<div class="fluid ui button dynamic-button-side-button" id="cheminfo-button">Chem Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="metinfo-button">Metabolite Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="references-button">References</div>
+					<div class="fluid ui button dynamic-button-side-button" id="extlinks-button">External Links</div>
+					<div class="fluid ui button dynamic-button-side-button" id="geneinfo-button">Gene Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="comments-button">Comments</div>
+					<div class="bottom">
+						<div class="fluid ui button" id="view-leader-board">View Stats</div>
+						<div class="fluid ui button" id="item about-item">About</div>
+					</div>
+				</div>
+			</div>
+			<div class="main-content">
+				<div id="FormButtons">
+					<div id="createReactionButtons">
+						<button id="submitBtn-form" class="ui button" style="color: black">
+							<img
+								src="{% static 'reactions/beaker_1.png' %}"
+								alt="Icon"
+								style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
+							Create Reaction
+						</button>
+					</div>
+
+					<div class="skip-atom-mapping">
+						<input type="checkbox" id="skipAtomMapping" name="skip_atom_mapping" />
+						<label for="skipAtomMapping">Skip atom mapping (faster)</label>
+					</div>
+					<button id="saveReactionButton" type="button" class="ui button" style="color: black">
+						<img
+							src="{% static 'reactions/save_icon.png' %}"
+							alt="Icon"
+							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
+						Save Reaction
+					</button>
+					<button id="ResetButton" type="button" class="ui red button" style="color: black">
+						<img
+							src="{% static 'reactions/reset.png' %}"
+							alt="Icon"
+							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
+						Reset
+					</button>
+				</div>
+				<div class="divs-container">
+					<div class="content-div" name="reactants-div" style="display: block">
+						<div class="div-header">Reactants</div>
+						<div id="reactionFormContainer" class="container">
+							<div class="getbuttoncontainer">
+								<button class="ui violet button" id="getrxnfromvmhrhea">Get Reaction From Rhea and VMH</button>
+								<button class="ui violet button" id="getrxnfromtemplateBtn">Reaction Templates</button>
+							</div>
+							<!-- Form for inputting reaction data -->
+							<form method="post" id="reactionForm">
+								{% csrf_token %}
+								<!-- Substrates input field -->
+								<div class="field-container" id="substratesDiv">
+									<div class="header-container">
+										<label id="substratelabel">Substrates:</label>
+										<button type="button" id="toggleApplyAllsubs" title="Apply options to all substrates">
+											<img
+												src="{% static 'reactions/apply_icon.svg' %}"
+												alt="Apply All"
+												style="width: 24px; height: 24px" />
+										</button>
+									</div>
+									<div class="apply-all-options" id="applyAllOptionsSubs" style="display: none">
+										<select id="subsCompsApplyAllSelect">
+											<option value="c">c</option>
+											<option value="e">e</option>
+											<option value="g">g</option>
+											<option value="m">m</option>
+											<option value="l">l</option>
+											<option value="n">n</option>
+											<option value="r">r</option>
+											<option value="x">x</option>
+											<option value="-">-</option>
+										</select>
+										<button type="button" id="applyAllSubsComps">Apply All</button>
+										<select id="subsTypeApplyAllSelect">
+											<option value="VMH">VMH</option>
+											<option value="ChEBI ID">ChEBI ID</option>
+											<option value="ChEBI Name">ChEBI Name</option>
+											<option value="SwissLipids">SwissLipids</option>
+											<option value="PubChem ID">PubChem ID</option>
+											<option value="MDL Mol file">MDL Mol file</option>
+											<option value="Draw">Draw</option>
+											<option value="Saved">My Metabolites</option>
+										</select>
+										<button type="button" id="applyAllSubsType">Apply All</button>
+									</div>
+									<div class="inputs-header">
+										<label class="input-label-stich">Stoichiometry</label>
+										<div class="infocomp">
+											<span
+												class="info-symbol"
+												data-tooltip-content="
                                             <p>c → Cytosol</p>
                                             <p>e → Extracellular</p>
                                             <p>g → Golgi Apparatus</p>
@@ -148,91 +165,96 @@
                                             <p>l → Lysosome</p>
                                             <p>n → Nucleus</p>
                                             <p>r → Endoplasmatic Reticulum</p>
-                                            <p>x → Peroxisome</p>">&#9432;</span>
-                                        <label class="input-label-comp">Compartment</label>
-                                    </div>
-                                    <label class="input-label-type">Type</label>
-                                    <button type="button" class="done-field-btn-all">Verify All</button>
-                                </div>
-                                <div class="inputs-group">
-                                    <button class="ui inverted red button remove-field-btn" type="button">X</button>
-                                    <input type="number" id="subs_sch" name="subs_sch" min="1" value="1">
-                                    <input type="text" id="substrates" name="substrates" required>
-                                    <select id="compartment" name="subs_comps">
-                                        <option value="c">c</option>
-                                        <option value="e">e</option>
-                                        <option value="g">g</option>
-                                        <option value="m">m</option>
-                                        <option value="l">l</option>
-                                        <option value="n">n</option>
-                                        <option value="r">r</option>
-                                        <option value="x">x</option>
-                                        <option value="-">-</option>
-
-                                    </select>
-                                    <select id="substrates_type" name="substrates_type">
-                                        <option value="VMH">VMH</option>
-                                        <option value="ChEBI ID">ChEBI ID</option>
-                                        <option value="ChEBI Name">ChEBI Name</option>
-                                        <option value="SwissLipids">SwissLipids</option>
-                                        <option value="PubChem ID">PubChem ID</option>
-                                        <option value="MDL Mol file">MDL Mol file</option>
-                                        <option value="Draw">Draw</option>
-                                        <option value="Saved">My Metabolites</option>
-                                    </select>
-                                    <span class="status-dot" style="display: none;"></span>
-                                    <button type="button" class="done-field-btn">Verify</button>
-                                    <input type="text" class="substrates-name" style="display: none;" name="substrates_name">
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <div class="button_plus" id="addSubstrate"></div>
-                            </div>
-                            <div class="direction-dropdown">
-                                <label class="reactionDirectionlabel" for="reactionDirection">Direction:</label>
-                                <select class="ui simple dropdown item" name="direction" id="reactionDirection">
-                                    <option value="forward">-&gt;</option>
-                                    <option value="bidirectional">&lt;=&gt;</option>
-                                </select>
-                            </div>
-                            <!-- Products input field -->
-                            <div class="field-container" id="productsDiv">
-                                <div class="header-container">
-                                    <label id="productslabel">Products:</label>
-                                    <button type="button" id="toggleApplyAllprods" title="Apply options to all products">
-                                        <img src="{% static 'reactions/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px;">
-                                    </button>
-                                </div>
-                                <div class="apply-all-options" id="applyAllOptionsProds" style="display: none;">
-                                    <select id="prodsCompsApplyAllSelect">
-                                        <option value="c">c</option>
-                                        <option value="e">e</option>
-                                        <option value="g">g</option>
-                                        <option value="m">m</option>
-                                        <option value="l">l</option>
-                                        <option value="n">n</option>
-                                        <option value="r">r</option>
-                                        <option value="x">x</option>
-                                        <option value="-">-</option>
-
-                                    </select>
-                                    <button type="button" id="applyAllProdsComps">Apply All</button>
-                                    <select id="prodsTypeApplyAllSelect">
-                                        <option value="VMH">VMH</option>
-                                        <option value="ChEBI ID">ChEBI ID</option>
-                                        <option value="ChEBI Name">ChEBI Name</option>
-                                        <option value="SwissLipids">SwissLipids</option>
-                                        <option value="PubChem ID">PubChem ID</option>
-                                        <option value="MDL Mol file">MDL Mol file</option>
-                                        <option value="Draw">Draw</option>
-                                        <option value="Saved">My Metabolites</option>
-                                    </select>
-                                    <button type="button" id="applyAllProdsType">Apply All</button>
-                                </div>
-                                <div class="inputs-header">
-                                    <label class="input-label-stich">Stoichiometry</label>
-                                    <div class="infocomp">
-                                        <span class="info-symbol" data-tooltip-content="
+                                            <p>x → Peroxisome</p>"
+												>&#9432;</span
+											>
+											<label class="input-label-comp">Compartment</label>
+										</div>
+										<label class="input-label-type">Type</label>
+										<button type="button" class="done-field-btn-all">Verify All</button>
+									</div>
+									<div class="inputs-group">
+										<button class="ui inverted red button remove-field-btn" type="button">X</button>
+										<input type="number" id="subs_sch" name="subs_sch" min="1" value="1" />
+										<input type="text" id="substrates" name="substrates" required />
+										<select id="compartment" name="subs_comps">
+											<option value="c">c</option>
+											<option value="e">e</option>
+											<option value="g">g</option>
+											<option value="m">m</option>
+											<option value="l">l</option>
+											<option value="n">n</option>
+											<option value="r">r</option>
+											<option value="x">x</option>
+											<option value="-">-</option>
+										</select>
+										<select id="substrates_type" name="substrates_type">
+											<option value="VMH">VMH</option>
+											<option value="ChEBI ID">ChEBI ID</option>
+											<option value="ChEBI Name">ChEBI Name</option>
+											<option value="SwissLipids">SwissLipids</option>
+											<option value="PubChem ID">PubChem ID</option>
+											<option value="MDL Mol file">MDL Mol file</option>
+											<option value="Draw">Draw</option>
+											<option value="Saved">My Metabolites</option>
+										</select>
+										<span class="status-dot" style="display: none"></span>
+										<button type="button" class="done-field-btn">Verify</button>
+										<input type="text" class="substrates-name" style="display: none" name="substrates_name" />
+									</div>
+								</div>
+								<div class="button-container">
+									<div class="button_plus" id="addSubstrate"></div>
+								</div>
+								<div class="direction-dropdown">
+									<label class="reactionDirectionlabel" for="reactionDirection">Direction:</label>
+									<select class="ui simple dropdown item" name="direction" id="reactionDirection">
+										<option value="forward">-&gt;</option>
+										<option value="bidirectional">&lt;=&gt;</option>
+									</select>
+								</div>
+								<!-- Products input field -->
+								<div class="field-container" id="productsDiv">
+									<div class="header-container">
+										<label id="productslabel">Products:</label>
+										<button type="button" id="toggleApplyAllprods" title="Apply options to all products">
+											<img
+												src="{% static 'reactions/apply_icon.svg' %}"
+												alt="Apply All"
+												style="width: 24px; height: 24px" />
+										</button>
+									</div>
+									<div class="apply-all-options" id="applyAllOptionsProds" style="display: none">
+										<select id="prodsCompsApplyAllSelect">
+											<option value="c">c</option>
+											<option value="e">e</option>
+											<option value="g">g</option>
+											<option value="m">m</option>
+											<option value="l">l</option>
+											<option value="n">n</option>
+											<option value="r">r</option>
+											<option value="x">x</option>
+											<option value="-">-</option>
+										</select>
+										<button type="button" id="applyAllProdsComps">Apply All</button>
+										<select id="prodsTypeApplyAllSelect">
+											<option value="VMH">VMH</option>
+											<option value="ChEBI ID">ChEBI ID</option>
+											<option value="ChEBI Name">ChEBI Name</option>
+											<option value="SwissLipids">SwissLipids</option>
+											<option value="PubChem ID">PubChem ID</option>
+											<option value="MDL Mol file">MDL Mol file</option>
+											<option value="Draw">Draw</option>
+											<option value="Saved">My Metabolites</option>
+										</select>
+										<button type="button" id="applyAllProdsType">Apply All</button>
+									</div>
+									<div class="inputs-header">
+										<label class="input-label-stich">Stoichiometry</label>
+										<div class="infocomp">
+											<span
+												class="info-symbol"
+												data-tooltip-content="
                                             <p>c → Cytosol</p>
                                             <p>e → Extracellular</p>
                                             <p>g → Golgi Apparatus</p>
@@ -240,600 +262,623 @@
                                             <p>l → Lysosome</p>
                                             <p>n → Nucleus</p>
                                             <p>r → Endoplasmatic Reticulum</p>
-                                            <p>x → Peroxisome</p>">&#9432;</span>
-                                        <label class="input-label-comp">Compartment</label>
-                                    </div>
-                                    <label class="input-label-type">Type</label>
-                                    <button type="button" class="done-field-btn-all">Verify All</button>
-                                </div> 
-                                <div class="inputs-group">
-                                    <button class="ui inverted red button remove-field-btn" type="button">X</button>
-                                    <input type="number" id="prod_sch" name="prod_sch" min="1" value="1">
-                                    <input type="text" id="products" name="products" required>
-                                    <select id="compartment" name="prod_comps">
-                                        <option value="c">c</option>
-                                        <option value="e">e</option>
-                                        <option value="g">g</option>
-                                        <option value="m">m</option>
-                                        <option value="l">l</option>
-                                        <option value="n">n</option>
-                                        <option value="r">r</option>
-                                        <option value="x">x</option>
-                                        <option value="-">-</option>
-                                    </select>
-                                    <select id="products_type" name="products_type">
-                                        <option value="VMH">VMH</option>
-                                        <option value="ChEBI ID">ChEBI ID</option>
-                                        <option value="ChEBI Name">ChEBI Name</option>
-                                        <option value="SwissLipids">SwissLipids</option>
-                                        <option value="PubChem ID">PubChem ID</option>
-                                        <option value="MDL Mol file">MDL Mol file</option>
-                                        <option value="Draw">Draw</option>
-                                        <option value="Saved">My Metabolites</option>
-                                    </select>
-                                    <span class="status-dot" style="display: none;"></span>
-                                    <button type="button" class="done-field-btn">Verify</button>
-                                    <input type="text" class="products-name" style="display: none;" name="products_name">
-                                </div>
-                            </div>
-                            <div class="button-container">
-                                <div class="button_plus" id="addProduct"></div>
-                            </div>
-                            <div class="subsystem-input">
-                                <label for="subsystemField" style="font-size: 1.2em; font-weight: bold;">Subsystem:</label>
-                                <input type="text" id="subsystemField" name="subsystem" autocomplete="off">
-                                <div id="subsystemDropdown" class="dropdown-content"></div>
-                            
-                                <div class="organ-input-wrapper">
-                                    <label for="organTags" style="font-size: 1.2em; font-weight: bold;">Organ:</label>
-                                    <div id="organTags" class="tags-input-container" contenteditable="true"></div>
-                                </div>
-                                <div id="organDropdown" class="organ-dropdown-content"></div>
-                            </div>
-                            <div id="atomChargeComparison" class="atom-charge-comparison"></div>
-                        </form>
-                    </div>
-                </div>  
-                <div id="loadingIndicator" class="loadingIndicator">
-                    <div class="content">
-                        <div class="loading-overlay">
-                            <div class="spinner"></div>
-                            <p>Creating reaction ... please wait</p>
-                        </div>
-                    </div>
-                </div>
-                <div id="savedMetabolitesModal" class="ui modal">
-                    <div class="header">
-                        <h2>Manage Saved Metabolites</h2>
-                        <div id="savedMetabolitesSearchContainer" class="search-bar" style="margin-top: 10px;">
-                            <input type="text" id="metaboliteSearchInput" placeholder="Search by name or abbreviation..." class="ui input" style="width: 100%;">
-                        </div>                        
-                    </div>
-                    <div class="scrolling content">
-                        <button id="shareSelectedBtn" class="ui button">Share Selected Metabolites</button>
+                                            <p>x → Peroxisome</p>"
+												>&#9432;</span
+											>
+											<label class="input-label-comp">Compartment</label>
+										</div>
+										<label class="input-label-type">Type</label>
+										<button type="button" class="done-field-btn-all">Verify All</button>
+									</div>
+									<div class="inputs-group">
+										<button class="ui inverted red button remove-field-btn" type="button">X</button>
+										<input type="number" id="prod_sch" name="prod_sch" min="1" value="1" />
+										<input type="text" id="products" name="products" required />
+										<select id="compartment" name="prod_comps">
+											<option value="c">c</option>
+											<option value="e">e</option>
+											<option value="g">g</option>
+											<option value="m">m</option>
+											<option value="l">l</option>
+											<option value="n">n</option>
+											<option value="r">r</option>
+											<option value="x">x</option>
+											<option value="-">-</option>
+										</select>
+										<select id="products_type" name="products_type">
+											<option value="VMH">VMH</option>
+											<option value="ChEBI ID">ChEBI ID</option>
+											<option value="ChEBI Name">ChEBI Name</option>
+											<option value="SwissLipids">SwissLipids</option>
+											<option value="PubChem ID">PubChem ID</option>
+											<option value="MDL Mol file">MDL Mol file</option>
+											<option value="Draw">Draw</option>
+											<option value="Saved">My Metabolites</option>
+										</select>
+										<span class="status-dot" style="display: none"></span>
+										<button type="button" class="done-field-btn">Verify</button>
+										<input type="text" class="products-name" style="display: none" name="products_name" />
+									</div>
+								</div>
+								<div class="button-container">
+									<div class="button_plus" id="addProduct"></div>
+								</div>
+								<div class="subsystem-input">
+									<label for="subsystemField" style="font-size: 1.2em; font-weight: bold">Subsystem:</label>
+									<input type="text" id="subsystemField" name="subsystem" autocomplete="off" />
+									<div id="subsystemDropdown" class="dropdown-content"></div>
 
-                        <!-- Existing metabolites list -->
-                        <div class="ui divided items" id="metabolitesList"></div>
+									<div class="organ-input-wrapper">
+										<label for="organTags" style="font-size: 1.2em; font-weight: bold">Organ:</label>
+										<div id="organTags" class="tags-input-container" contenteditable="true"></div>
+									</div>
+									<div id="organDropdown" class="organ-dropdown-content"></div>
+								</div>
+								<div id="atomChargeComparison" class="atom-charge-comparison"></div>
+							</form>
+						</div>
+					</div>
+					<div id="loadingIndicator" class="loadingIndicator">
+						<div class="content">
+							<div class="loading-overlay">
+								<div class="spinner"></div>
+								<p>Creating reaction ... please wait</p>
+							</div>
+						</div>
+					</div>
+					<div id="savedMetabolitesModal" class="ui modal">
+						<div class="header">
+							<h2>Manage Saved Metabolites</h2>
+							<div id="savedMetabolitesSearchContainer" class="search-bar" style="margin-top: 10px">
+								<input
+									type="text"
+									id="metaboliteSearchInput"
+									placeholder="Search by name or abbreviation..."
+									class="ui input"
+									style="width: 100%" />
+							</div>
+						</div>
+						<div class="scrolling content">
+							<button id="shareSelectedBtn" class="ui button">Share Selected Metabolites</button>
 
-                    </div>
-                </div>
-                <div id="identicalReactionModal" class="ui modal identicalReactionModal">
-                    <i class="close icon"></i>
-                    <div class="header">Identical Reaction Found</div>
-                    <div class="content">
-                        <p id="identicalReactionMessage"></p>
-                    </div>
-                    <div class="actions">
-                        <button id="createReactionButton" class="ui button">Create</button>
-                    </div>
-                </div>                
-                <div class = "ui modal getrxnfromvmhrhea">
-                    <i class="close icon"></i>
-                    <div class="header">Reaction Input</div>
-                    <div class="content">
-                        <form class="ui form" id="vmhInputContainer">
-                            <div class="field">
-                                <label for="reactionSelect">Reaction Source</label>
-                                <select id="reactionSelect" class="ui dropdown">
-                                    <option value="" selected>Choose a reaction source</option>
-                                    <option value="VMH">VMH</option>
-                                    <option value="RHEA">RHEA</option>
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label for="reactionAbbreviation">Reaction ID</label>
-                                <input type="text" id="reactionAbbreviation" placeholder="Enter reaction abbreviation" disabled>
-                            </div>
-                        </form>
-                    </div>
-                    <div class="actions">
-                        <button type="submit" id="submitButton" class="ui button" style="display:none;">Submit</button>
-                    </div>
-                </div>
-                <div class="ui modal getrxntemplate" id="getrxnfromtemplateModal">
-                    <i class="close icon"></i>
-                    <div class="header">
-                        Select Reaction Template
-                        <div class="ui buttons" style="float: right; gap: 4px;">
-                            <button class="ui button" id="manageTemplateBtn">Manage Templates</button>
-                            <button class="ui button" id="createTemplateBtn">Create New Template</button>
-                        </div>
-                      </div>
-                    <div class="content">
-                        <div class="ui form">
-                            <div class="field">
-                                <label for="reactionField" style="font-size: 1.2em; font-weight: bold;">Reaction Template:</label>
-                                <input type="text" id="reactionField" name="reactionField" autocomplete="off" placeholder="Select a template">
-                                <div id="reactionDropdown" class="dropdown-content-templates"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button class="ui button" id="applyTemplate">Apply</button>
-                    </div>
-                </div>
-                <div class="ui modal manageTemplates" id="manageTemplatesModal">
-                    <i class="close icon"></i>
-                    <div class="header">Manage Templates</div>
-                    <div class="content">
-                        <div class="ui buttons template-buttons">
-                            <!-- Button to open the Share Templates Modal -->
-                            <button class="ui button" id="shareTemplateBtn">Share Templates</button>
-                            
-                            <!-- Button for Edit Templates functionality -->
-                            <button class="ui button" id="editTemplateBtn">Edit Templates</button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Edit Templates Modal -->
-                <div class="ui modal editTemplate" id="editTemplateModal">
-                    <i class="close icon"></i>
-                    <div class="header">Edit Template</div>
-                    <div class="content">
-                        <div class="ui form">
-                            <div class="field">
-                                <label>Select a Template:</label>
-                                <div id="editTemplatesContainer" class="ui cards" style="margin-top: 10px;">
-                                    <!-- Template cards will be added here -->
-                                </div>
-                            </div>
-                            <div class="ui divider"></div>
-                            <div class="field">
-                                <label>Template Details</label>
-                                <div class="two fields">
-                                    <div class="field">
-                                        <input type="text" id="editTemplateName" placeholder="Template name">
-                                    </div>
-                                    <div class="field">
-                                        <textarea id="editTemplateDescription" placeholder="Template description" rows="2"></textarea>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <div class="ui red button" id="deleteTemplateBtn">Delete</div>
-                        <div class="ui primary button" id="submitTemplateChanges">Save Changes</div>
-                    </div>
-                </div>
-                <div class="ui modal shareTemplate" id="shareTemplateModal">
-                    <i class="close icon"></i>
-                    <div class="header">Share Templates</div>
-                    <div class="content">
-                        <div class="ui form">
-                            <div class="field">
-                                <label for="shareTemplates">Select Templates to share:</label>
-                                <!-- Custom multi-select container -->
-                                <div id="shareTemplatesContainer" class="template-selection-container">
-                                    <!-- Templates will be dynamically added here as clickable buttons -->
-                                </div>
-                            </div>
-                            <div class="field">
-                                <label for="shareWithUser">Username of the user to share with:</label>
-                                <input type="text" id="shareWithUser" placeholder="Enter username" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="actions">
-                        <button class="ui button" id="confirmShare">Share</button>
-                    </div>
-                </div>                
-                
-                <div class="content-div" name="atommapping-div" style="display: none;">
-                    <div class="div-header">Atom Mapping</div>
-                    <img src="{{ MEDIA_URL }}images/placeholder_image.png" id="atomMappingImage" class="reaction-image">
-                </div>
-                <div class="content-div" name="cheminfo-div" style="display: none;">
-                    <div class="div-header">Chemical Information</div>
-                    <div class="placeholder">
-                        <p class="balanced-status">Balanced: <span class="status-text">Checking...</span></p>
-                        <p>Molecular Formula: <span class="formula-placeholder">C<sub>x</sub>H<sub>y</sub>O<sub>z</sub></span></p>
-                        <p class="balance-info">Mass Balanced? <span>Checking...</span></p>
-                        <p class="balance-info">Charge Balanced? <span>Checking...</span></p>
-                        <div class="atoms-comparison">
-                            <table class="atom-comparison-table">
-                                <thead>
-                                    <tr>
-                                        <th>Atom</th>
-                                        <th>Substrates</th>
-                                        <th>Products</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>C</td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                    </tr>
-                                    <tr>
-                                        <td>H</td>
-                                        <td>-</td>
-                                        <td>-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <div class="charge-info">
-                                <strong>Charge Info</strong><br>
-                                Substrates: <span>-</span><br>
-                                Products: <span>-</span>
-                            </div>
-                        </div>
-                    </div>
-                
-                    <!-- Modal placed inside the Chemical Information div -->
-                    <div class="cheminfo-loader-modal" id="cheminfo-loader-modal"  style="display: none;" >
-                        <div class="cheminfo-loader-content">
-                            <div class="loader"></div>
-                            <p id="modal-message">Please wait...</p>
-                        </div>
-                    </div>
-                </div>
-                
-            
-                <div class="content-div" name="metaboliteinfo-div" id="metaboliteinfo-div" style="display: none;">
-                    <div class="div-header">Metabolite Information</div>
-            
-                    <!-- Example Metabolite Information Div -->
-                    <div class="metabolite">
-                        <div class="metabolite-header">
-                            <h3>Metabolite Name</h3> <!-- Metabolite name placeholder -->
-                        </div>
-                        <div class="message-container">
-                            <p>Please create a reaction to view metabolite information.</p>
-                        </div>
-                    </div>
-            
-                    <!-- Add more metabolite divs as needed -->
-            
-                </div>
-                 <div class="content-div" name="references-div" style="display: none;">
-                    <div class="div-header">References</div>
-                        <div class="input-container-ref">
-                            <input type="text" id="infoTextInputref" placeholder="Select PMID or DOI from dropdown">
-                        </div>
-                        <div class="dropdown-container">   
-                            <select id="identifierType">
-                                <option value=" ">-</option>  
-                                <option value="pmid">PMID</option>
-                                <option value="doi">DOI</option>
-                            </select>
-                        </div>
-                            <div class="submit-container-ref">
-                            <button id="submitAddInforef">Add Info</button>
-                            </div>
-                
-                        <!-- Right side: Table with comments and delete option -->
-                        <div class="tab-content-refs" id="refs-content"></div>
-                </div> 
-                
-                <div class="content-div" name = "extlinks-div" style="display: none;">
-                    <div class="div-header">External Links</div>
-                    <div class="input-container-ext">
-                        <input type="text" id="infoTextInputext" placeholder="Select External link type from dropdown">
-                    </div>
-                    <div class="dropdown-container">   
-                        <select id="extType">
-                            <option value=" ">-</option>  
-                            <option value="CHO Models">CHO Models</option>
-                            <option value="MetanetX">MetanetX</option>
-                            <option value="Rhea">Rhea</option>
-                            <option value="KEGG reaction">KEGG reaction</option>
-                            <option value="Wikipedia">Wikipedia</option>
-                            <option value="SEED">SEED</option>
-                            <option value="COG">COG</option>
-                            <option value="EC Number">EC Number</option>
-                            <option value="KEGG orthology">KEGG orthology</option>
-                            
-                        </select>
-                    </div>
-                        <div class="submit-container-ref">
-                        <button id="submitAddInfoext">Add Info</button>
-                        </div>
-            
-                    <!-- Right side: Table with comments and delete option -->
-                    <div class="tab-content-ext" id="ext-links-content"></div>
-                </div>
+							<!-- Existing metabolites list -->
+							<div class="ui divided items" id="metabolitesList"></div>
+						</div>
+					</div>
+					<div id="identicalReactionModal" class="ui modal identicalReactionModal">
+						<i class="close icon"></i>
+						<div class="header">Identical Reaction Found</div>
+						<div class="content">
+							<p id="identicalReactionMessage"></p>
+						</div>
+						<div class="actions">
+							<button id="createReactionButton" class="ui button">Create</button>
+						</div>
+					</div>
+					<div class="ui modal getrxnfromvmhrhea">
+						<i class="close icon"></i>
+						<div class="header">Reaction Input</div>
+						<div class="content">
+							<form class="ui form" id="vmhInputContainer">
+								<div class="field">
+									<label for="reactionSelect">Reaction Source</label>
+									<select id="reactionSelect" class="ui dropdown">
+										<option value="" selected>Choose a reaction source</option>
+										<option value="VMH">VMH</option>
+										<option value="RHEA">RHEA</option>
+									</select>
+								</div>
+								<div class="field">
+									<label for="reactionAbbreviation">Reaction ID</label>
+									<input type="text" id="reactionAbbreviation" placeholder="Enter reaction abbreviation" disabled />
+								</div>
+							</form>
+						</div>
+						<div class="actions">
+							<button type="submit" id="submitButton" class="ui button" style="display: none">Submit</button>
+						</div>
+					</div>
+					<div class="ui modal getrxntemplate" id="getrxnfromtemplateModal">
+						<i class="close icon"></i>
+						<div class="header">
+							Select Reaction Template
+							<div class="ui buttons" style="float: right; gap: 4px">
+								<button class="ui button" id="manageTemplateBtn">Manage Templates</button>
+								<button class="ui button" id="createTemplateBtn">Create New Template</button>
+							</div>
+						</div>
+						<div class="content">
+							<div class="ui form">
+								<div class="field">
+									<label for="reactionField" style="font-size: 1.2em; font-weight: bold">Reaction Template:</label>
+									<input
+										type="text"
+										id="reactionField"
+										name="reactionField"
+										autocomplete="off"
+										placeholder="Select a template" />
+									<div id="reactionDropdown" class="dropdown-content-templates"></div>
+								</div>
+							</div>
+						</div>
+						<div class="actions">
+							<button class="ui button" id="applyTemplate">Apply</button>
+						</div>
+					</div>
+					<div class="ui modal manageTemplates" id="manageTemplatesModal">
+						<i class="close icon"></i>
+						<div class="header">Manage Templates</div>
+						<div class="content">
+							<div class="ui buttons template-buttons">
+								<!-- Button to open the Share Templates Modal -->
+								<button class="ui button" id="shareTemplateBtn">Share Templates</button>
 
-                <div class="content-div" name="comments-div" style="display: none;">
-                    <div class="div-header">Comments</div>
-                    
-                    <!-- Input field and button in one row -->
-                    <div class="input-container">
-                        <input type="text" id="infoTextInputcom" placeholder="Enter comment">
-                    </div>
-                    <div class="submit-container">
-                        <button id="submitAddInfocom">Add Info</button>
-                    </div>
-                
-                    <!-- Output section below the input field and button -->
+								<!-- Button for Edit Templates functionality -->
+								<button class="ui button" id="editTemplateBtn">Edit Templates</button>
+							</div>
+						</div>
+					</div>
+					<!-- Edit Templates Modal -->
+					<div class="ui modal editTemplate" id="editTemplateModal">
+						<i class="close icon"></i>
+						<div class="header">Edit Template</div>
+						<div class="content">
+							<div class="ui form">
+								<div class="field">
+									<label>Select a Template:</label>
+									<div id="editTemplatesContainer" class="ui cards" style="margin-top: 10px">
+										<!-- Template cards will be added here -->
+									</div>
+								</div>
+								<div class="ui divider"></div>
+								<div class="field">
+									<label>Template Details</label>
+									<div class="two fields">
+										<div class="field">
+											<input type="text" id="editTemplateName" placeholder="Template name" />
+										</div>
+										<div class="field">
+											<textarea id="editTemplateDescription" placeholder="Template description" rows="2"></textarea>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="actions">
+							<div class="ui red button" id="deleteTemplateBtn">Delete</div>
+							<div class="ui primary button" id="submitTemplateChanges">Save Changes</div>
+						</div>
+					</div>
+					<div class="ui modal shareTemplate" id="shareTemplateModal">
+						<i class="close icon"></i>
+						<div class="header">Share Templates</div>
+						<div class="content">
+							<div class="ui form">
+								<div class="field">
+									<label for="shareTemplates">Select Templates to share:</label>
+									<!-- Custom multi-select container -->
+									<div id="shareTemplatesContainer" class="template-selection-container">
+										<!-- Templates will be dynamically added here as clickable buttons -->
+									</div>
+								</div>
+								<div class="field">
+									<label for="shareWithUser">Username of the user to share with:</label>
+									<input type="text" id="shareWithUser" placeholder="Enter username" />
+								</div>
+							</div>
+						</div>
+						<div class="actions">
+							<button class="ui button" id="confirmShare">Share</button>
+						</div>
+					</div>
 
-                        <div class="tab-content" id="comments-content"></div> 
-                </div>
+					<div class="content-div" name="atommapping-div" style="display: none">
+						<div class="div-header">Atom Mapping</div>
+						<img src="{{ MEDIA_URL }}images/placeholder_image.png" id="atomMappingImage" class="reaction-image" />
+					</div>
+					<div class="content-div" name="cheminfo-div" style="display: none">
+						<div class="div-header">Chemical Information</div>
+						<div class="placeholder">
+							<p class="balanced-status">Balanced: <span class="status-text">Checking...</span></p>
+							<p>
+								Molecular Formula:
+								<span class="formula-placeholder">C<sub>x</sub>H<sub>y</sub>O<sub>z</sub></span>
+							</p>
+							<p class="balance-info">Mass Balanced? <span>Checking...</span></p>
+							<p class="balance-info">Charge Balanced? <span>Checking...</span></p>
+							<div class="atoms-comparison">
+								<table class="atom-comparison-table">
+									<thead>
+										<tr>
+											<th>Atom</th>
+											<th>Substrates</th>
+											<th>Products</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td>C</td>
+											<td>-</td>
+											<td>-</td>
+										</tr>
+										<tr>
+											<td>H</td>
+											<td>-</td>
+											<td>-</td>
+										</tr>
+									</tbody>
+								</table>
+								<div class="charge-info">
+									<strong>Charge Info</strong><br />
+									Substrates: <span>-</span><br />
+									Products: <span>-</span>
+								</div>
+							</div>
+						</div>
 
+						<!-- Modal placed inside the Chemical Information div -->
+						<div class="cheminfo-loader-modal" id="cheminfo-loader-modal" style="display: none">
+							<div class="cheminfo-loader-content">
+								<div class="loader"></div>
+								<p id="modal-message">Please wait...</p>
+							</div>
+						</div>
+					</div>
 
+					<div class="content-div" name="metaboliteinfo-div" id="metaboliteinfo-div" style="display: none">
+						<div class="div-header">Metabolite Information</div>
 
-                <div class="content-div" name="gene_info-div" style="display: none;">
-                    <div class="div-header">Gene Info</div>
-                    <!-- Inserted function structure -->
-                    <div id="geneInfoWrapper">
-                        {% comment %} <input type="text" id="infoTextInputgene" placeholder="Enter gene info..." /> {% endcomment %}
-                    </div>
-                    <div class="submit-container-gene">
-                        <button id="submitAddInfogene">Add Info</button> </div>
-                    <div class="tab-content-gene" id="gene-info-content">
-                </div>
-                
-            
-            </div>
-                
-            <div id="savedReactionsModal" class="saved-reactions-modal">
+						<!-- Example Metabolite Information Div -->
+						<div class="metabolite">
+							<div class="metabolite-header">
+								<h3>Metabolite Name</h3>
+								<!-- Metabolite name placeholder -->
+							</div>
+							<div class="message-container">
+								<p>Please create a reaction to view metabolite information.</p>
+							</div>
+						</div>
 
-                <!-- Modal content -->
-                <div class="saved-reactions-modal-content">
-                  <span class="close-saved-reactions">&times;</span>
-                  <div id="savedReactionsModalBody">
-                    <!-- Content will be loaded here -->
-                  </div>
-                </div>
-              
-              </div>
-                
-            <!-- Error modal -->               
+						<!-- Add more metabolite divs as needed -->
+					</div>
+					<div class="content-div" name="references-div" style="display: none">
+						<div class="div-header">References</div>
+						<div class="input-container-ref">
+							<input type="text" id="infoTextInputref" placeholder="Select PMID or DOI from dropdown" />
+						</div>
+						<div class="dropdown-container">
+							<select id="identifierType">
+								<option value=" ">-</option>
+								<option value="pmid">PMID</option>
+								<option value="doi">DOI</option>
+							</select>
+						</div>
+						<div class="submit-container-ref">
+							<button id="submitAddInforef">Add Info</button>
+						</div>
 
-            <div id="error-modal" class="modal">
-                <div class="modal-content">
-                    <p id="error-message"></p>
-                </div>
-            </div>
-            <div class="ui modal error-modal" id="error-modal">
-                <div class="header">Error</div>
-                <div class="content">
-                    <div id="error-message"></div>
-                </div>
-                <div class="actions">
-                    <button class="ui button" id="close-button">Close</button>
-                </div>
-            </div>
-            
-        </div>
+						<!-- Right side: Table with comments and delete option -->
+						<div class="tab-content-refs" id="refs-content"></div>
+					</div>
 
-    </div>
-    <!-- Login Modal -->
-    <div class="ui modal" id="loginModal">
-        <i class="close icon"></i>
-        <div class="header">Login</div>
-        <div class="content">
-            <form id="loginForm" class="ui form">
-                <div class="field">
-                    <label for="username">Username</label>
-                    <input type="text" id="username" placeholder="Username" required autocomplete="username">
-                </div>
-                <div class="field">
-                    <label for="password">Password</label>
-                    <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-                </div>
-                <button class="ui button primary" type="submit">Log In</button>
-            </form>
-            <p>Don't have an account? <a href="#" id="register-link">Register</a></p>
-        </div>
-    </div>
-    
-    <div id="chemdoodleModal" class="modal" style="display: none;">
-        <div class="modal-content-chemdoodle">
-            <div id='chemdoodle-container'>
-                <iframe src="{% url 'chemdoodle_sketcher' %}" width="500" height="575" id="chemdoodleIframe"></iframe>
-                <div id="chemdoodle-buttons">
-                    <button id="saveDrawingButton" type="button" onclick="saveDrawing()">Save Drawing</button> 
-                    <button id="cancelDrawingButton" type="button" onclick="hideChemdoodlestatus(false)">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+					<div class="content-div" name="extlinks-div" style="display: none">
+						<div class="div-header">External Links</div>
+						<div class="input-container-ext">
+							<input type="text" id="infoTextInputext" placeholder="Select External link type from dropdown" />
+						</div>
+						<div class="dropdown-container">
+							<select id="extType">
+								<option value=" ">-</option>
+								<option value="CHO Models">CHO Models</option>
+								<option value="MetanetX">MetanetX</option>
+								<option value="Rhea">Rhea</option>
+								<option value="KEGG reaction">KEGG reaction</option>
+								<option value="Wikipedia">Wikipedia</option>
+								<option value="SEED">SEED</option>
+								<option value="COG">COG</option>
+								<option value="EC Number">EC Number</option>
+								<option value="KEGG orthology">KEGG orthology</option>
+							</select>
+						</div>
+						<div class="submit-container-ref">
+							<button id="submitAddInfoext">Add Info</button>
+						</div>
 
-    <div class="modal-background" id="modalBackground"></div>
-    <div id="saveReactionModal" class="ui modal savereaction">
-        <div class="header">Save Reaction</div>
-        <div class="content">
-            <form class="ui form" id="saveReactionForm">
-                <div class="field">
-                    <input type="text" id="reactionNameInput" placeholder="Name the reaction">
-                </div>
-                <div class="field">
-                    <textarea id="reactionDescriptionInput" placeholder="Enter a description (optional)"></textarea>
-                </div>
-                <!-- Dropdown for selecting an existing flag -->
-                <div class="field">
-                    <label for="flagSelectCustom">Choose a flag (optional):</label>
-                    <div id="customDropdown" style="position: relative; display: inline-block;">
-                        <div id="selectedOption" style="padding: 10px; border: 1px solid #ccc; cursor: pointer;">
-                            Choose a flag
-                        </div>
-                        <div id="dropdownMenu" style="display: none; position: absolute; background-color: #fff; border: 1px solid #ccc; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1;">
-                        </div>
-                    </div>
-                    <button type="button" id="createFlagButtonCustom" class="ui button" style="margin-left: 10px;">+</button>
-                </div>
-                <!-- Confidence Score Input -->
-                <div class="field">
-                    <label for="confidenceScoreInput">Confidence Score (1-4) (Optional):</label>
-                    <input type="number" id="confidenceScoreInput" name="confidence_score" min="1" max="4" placeholder="Enter a score (1-4) or leave blank">
-                </div>
-                <div class="field">
-                    <p>Your reaction is about to be saved locally. Do you want to proceed?</p>
-                </div>
-            </form>
-        </div>
-        <div class="actions">
-            <div class="ui cancel button" id="closeSaveReactionModal">Cancel</div>
-            <div class="ui approve button" id="submitSaveReaction">Save</div>
-        </div>
-    </div>    
-    <div id="createTemplateModal" class="ui modal">
-        <div class="header">Create New Template</div>
-        <div class="content">
-            <form class="ui form" id="createTemplateForm">
-                <div class="field">
-                    <input type="text" id="templateNameInput" placeholder="Template name (required)">
-                </div>
-                <div class="field">
-                    <textarea id="templateDescriptionInput" placeholder="Template description (optional)"></textarea>
-                </div>
-                <div class="field">
-                    <p>Your template will be available for future reactions.</p>
-                </div>
-            </form>
-        </div>
-        <div class="actions">
-            <div class="ui cancel button">Cancel</div>
-            <div class="ui approve primary button" id="submitCreateTemplate">Create</div>
-        </div>
-    </div>
-    <div id="modalOverlayCustom"></div>
-    <!-- Create Flag Modal -->
-    <div id="createFlagModalCustom" class="ui modal createflag">
-        <div class="header">Create New Flag</div>
-        <div class="content">
-            <form class="ui form" id="createFlagFormCustom">
-                <div class="field-group">
-                    <input type="text" id="newFlagNameCustom" placeholder="Flag Name" required>
-                    <input type="color" id="newFlagColorCustom" value="#ff0000" required>
-                </div>
-            </form> 
-        </div>
-        <div class="actions" id="createFlagActions">
-            <div class="ui cancel button" id="closeCreateFlagModalCustom">Cancel</div>
-            <div class="ui approve button" id="submitCreateFlagCustom">Create</div>
-        </div>
-    </div>
-    
-    <div id="taskModalOverlay" class="modal-overlay" style="display: none;"></div>
-    <div id="taskModal" class="modal-container"style="display: none;">
-        <div class="modal-content-task">
-          <span class="close-task">&times;</span>
-          <p>Do you want to go back to the reaction you last saved?</p>
-          <button id="goBackTaskBtn" class="ui blue button task-btn">Yes, take me back</button>
-          <button id="cancelTaskBtn" class="ui blue button task-btn">No</button>
-        </div>
-      </div>
-      
+						<!-- Right side: Table with comments and delete option -->
+						<div class="tab-content-ext" id="ext-links-content"></div>
+					</div>
 
-    <!-- Register Modal -->
-    <div class="ui modal" id="registerModal">
-        <i class="close icon"></i>
-        <div class="header">Register</div>
-        <div class="content">
-            <form id="registerForm" class="ui form">
-                <div class="field">
-                    <label for="username-reg">Username</label>
-                    <input type="text" id="username-reg" placeholder="Username" required autocomplete="username">
-                </div>
-                <div class="field">
-                    <label for="fullname-reg">Full Name</label>
-                    <input type="text" id="fullname-reg" placeholder="Full Name" required autocomplete="name">
-                </div>
-                <div class="field">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Email" required autocomplete="email">
-                </div>
-                <div class="field">
-                    <label for="password-reg">Password</label>
-                    <input type="password" id="password-reg" placeholder="Password" required autocomplete="new-password">
-                </div>
-                <div class="field">
-                    <label for="orchidid">ORCID ID</label>
-                    <input type="text" id="orchidid" placeholder="ORCID ID">
-                </div>
-                <button class="ui button primary" type="submit">Register</button>
-            </form>
-        </div>
-    </div>
-    </div>
-    <div class="funding-container">
-        <img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo">
-        <div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).</div>
-        <img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo">
-    </div>
+					<div class="content-div" name="comments-div" style="display: none">
+						<div class="div-header">Comments</div>
 
+						<!-- Input field and button in one row -->
+						<div class="input-container">
+							<input type="text" id="infoTextInputcom" placeholder="Enter comment" />
+						</div>
+						<div class="submit-container">
+							<button id="submitAddInfocom">Add Info</button>
+						</div>
 
-    <script>
-        var getFromVmhUrl = "{% url 'get_from_vmh' %}";
-        var inputReactionUrl = "{% url 'input_reaction' %}";
-        var csrfToken = "{{ csrf_token }}";
-        var getReactionDetails = "{% url 'get_reaction_details' %}";
-        var addInfo2Reaction = "{% url 'add_info_to_reaction' %}";
-        var deleteInfo = "{% url 'delete_reaction_info' %}";
-        var saveReaction = '/save_reaction/';
-        var getReaction = 'get_reaction/';
-        var getUser = "{% url 'get_user' %}";
-        var regUser = "{% url 'register_user' %}";
-        var getVMHsubsystems = "{% url 'get_subsystems' %}";
-        var setSessionUser = "{% url 'set_session_user' %}";
-        var verifyMetabolite = "{% url 'verify_metabolite' %}";
-        var getGeneInfo = "{% url 'get_gene_info' %}";
-        var updateSubsystemsUrl = "{% url 'update_subsystems' %}";
-        var getPubMedInfo = "{% url 'get_pubmed_info' '__PMID__' %}".replace('__PMID__', '%s');
-        var getDOIInfo = "{% url 'get_doi_info' '__DOI__' %}".replace('__DOI__', '%s');
-        var aboutUrl = "{% url 'about' %}";
-        var getAIresponse = "{% url 'get_ai_response' %}";
-        var alreadySavedURL = "{% url 'already_saved' %}";
-        var reactionNameExistsURL = "{% url 'reaction_name_exists' %}";
-        var identicalReactionUrl = "{% url 'identical_reaction' %}";
-        var subsystemList = [];
-    </script>
-    <script type="text/javascript"> var MEDIA_URL = '{{ MEDIA_URL }}';</script>
-    <script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
-    <script src="{% static 'reactions/js/login_modal.js' %}"></script>
-    <script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
-    <script src="{% static 'reactions/js/flag_modals.js' %}"></script>
-    <script src="{% static 'reactions/js/Flag.js' %}"></script>
-    <script src="{% static 'reactions/js/register_modal.js' %}"></script>
-    <script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
-    <script src="{% static 'reactions/js/reactioninfoformhandling.js' %}"></script>
-    <script src="{% static 'reactions/js/reactioninfoinputmanagement.js' %}"></script>
-    <script src="{% static 'reactions/js/status.js' %}"></script>
-    <script src="{% static 'reactions/js/geneinfoinput.js' %}"></script>
-    <script src="{% static 'reactions/js/savereaction.js' %}"></script>
-    <script src="{% static 'reactions/js/displayReactionmessage.js' %}"></script>
-    <script src="{% static 'reactions/js/displayAtomMapping.js' %}"></script>
-    <script src="{% static 'reactions/js/displayChemInfoDiv.js' %}"></script>
-    <script src="{% static 'reactions/js/OrganDropdown.js' %}"></script>
-    <script src="{% static 'reactions/js/Displayalldivs.js' %}"></script>
-    <script src="{% static 'reactions/js/displayMetaboliteInfo.js' %}"></script>
-    <script src="{% static 'reactions/js/reactantsformHandling.js' %}"></script>
-    <script src="{% static 'reactions/js/getrxnfromtemplate.js' %}"></script>
-    <script src="{% static 'reactions/js/createTemplate.js' %}"></script>
-    <script src="{% static 'reactions/js/shareEditTemplate.js' %}"></script>
-    <script src="{% static 'reactions/js/ReactantsinputFieldManagement.js' %}"></script>
-    <script src="{% static 'reactions/js/reactantsdisplay.js' %}"></script>  
-    <script src="{% static 'reactions/js/chemdoodleIntegration.js' %}"></script>
-    <script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
-    <script src="{% static 'reactions/js/Creatediv.js' %}"></script> 
-    <script src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
-    <script src="{% static 'reactions/js/savedMetabolites.js' %}"></script>
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
-    <script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-    <script src="{% static 'reactions/lib/blowup.js' %}"></script>  
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-</body>
+						<!-- Output section below the input field and button -->
+
+						<div class="tab-content" id="comments-content"></div>
+					</div>
+
+					<div class="content-div" name="gene_info-div" style="display: none">
+						<div class="div-header">Gene Info</div>
+						<!-- Inserted function structure -->
+						<div id="geneInfoWrapper">
+							{% comment %}
+							<input type="text" id="infoTextInputgene" placeholder="Enter gene info..." />
+							{% endcomment %}
+						</div>
+						<div class="submit-container-gene">
+							<button id="submitAddInfogene">Add Info</button>
+						</div>
+						<div class="tab-content-gene" id="gene-info-content"></div>
+					</div>
+
+					<div id="savedReactionsModal" class="saved-reactions-modal">
+						<!-- Modal content -->
+						<div class="saved-reactions-modal-content">
+							<span class="close-saved-reactions">&times;</span>
+							<div id="savedReactionsModalBody">
+								<!-- Content will be loaded here -->
+							</div>
+						</div>
+					</div>
+
+					<!-- Error modal -->
+
+					<div id="error-modal" class="modal">
+						<div class="modal-content">
+							<p id="error-message"></p>
+						</div>
+					</div>
+					<div class="ui modal error-modal" id="error-modal">
+						<div class="header">Error</div>
+						<div class="content">
+							<div id="error-message"></div>
+						</div>
+						<div class="actions">
+							<button class="ui button" id="close-button">Close</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- Login Modal -->
+			<div class="ui modal" id="loginModal">
+				<i class="close icon"></i>
+				<div class="header">Login</div>
+				<div class="content">
+					<form id="loginForm" class="ui form">
+						<div class="field">
+							<label for="username">Username</label>
+							<input type="text" id="username" placeholder="Username" required autocomplete="username" />
+						</div>
+						<div class="field">
+							<label for="password">Password</label>
+							<input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
+						</div>
+						<button class="ui button primary" type="submit">Log In</button>
+					</form>
+					<p>Don't have an account? <a href="#" id="register-link">Register</a></p>
+				</div>
+			</div>
+
+			<div id="chemdoodleModal" class="modal" style="display: none">
+				<div class="modal-content-chemdoodle">
+					<div id="chemdoodle-container">
+						<iframe src="{% url 'chemdoodle_sketcher' %}" width="500" height="575" id="chemdoodleIframe"></iframe>
+						<div id="chemdoodle-buttons">
+							<button id="saveDrawingButton" type="button" onclick="saveDrawing()">Save Drawing</button>
+							<button id="cancelDrawingButton" type="button" onclick="hideChemdoodlestatus(false)">Cancel</button>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="modal-background" id="modalBackground"></div>
+			<div id="saveReactionModal" class="ui modal savereaction">
+				<div class="header">Save Reaction</div>
+				<div class="content">
+					<form class="ui form" id="saveReactionForm">
+						<div class="field">
+							<input type="text" id="reactionNameInput" placeholder="Name the reaction" />
+						</div>
+						<div class="field">
+							<textarea id="reactionDescriptionInput" placeholder="Enter a description (optional)"></textarea>
+						</div>
+						<!-- Dropdown for selecting an existing flag -->
+						<div class="field">
+							<label for="flagSelectCustom">Choose a flag (optional):</label>
+							<div id="customDropdown" style="position: relative; display: inline-block">
+								<div id="selectedOption" style="padding: 10px; border: 1px solid #ccc; cursor: pointer">
+									Choose a flag
+								</div>
+								<div
+									id="dropdownMenu"
+									style="
+										display: none;
+										position: absolute;
+										background-color: #fff;
+										border: 1px solid #ccc;
+										min-width: 160px;
+										box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+										z-index: 1;
+									"></div>
+							</div>
+							<button type="button" id="createFlagButtonCustom" class="ui button" style="margin-left: 10px">+</button>
+						</div>
+						<!-- Confidence Score Input -->
+						<div class="field">
+							<label for="confidenceScoreInput">Confidence Score (1-4) (Optional):</label>
+							<input
+								type="number"
+								id="confidenceScoreInput"
+								name="confidence_score"
+								min="1"
+								max="4"
+								placeholder="Enter a score (1-4) or leave blank" />
+						</div>
+						<div class="field">
+							<p>Your reaction is about to be saved locally. Do you want to proceed?</p>
+						</div>
+					</form>
+				</div>
+				<div class="actions">
+					<div class="ui cancel button" id="closeSaveReactionModal">Cancel</div>
+					<div class="ui approve button" id="submitSaveReaction">Save</div>
+				</div>
+			</div>
+			<div id="createTemplateModal" class="ui modal">
+				<div class="header">Create New Template</div>
+				<div class="content">
+					<form class="ui form" id="createTemplateForm">
+						<div class="field">
+							<input type="text" id="templateNameInput" placeholder="Template name (required)" />
+						</div>
+						<div class="field">
+							<textarea id="templateDescriptionInput" placeholder="Template description (optional)"></textarea>
+						</div>
+						<div class="field">
+							<p>Your template will be available for future reactions.</p>
+						</div>
+					</form>
+				</div>
+				<div class="actions">
+					<div class="ui cancel button">Cancel</div>
+					<div class="ui approve primary button" id="submitCreateTemplate">Create</div>
+				</div>
+			</div>
+			<div id="modalOverlayCustom"></div>
+			<!-- Create Flag Modal -->
+			<div id="createFlagModalCustom" class="ui modal createflag">
+				<div class="header">Create New Flag</div>
+				<div class="content">
+					<form class="ui form" id="createFlagFormCustom">
+						<div class="field-group">
+							<input type="text" id="newFlagNameCustom" placeholder="Flag Name" required />
+							<input type="color" id="newFlagColorCustom" value="#ff0000" required />
+						</div>
+					</form>
+				</div>
+				<div class="actions" id="createFlagActions">
+					<div class="ui cancel button" id="closeCreateFlagModalCustom">Cancel</div>
+					<div class="ui approve button" id="submitCreateFlagCustom">Create</div>
+				</div>
+			</div>
+
+			<div id="taskModalOverlay" class="modal-overlay" style="display: none"></div>
+			<div id="taskModal" class="modal-container" style="display: none">
+				<div class="modal-content-task">
+					<span class="close-task">&times;</span>
+					<p>Do you want to go back to the reaction you last saved?</p>
+					<button id="goBackTaskBtn" class="ui blue button task-btn">Yes, take me back</button>
+					<button id="cancelTaskBtn" class="ui blue button task-btn">No</button>
+				</div>
+			</div>
+
+			<!-- Register Modal -->
+			<div class="ui modal" id="registerModal">
+				<i class="close icon"></i>
+				<div class="header">Register</div>
+				<div class="content">
+					<form id="registerForm" class="ui form">
+						<div class="field">
+							<label for="username-reg">Username</label>
+							<input type="text" id="username-reg" placeholder="Username" required autocomplete="username" />
+						</div>
+						<div class="field">
+							<label for="fullname-reg">Full Name</label>
+							<input type="text" id="fullname-reg" placeholder="Full Name" required autocomplete="name" />
+						</div>
+						<div class="field">
+							<label for="email">Email</label>
+							<input type="email" id="email" placeholder="Email" required autocomplete="email" />
+						</div>
+						<div class="field">
+							<label for="password-reg">Password</label>
+							<input type="password" id="password-reg" placeholder="Password" required autocomplete="new-password" />
+						</div>
+						<div class="field">
+							<label for="orchidid">ORCID ID</label>
+							<input type="text" id="orchidid" placeholder="ORCID ID" />
+						</div>
+						<button class="ui button primary" type="submit">Register</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div class="funding-container">
+			<img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo" />
+			<div class="logo-text">
+				Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).
+			</div>
+			<img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo" />
+		</div>
+
+		<script>
+			var getFromVmhUrl = "{% url 'get_from_vmh' %}";
+			var inputReactionUrl = "{% url 'input_reaction' %}";
+			var csrfToken = '{{ csrf_token }}';
+			var getReactionDetails = "{% url 'get_reaction_details' %}";
+			var addInfo2Reaction = "{% url 'add_info_to_reaction' %}";
+			var deleteInfo = "{% url 'delete_reaction_info' %}";
+			var saveReaction = '/save_reaction/';
+			var getReaction = 'get_reaction/';
+			var getUser = "{% url 'get_user' %}";
+			var regUser = "{% url 'register_user' %}";
+			var getVMHsubsystems = "{% url 'get_subsystems' %}";
+			var setSessionUser = "{% url 'set_session_user' %}";
+			var verifyMetabolite = "{% url 'verify_metabolite' %}";
+			var getGeneInfo = "{% url 'get_gene_info' %}";
+			var updateSubsystemsUrl = "{% url 'update_subsystems' %}";
+			var getPubMedInfo = "{% url 'get_pubmed_info' '__PMID__' %}".replace('__PMID__', '%s');
+			var getDOIInfo = "{% url 'get_doi_info' '__DOI__' %}".replace('__DOI__', '%s');
+			var aboutUrl = "{% url 'about' %}";
+			var getAIresponse = "{% url 'get_ai_response' %}";
+			var alreadySavedURL = "{% url 'already_saved' %}";
+			var reactionNameExistsURL = "{% url 'reaction_name_exists' %}";
+			var identicalReactionUrl = "{% url 'identical_reaction' %}";
+			var subsystemList = [];
+		</script>
+		<script type="text/javascript">
+			var MEDIA_URL = '{{ MEDIA_URL }}';
+		</script>
+		<script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
+		<script src="{% static 'reactions/js/login_modal.js' %}"></script>
+		<script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
+		<script src="{% static 'reactions/js/flag_modals.js' %}"></script>
+		<script src="{% static 'reactions/js/Flag.js' %}"></script>
+		<script src="{% static 'reactions/js/register_modal.js' %}"></script>
+		<script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
+		<script src="{% static 'reactions/js/reactioninfoformhandling.js' %}"></script>
+		<script src="{% static 'reactions/js/reactioninfoinputmanagement.js' %}"></script>
+		<script src="{% static 'reactions/js/status.js' %}"></script>
+		<script src="{% static 'reactions/js/geneinfoinput.js' %}"></script>
+		<script src="{% static 'reactions/js/savereaction.js' %}"></script>
+		<script src="{% static 'reactions/js/displayReactionmessage.js' %}"></script>
+		<script src="{% static 'reactions/js/displayAtomMapping.js' %}"></script>
+		<script src="{% static 'reactions/js/displayChemInfoDiv.js' %}"></script>
+		<script src="{% static 'reactions/js/OrganDropdown.js' %}"></script>
+		<script src="{% static 'reactions/js/Displayalldivs.js' %}"></script>
+		<script src="{% static 'reactions/js/displayMetaboliteInfo.js' %}"></script>
+		<script src="{% static 'reactions/js/reactantsformHandling.js' %}"></script>
+		<script src="{% static 'reactions/js/getrxnfromtemplate.js' %}"></script>
+		<script src="{% static 'reactions/js/createTemplate.js' %}"></script>
+		<script src="{% static 'reactions/js/shareEditTemplate.js' %}"></script>
+		<script src="{% static 'reactions/js/ReactantsinputFieldManagement.js' %}"></script>
+		<script src="{% static 'reactions/js/reactantsdisplay.js' %}"></script>
+		<script src="{% static 'reactions/js/chemdoodleIntegration.js' %}"></script>
+		<script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
+		<script src="{% static 'reactions/js/Creatediv.js' %}"></script>
+		<script src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
+		<script src="{% static 'reactions/js/savedMetabolites.js' %}"></script>
+		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css" />
+		<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="{% static 'reactions/lib/blowup.js' %}"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+	</body>
 </html>

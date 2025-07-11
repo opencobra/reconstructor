@@ -978,6 +978,7 @@ def saved_reactions(request, modal=False):
             # Get associated flags and their colors
             flags = reaction.flags.all()
             flag_details = [{"name": flag.name_flag,
+                             "id": flag.pk,
                              "color": flag.color} for flag in flags]
 
             combined_reactions_details.append({

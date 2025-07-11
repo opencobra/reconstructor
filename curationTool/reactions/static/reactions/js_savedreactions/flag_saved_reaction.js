@@ -33,19 +33,29 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     document.getElementById('AddFlagtosavedreaction').addEventListener('click', function() {
-        const selectedReactionIds = getSelectedReactionIds();  // Implement this function to retrieve selected reactions
+        const selectedReactionIds = Array.from(document.querySelectorAll('.reaction-checkbox:checked'))
+    .map(cb => cb.dataset.reactionId);  // Implement this function to retrieve selected reactions
         const selectedFlagElement = document.querySelector('.dropdown-trigger');
         var selectedFlagName = selectedFlagElement.textContent.trim();  
         const flagIcon = selectedFlagElement.querySelector('i');
-        var selectedFlagColor = rgbToHex(flagIcon.style.color);
+        let selectedFlagColor = null;
+
+        if (flagIcon && flagIcon.style && flagIcon.style.color) {
+            selectedFlagColor = rgbToHex(flagIcon.style.color);
+        }
+
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').style.display = "block";
+        }
 
         if (!selectedReactionIds.length) {
-            console.error('No reactions selected');
+            showAlert('Please select at least one reaction.');
             return;
         }
 
         if (selectedFlagName === 'None' || !selectedFlagColor) {
-            console.error('No flag selected or flag color missing');
+            showAlert('Please choose a valid flag before applying.');
             return;
         }
 
@@ -70,11 +80,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log('Flag added to selected reactions successfully');
                 location.reload();
             } else {
-                console.error(data.message);
+                alert(data.message || 'An error occurred while saving flags.');
             }
         })
-        .catch(error => console.error('Error:', error));
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Something went wrong. Please try again later.');
+        });
     });
+
+    document.querySelector('.close-alert-btn').addEventListener('click', function() {
+        document.getElementById('alertModal').style.display = "none";
+    });
+
 
     function getSelectedReactionIds() {
         let selected = [];

@@ -84,6 +84,45 @@ def add_flag(request):
                                 'message': 'Flag name and color are required'})
     return JsonResponse(
         {'status': 'error', 'message': 'Invalid request method'})
+    
+
+@csrf_exempt
+def remove_flag(request):
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error',
+                             'message': 'Invalid request'}, status=405)
+
+    try:
+        data         = json.loads(request.body)
+        reaction_id  = int(data['reaction_id'])
+        flag_id      = int(data['flag_id'])          # sent by JS
+        user_id      = int(data['user_id'])          # still useful for auth
+
+        # 1. make sure the reaction is one the user owns / saved
+        user = User.objects.get(pk=user_id)
+        reaction = user.saved_reactions.get(pk=reaction_id)  # ← key line
+        #   (Use created_by_users.get(pk=…) if that is your ownership rule)
+
+        # 2. fetch the flag regardless of who created it
+        flag = Flag.objects.get(pk=flag_id)
+
+        # 3. detach the flag from *this* reaction
+        reaction.flags.remove(flag)
+
+        return JsonResponse({'status': 'success'})
+
+    except (User.DoesNotExist, Reaction.DoesNotExist):
+        return JsonResponse({'status': 'error',
+                             'message': 'Reaction not found for this user'},
+                            status=404)
+
+    except Flag.DoesNotExist:
+        return JsonResponse({'status': 'error',
+                             'message': 'Flag not found'}, status=404)
+
+    except Exception as e:
+        return JsonResponse({'status': 'error',
+                             'message': str(e)}, status=400)
 
 
 @csrf_exempt
