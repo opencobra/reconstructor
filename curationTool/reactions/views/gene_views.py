@@ -22,6 +22,8 @@ from django.views.decorators.csrf import csrf_exempt
 from reactions.organ_data import ORGAN_MAPPING, location_mapping
 from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular_locations
 
+from django.conf import settings
+
 def get_gene_info(request):
     """
     Retrieve gene information based on the user's input.
@@ -65,7 +67,7 @@ def get_gene_info(request):
                         {'error': False, 'symbol': gene_data["name"]})
 
         # If not found in Entrez, check VMH
-        vmh_base_url = 'https://www.vmh.life/'
+        vmh_base_url = settings.BASE_URL
         vmh_endpoint = f"{vmh_base_url}_api/genes/?gene_number={gene_input}"
         vmh_response = requests.get(vmh_endpoint, verify=False,timeout=10)
 

@@ -13,6 +13,8 @@ from reactions_project.settings import MEDIA_ROOT, MEDIA_URL
 from zeep import Client
 from reactions.models import SavedMetabolite
 
+from django.conf import settings
+
 
 def smiles_with_explicit_hydrogens(smiles):
     """
@@ -50,7 +52,7 @@ def vmh_to_smiles(abbreviation):
     Output:
     - (tuple): A tuple containing the SMILES string and an error message (if any).
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.BASE_URL
     encoded_abbr = quote(abbreviation)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
     response = requests.get(endpoint, verify=False)

@@ -23,6 +23,8 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from django.conf import settings
+
 from reactions.models import (
     User,
     Reaction,
@@ -114,7 +116,7 @@ def get_vmh_subsystems():
         list:
             A list of subsystem names from VMH.
     """
-    base_url = 'https://www.vmh.life/'
+    base_url = settings.BASE_URL
     endpoint = f"{base_url}_api/subsystems/"
     subsystems = []
 

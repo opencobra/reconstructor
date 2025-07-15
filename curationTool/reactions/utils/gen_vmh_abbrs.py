@@ -3,9 +3,10 @@ import requests
 import json
 from reactions.utils.MatlabSessionManager import MatlabSessionManager
 
+from django.conf import settings
 
 def check_reaction_abbr_exists(abbr):
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.BASE_URL
     endpoint = f"{BASE_URL}_api/reactions/?abbreviation={abbr}"
     # Make the GET request
     response = requests.get(endpoint, verify=False)
@@ -16,7 +17,7 @@ def check_reaction_abbr_exists(abbr):
 
 
 def check_met_abbr_exists(abbr):
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.BASE_URL
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={abbr}"
     # Make the GET request
     response = requests.get(endpoint, verify=False)
