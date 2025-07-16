@@ -412,6 +412,33 @@ button:focus {
 	transform: rotate(-180deg); /* Flip the icon when the section is collapsed */
 }
 
+.reaction-field {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.reaction-header input,
+.reaction-details input,
+.reaction-header select {
+	padding: 4px 8px;
+	min-width: 150px;
+}
+
+.cs-info-button {
+	background-color: #2979ff;
+	color: white;
+	border: none;
+	border-radius: 50%;
+	width: 24px;
+	height: 24px;
+	font-size: 14px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
 .reaction-counter {
 	font-weight: bold;
 	color: #333; /* Dark grey for high contrast */
@@ -572,7 +599,6 @@ input[type='text'] {
 	margin-top: 5px;
 }
 .modal-reaction-entry {
-	border-bottom: 1px dotted #ccc; /* Adds a dotted line between reactions */
 	padding-bottom: 20px;
 	margin-bottom: 20px;
 }

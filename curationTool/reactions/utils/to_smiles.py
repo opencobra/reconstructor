@@ -52,7 +52,7 @@ def vmh_to_smiles(abbreviation):
     Output:
     - (tuple): A tuple containing the SMILES string and an error message (if any).
     """
-    BASE_URL = settings.BASE_URL
+    BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbreviation)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
     response = requests.get(endpoint, verify=False)

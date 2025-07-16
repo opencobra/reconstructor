@@ -62,8 +62,8 @@ def verify_metabolite(request):
 
 def _verify_vmh_metabolite(main_input, input_type):
     """Helper function to verify a metabolite in VMH."""
-    base_url = settings.BASE_URL
-    endpoint = f"{base_url}_api/metabolites/?abbreviation={main_input}"
+    base_url = settings.NEW_VMH_BASE_URL
+    endpoint = f"{base_url}api/public/getMetHandler?id={main_input}"
     response = requests.get(endpoint, verify=False, timeout=10)
 
     if response.status_code != 200:
@@ -79,7 +79,7 @@ def _verify_vmh_metabolite(main_input, input_type):
         )
 
     data = response.json()
-    results = data.get('results', [])
+    results = data.get('metData', [])
 
     if not results:
         return JsonResponse(

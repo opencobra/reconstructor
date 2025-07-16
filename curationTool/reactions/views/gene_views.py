@@ -67,7 +67,7 @@ def get_gene_info(request):
                         {'error': False, 'symbol': gene_data["name"]})
 
         # If not found in Entrez, check VMH
-        vmh_base_url = settings.BASE_URL
+        vmh_base_url = settings.OLD_VMH_BASE_URL
         vmh_endpoint = f"{vmh_base_url}_api/genes/?gene_number={gene_input}"
         vmh_response = requests.get(vmh_endpoint, verify=False,timeout=10)
 

@@ -1,0 +1,98 @@
+.tabs {
+	margin: 24px;
+}
+.tab-header .tab-link {
+	padding: 0.5rem 1.25rem;
+	border: none;
+	border-radius: 6px 6px 0 0;
+	background: #e0e0e0;
+	cursor: pointer;
+	margin-right: 4px;
+	font-weight: 600;
+}
+.tab-header .tab-link.active {
+	background: #fff;
+}
+
+.tab-content {
+	display: none;
+	border: 1px solid #e0e0e0;
+	border-top: none;
+	padding: 20px;
+	background: #fff;
+	border-radius: 0 6px 6px 6px;
+}
+.tab-content.active {
+	display: block;
+}
+
+/* --- sub tabs --- */
+.subtabs {
+	margin-bottom: 14px;
+}
+.subtab-link {
+	padding: 0.35rem 0.9rem;
+	border: none;
+	background: #d5d5d5;
+	border-radius: 4px;
+	cursor: pointer;
+	margin-right: 4px;
+	font-size: 0.9rem;
+}
+.subtab-link.active {
+	background: #1e70eb;
+	color: #fff;
+}
+
+.subtab-content {
+	display: none;
+}
+.subtab-content.active {
+	display: block;
+}
+
+.ws-rxn-layout {
+	display: grid;
+	grid-template-columns: 260px 1fr;
+	gap: 24px;
+}
+/* ---------- Details pane padding & scroll ---------- */
+.ws-rxn-details {
+	padding: 24px 32px 32px; /* room around everything */
+	overflow: auto;
+}
+
+/* ---------- Tables look tidy ---------- */
+.ws-rxn-details table {
+	width: 100%;
+	table-layout: fixed; /* equal-width columns */
+	border-collapse: collapse;
+}
+.ws-rxn-details th,
+.ws-rxn-details td {
+	padding: 6px 4px;
+	vertical-align: top;
+}
+.ws-rxn-details input[type='text'] {
+	padding: 4px 8px;
+	min-width: 150px;
+	font-size: 0.9rem;
+}
+
+/* ---------- Section headings ---------- */
+.ws-rxn-details h4.ui.header {
+	margin-top: 32px; /* bigger gap between blocks */
+}
+
+/* ---------- Button row ---------- */
+.ws-rxn-actions {
+	margin-top: 32px;
+	display: flex;
+	justify-content: flex-end; /* right-align */
+	gap: 16px; /* space between the two buttons */
+}
+
+/* Optional – shrink the green button a bit so both look balanced */
+.ws-rxn-actions .ui.green.button {
+	min-width: 110px;
+}

@@ -120,7 +120,7 @@ def get_vmh_subsystems():
         list:
             A list of subsystem names from VMH.
     """
-    base_url = settings.BASE_URL
+    base_url = settings.OLD_VMH_BASE_URL
     endpoint = f"{base_url}_api/subsystems/"
     subsystems = []
 

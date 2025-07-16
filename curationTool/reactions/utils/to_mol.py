@@ -48,11 +48,11 @@ def vmh_to_mol(abbreviation):
     Output:
     - (tuple): A tuple containing RDKIT MOL object and an error message (None if no error).
     """
-    BASE_URL = settings.BASE_URL
+    BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbreviation)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
+    # endpoint = f"https://vmh.chatimd.org/api/public/getMetHandler?id={encoded_abbr}"
     response = requests.get(endpoint, verify=False)
-
     if response.status_code != 200:
         return None, f"VMH API returned error {response.status_code} for metabolite {abbreviation}"
     data = response.json()

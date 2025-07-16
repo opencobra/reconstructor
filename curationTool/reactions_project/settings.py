@@ -17,7 +17,8 @@ import json
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # base url for api calls
-BASE_URL = 'https://www.vmh.life/'
+OLD_VMH_BASE_URL = 'https://www.vmh.life/'
+NEW_VMH_BASE_URL = 'https://vmh2.life/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
