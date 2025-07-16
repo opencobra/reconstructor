@@ -96,3 +96,9 @@
 .ws-rxn-actions .ui.green.button {
 	min-width: 110px;
 }
+
+.ws-rxn-list .item.active {
+	background-color: #e0f7fa; /* light blue */
+	color: #007c91;
+	font-weight: bold;
+}

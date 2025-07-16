@@ -580,7 +580,7 @@ button:focus {
 	padding: 5px 10px;
 	border-radius: 5px;
 	cursor: pointer;
-	margin-top: 5px;
+	margin-top: 0px;
 }
 
 .remove-reference,
@@ -638,8 +638,8 @@ input[type='text'] {
 	font-weight: bold;
 	font-size: 16px;
 	/* border-bottom: 1px solid #eee; Optional: adds a light border under subheaders for better separation */
-	padding-bottom: 5px;
-	margin-bottom: 10px;
+	padding-top: 15px;
+	margin-bottom: 0px; /* Space below subheaders */
 }
 
 /* Tooltip styling adjustments for clarity */
