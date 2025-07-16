@@ -1140,19 +1140,27 @@ button#backToHome {
 	z-index: 1000; /* above the rest of the page */
 }
 
+#confirmSendModal.ui.small.modal {
+	background: transparent !important;
+	box-shadow: none !important;
+	inset: 0 !important;
+}
+
 /* 2 – modal card itself */
-#deleteFlagModal .modal-content {
+#deleteFlagModal .modal-content,
+#confirmSendModal .modal-content {
 	width: 90%;
 	max-width: 380px; /* change to 320 / 450 as you prefer */
 	background: #f4f4f4;
 	border-radius: 8px;
 	padding: 24px 32px;
-	box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 	position: relative;
 	animation: scaleIn 0.25s ease-out;
 }
 
-#deleteFlagModal .actions {
+#deleteFlagModal .actions,
+#confirmSendModal .actions {
 	display: flex;
 	justify-content: flex-end;
 	gap: 0.75rem;
@@ -1160,12 +1168,14 @@ button#backToHome {
 }
 
 /* 5 – make header & body align nicely */
-#deleteFlagModal .header {
+#deleteFlagModal .header,
+#confirmSendModal .header {
 	font-weight: 600;
 	margin-bottom: 0.75rem;
 	text-align: center;
 }
 
-#deleteFlagModal .content {
+#deleteFlagModal .content,
+#confirmSendModal .content {
 	text-align: center;
 }

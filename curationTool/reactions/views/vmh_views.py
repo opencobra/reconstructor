@@ -23,6 +23,10 @@ import requests
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 
+from django.shortcuts import redirect, render, get_object_or_404
+from django.views.decorators.http import require_POST
+from django.core import serializers 
+
 from django.conf import settings
 
 from reactions.models import (
@@ -55,7 +59,7 @@ from reactions.utils.add_to_vmh_utils import (
     get_nonfound_metabolites
 )
 from reactions.utils.MatlabSessionManager import MatlabSessionManager
-from reactions.utils.utils import get_external_ids, get_mol_weights
+from reactions.utils.utils import get_external_ids, get_mol_weights, reactions_to_json
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):
     """
@@ -634,3 +638,44 @@ def add_to_vmh(request):
     matlab_session.quit()
     return JsonResponse(
         {'status': 'error', 'message': matlab_result['message']})
+    
+    
+@require_POST
+def send_to_workspace(request):
+    """
+    Called from saved_reactions.
+    Saves the list of selected reaction-PKs in session
+    and redirects the user to /VMH_Workspace/.
+    """
+    payload = json.loads(request.body)
+    request.session['vmh_workspace_ids'] = payload.get('reactionIds', [])
+    # simple “OK” payload
+    return JsonResponse({'status': 'ok'})         
+
+
+def vmh_workspace(request):
+    """
+    Reads the reaction-PK list from session, builds the data
+    and renders VMH_workspace.html
+    """
+    ids = request.session.get('vmh_workspace_ids', [])
+    reactions_qs = Reaction.objects.filter(pk__in=ids)  # or your model name
+    # serialise as you already do elsewhere
+    reactions_json = reactions_to_json(reactions_qs)
+    
+    user_pk = request.session.get('userID')
+
+    if user_pk:
+        user_obj   = get_object_or_404(User, pk=user_pk)
+        user_name  = user_obj.name          # or .username depending on your model
+        user_id    = user_obj.pk
+    else:
+        user_name  = 'Guest'
+        user_id    = ''
+
+    ctx = {
+        'user_name'      : user_name,
+        'userID'         : user_id,
+        'reactions_json' : reactions_json,
+    }
+    return render(request, 'reactions/VMH_workspace.html', ctx)

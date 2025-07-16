@@ -18,7 +18,8 @@
 		<div class="top-menu-saved-reactions">
 			<div class="icon">
 				<img src="{% static 'reactions/website-icon.png' %}" alt="icon" />
-				<button id="backToHome" id="back-btn" class="ui blue button back-btn">Home Page</button>
+				<button id="backToHome" class="ui blue button back-btn">Home Page</button>
+				<button id="toWorkspace" class="ui blue button back-btn">VMH Workspace</button>
 			</div>
 			<div class="search-bar">
 				<i class="fas fa-search search-icon"></i>
@@ -123,6 +124,17 @@
 				</div>
 			</div>
 
+			<div id="confirmSendModal" class="ui small modal">
+				<div class="modal-content">
+					<h2>Send to VMH Workspace?</h2>
+					<p id="confirmSendText"></p>
+					<div class="actions">
+						<button id="confirmSendBtn" class="ui blue button">Yes</button>
+						<button id="cancelSendBtn" class="ui button">No</button>
+					</div>
+				</div>
+			</div>
+
 			<div id="alertModal" class="custom-alert-modal">
 				<div class="custom-alert-content">
 					<span class="close-alert-btn">&times;</span>
@@ -140,9 +152,9 @@
 				</div>
 			</div>
 			<div class="header">
-				<button id="addToVMH" class="ui blue button add-to-vmh-btn">
+				<button id="sendToWorkspace" class="ui blue button add-to-vmh-btn">
 					<img src="{% static 'reactions/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
-					Add Reaction(s) to VMH
+					Add Reaction(s) to VMH Workspace
 				</button>
 				<button id="addFlag" class="ui blue button add-flag-btn">Flag Reaction(s)</button>
 				<!-- Mass Edit Confidence Score -->

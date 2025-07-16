@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Constructor — VMH Workspace</title>
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/saved_reactions.css' %}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon.ico' %}" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+	</head>
+	<body>
+		<div class="top-menu-saved-reactions">
+			<div class="icon">
+				<img src="{% static 'reactions/website-icon.png' %}" alt="icon" />
+				<button id="backToHome" class="ui blue button back-btn">Home Page</button>
+				<button id="backToSavedReactions" class="ui blue button back-btn">Saved Reactions</button>
+			</div>
+
+			<div class="saved-reaction-user-info saved-reaction-item">
+				<button class="ui button saved-reaction-user-display" id="userDisplay">
+					<i class="icon user"></i>
+					User : {{user_name}}
+				</button>
+			</div>
+		</div>
+
+		<div class="content">
+			<div id="alertModal" class="custom-alert-modal">
+				<div class="custom-alert-content">
+					<span class="close-alert-btn">&times;</span>
+					<p id="alertMessage"></p>
+				</div>
+			</div>
+		</div>
+		<script type="text/javascript">
+			const addToVMHUrl = "{% url 'add_to_vmh' %}";
+			const prepAddToVMHUrl = "{% url 'prepare_add_to_vmh' %}";
+			const csrfToken = '{{ csrf_token }}';
+			const userID = '{{ userID }}';
+			const editReactionURL = "{% url 'edit_reaction_info' %}";
+			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
+			var reactions = {{ reactions_json|safe }};
+		</script>
+		<script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
+		<script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>
+		<script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
+		<script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
+	</body>
+</html>
