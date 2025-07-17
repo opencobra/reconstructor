@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction, Flag, ReactionTemplate, SavedMetabolite
+from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction, Flag, ReactionTemplate, SavedMetabolite, Workspace
 
 
 
@@ -114,3 +114,4 @@ admin.site.register(CreatedReaction, CreatedReactionAdmin)
 admin.site.register(Flag, FlagAdmin)
 admin.site.register(ReactionTemplate, ReactionTemplateAdmin)
 admin.site.register(SavedMetabolite, SavedMetaboliteAdmin)
+admin.site.register(Workspace)  

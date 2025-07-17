@@ -35,7 +35,8 @@ from reactions.models import (
     MetabolitesAddedVMH,
     ReactionsAddedVMH,
     Subsystem,
-    SavedMetabolite
+    SavedMetabolite,
+    Workspace
 )
 from reactions.reaction_info import construct_vmh_formula
 from reactions.utils.search_vmh import search_metabolites_vmh, is_name_in_vmh
@@ -630,6 +631,10 @@ def add_to_vmh(request):
                 reaction_formula=info[1],
                 reaction_abbr=abbr,
             )
+            
+            workspace = Workspace.objects.get(user=user)
+            reaction_obj = Reaction.objects.get(pk=info[0])
+            workspace.reactions.remove(reaction_obj)
         matlab_session.quit()
         return JsonResponse({'status': 'success',
                              'rxn_added_info': rxn_added_info,
@@ -644,38 +649,48 @@ def add_to_vmh(request):
 def send_to_workspace(request):
     """
     Called from saved_reactions.
-    Saves the list of selected reaction-PKs in session
+    Saves the list of selected reaction-PKs in Workspace model
     and redirects the user to /VMH_Workspace/.
     """
-    payload = json.loads(request.body)
-    request.session['vmh_workspace_ids'] = payload.get('reactionIds', [])
-    # simple “OK” payload
-    return JsonResponse({'status': 'ok'})         
+    data = json.loads(request.body)
+    user_id = data.get('userID')
+    reaction_ids = data.get('reactionIds', [])
+    user = User.objects.get(pk=user_id)
+    # Save to a Workspace model (create if not exists)
+    workspace, _ = Workspace.objects.get_or_create(user=user)
+    workspace.reactions.add(*Reaction.objects.filter(pk__in=reaction_ids))
+    workspace.save()
+    return JsonResponse({'status': 'success'})         
 
 
 def vmh_workspace(request):
     """
-    Reads the reaction-PK list from session, builds the data
-    and renders VMH_workspace.html
+    Loads the user's Workspace reactions and renders VMH_workspace.html
     """
-    ids = request.session.get('vmh_workspace_ids', [])
-    reactions_qs = Reaction.objects.filter(pk__in=ids)  # or your model name
-    # serialise as you already do elsewhere
-    reactions_json = reactions_to_json(reactions_qs)
-    
     user_pk = request.session.get('userID')
 
     if user_pk:
-        user_obj   = get_object_or_404(User, pk=user_pk)
-        user_name  = user_obj.name          # or .username depending on your model
-        user_id    = user_obj.pk
+        user_obj = get_object_or_404(User, pk=user_pk)
+        user_name = user_obj.name  # or .username depending on your model
+        user_id = user_obj.pk
+        # Get or create the workspace for this user
+        workspace, _ = Workspace.objects.get_or_create(user=user_obj)
+        reactions_qs = workspace.reactions.all()
+
+        added = ReactionsAddedVMH.objects.filter(user=user_id).order_by('-created_at')
     else:
-        user_name  = 'Guest'
-        user_id    = ''
+        user_name = 'Guest'
+        user_id = ''
+        reactions_qs = Reaction.objects.none()
+        added = ReactionsAddedVMH.objects.none()
+
+    reactions_active = reactions_to_json(reactions_qs)
+    added_json = serializers.serialize('json', added)
 
     ctx = {
-        'user_name'      : user_name,
-        'userID'         : user_id,
-        'reactions_json' : reactions_json,
+        'user_name': user_name,
+        'userID': user_id,
+        'reactions_active': reactions_active,
+        'reactions_added': added_json,
     }
     return render(request, 'reactions/VMH_workspace.html', ctx)

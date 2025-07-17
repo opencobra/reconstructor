@@ -402,7 +402,7 @@ def validate_reaction_fields(reactions):
     missing_conf_scores = [reaction['confidence_score'] == '" "' for reaction in reactions]
     if True in missing_conf_scores:
         return JsonResponse({'status': 'error',
-                             'message': 'Please enter a confidence score for all reactions'})
+                             'message': 'Please enter a confidence score for reaction'})
     
     names_list = [reaction['short_name'] for reaction in reactions]
     for name in names_list:

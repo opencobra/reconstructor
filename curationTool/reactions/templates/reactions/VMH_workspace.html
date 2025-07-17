@@ -51,6 +51,14 @@
 					</div>
 				</div>
 			</div>
+			<div id="responseModal" class="modal">
+				<div class="modal-content">
+					<span class="close" id="responseModalClose">&times;</span>
+					<h2 id="responseModalTitle"></h2>
+
+					<div id="responseModalBody"></div>
+				</div>
+			</div>
 
 			<div class="tabs">
 				<div class="tab-header">
@@ -71,13 +79,13 @@
 						<div class="ws-rxn-layout">
 							<div class="ws-rxn-list">
 								<h4 class="ui header">Name</h4>
-								<ul id="wsReactionList" class="ui middle aligned selection list"></ul>
+								<ul id="wsAvailableReactionList" class="ui middle aligned selection list"></ul>
 							</div>
 
 							<!-- RIGHT column – editable details -->
 							<div class="ws-rxn-details">
 								<!-- populated dynamically when a list item is clicked -->
-								<div id="wsReactionDetails" class="ui segment placeholder">
+								<div id="wsAvailableReactionDetails" class="ui segment placeholder">
 									<p>Select a reaction on the left …</p>
 								</div>
 							</div>
@@ -100,7 +108,16 @@
 					</div>
 
 					<div id="tab2-reaction" class="subtab-content active">
-						<p>Reaction panel. Available soon...</p>
+						<table class="ui celled table">
+							<thead>
+								<tr>
+									<th>Abbreviation</th>
+									<th>Formula</th>
+									<th>Added At</th>
+								</tr>
+							</thead>
+							<tbody id="addedReactionTableBody"></tbody>
+						</table>
 					</div>
 					<div id="tab2-metabolite" class="subtab-content">
 						<p>Metabolite panel. Available soon...</p>
@@ -118,7 +135,9 @@
 			const userID = '{{ userID }}';
 			const editReactionURL = "{% url 'edit_reaction_info' %}";
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
-			var reactions = {{ reactions_json|safe }};
+			var reactions_active = {{ reactions_active |safe }};
+			var reactions_added = {{ reactions_added |safe }};
+			         console.log('reactions_added:', reactions_added);
 		</script>
 		<script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>

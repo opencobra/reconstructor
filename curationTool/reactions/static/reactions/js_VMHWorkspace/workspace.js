@@ -34,31 +34,32 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 
 (function () {
 	// 1 – draw the list of abbreviations
-	const listEl = document.getElementById('wsReactionList');
-	const detailEl = document.getElementById('wsReactionDetails');
+	const availableListEl = document.getElementById('wsAvailableReactionList');
+	const availableDetailEl = document.getElementById('wsAvailableReactionDetails');
 
-	reactions.forEach((r) => {
+	// Load available reactions
+	reactions_active.forEach((r) => {
 		const li = document.createElement('li');
 		li.className = 'item';
 		li.dataset.pk = r.pk;
-		li.textContent = r.fields.short_name; // or r.fields.abbreviation
-		listEl.appendChild(li);
+		li.textContent = r.fields.short_name;
+		availableListEl.appendChild(li);
 	});
 
 	// 2 – on click → render editable form
-	listEl.addEventListener('click', async (e) => {
+	availableListEl.addEventListener('click', async (e) => {
 		// ← mark as async
 		if (!e.target.matches('.item')) return;
 		const pk = +e.target.dataset.pk;
-		const rxn = reactions.find((r) => r.pk === pk);
+		const rxn = reactions_active.find((r) => r.pk === pk);
 		if (!rxn) return;
 
-		detailEl.innerHTML = ''; // clear
+		availableDetailEl.innerHTML = ''; // clear
 
 		const card = await buildEditableCard(rxn); // ← await it
-		if (card) detailEl.appendChild(card);
+		if (card) availableDetailEl.appendChild(card);
 
-		document.querySelectorAll('#wsReactionList .item').forEach((el) => el.classList.remove('active'));
+		document.querySelectorAll('#wsAvailableReactionList .item').forEach((el) => el.classList.remove('active'));
 		e.target.classList.add('active');
 	});
 
@@ -273,7 +274,6 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 		listItem.innerHTML += createSectionHTML('Gene Info', 'gene-info', gene_info, reaction.pk, false, false, true);
 
 		listItem.innerHTML += `<div class="ws-rxn-actions">
-        <button class="ui green button" id="saveWsEditsBtn" data-pk="${reaction.pk}">Save edits</button>
         <button class="ui primary button" id="submitVMHBtn" data-pk="${reaction.pk}">Add to VMH</button>
     </div>`;
 
@@ -281,12 +281,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	}
 
 	// 4 – Save & Submit stubs  (wire into your existing endpoints)
-	detailEl.addEventListener('click', (e) => {
-		if (e.target.id === 'saveWsEditsBtn') {
-			const pk = +e.target.dataset.pk;
-			// collect the inputs → POST to a “save workspace draft” endpoint
-			showToast('Edits saved locally!', '#4caf50');
-		}
+	availableDetailEl.addEventListener('click', (e) => {
 		if (e.target.id === 'submitVMHBtn') {
 			const pk = +e.target.dataset.pk;
 			// reuse addToVMH() – but restrict to this one pk
@@ -301,7 +296,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	}
 })();
 
-const modalList = document.getElementById('wsReactionDetails');
+const modalList = document.getElementById('wsAvailableReactionDetails');
 
 modalList.addEventListener('click', function (e) {
 	// Handle the "Add" button clicks using event delegation
@@ -328,4 +323,18 @@ modalList.addEventListener('click', function (e) {
 	if (e.target && e.target.matches('.remove-reference, .remove-ext-link, .remove-comment,.remove-gene-info')) {
 		e.target.parentElement.remove();
 	}
+});
+
+const parsedAddedReactions = reactions_added;
+
+const tableBody = document.getElementById('addedReactionTableBody');
+parsedAddedReactions.forEach((entry) => {
+	const f = entry.fields;
+	const row = document.createElement('tr');
+	row.innerHTML = `
+        <td>${f.reaction_abbr}</td>
+        <td style="white-space: pre-wrap">${f.reaction_formula}</td>
+        <td>${new Date(f.created_at).toLocaleString()}</td>
+    `;
+	tableBody.appendChild(row);
 });

@@ -102,3 +102,43 @@
 	color: #007c91;
 	font-weight: bold;
 }
+
+/* Make the table take full width and align properly */
+#tab2-reaction .ui.celled.table {
+	width: 100%;
+	font-size: 14px;
+	text-align: left;
+}
+
+/* Header styling */
+#tab2-reaction .ui.table thead th {
+	background-color: #f4f4f4;
+	color: #333;
+	font-weight: 600;
+	padding: 12px 10px;
+	border-bottom: 2px solid #ddd;
+}
+
+/* Row styling */
+#tab2-reaction .ui.table tbody td {
+	padding: 10px;
+	vertical-align: top;
+	word-break: break-word;
+	white-space: pre-wrap;
+}
+
+/* Zebra stripes for better readability */
+#tab2-reaction .ui.table tbody tr:nth-child(even) {
+	background-color: #f9f9f9;
+}
+
+/* Responsive text wrap */
+#tab2-reaction .ui.table td {
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+}
+
+/* Optional: subtle hover effect */
+#tab2-reaction .ui.table tbody tr:hover {
+	background-color: #eef6ff;
+}

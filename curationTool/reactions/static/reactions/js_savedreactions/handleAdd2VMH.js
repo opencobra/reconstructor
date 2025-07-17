@@ -1,14 +1,6 @@
 let eventListenersAttached = false; // Flag to track if event listeners have been attached
 
-function createSectionHTML(
-	sectionTitle,
-	className,
-	items,
-	reactionId,
-	isExtLink = false,
-	isRef = false,
-	isGene = false
-) {
+function createSectionHTML(sectionTitle, className, items, reactionId, isExtLink = false, isRef = false, isGene = false) {
 	if (isGene) {
 		return createGeneSectionHTML(sectionTitle, className, items, reactionId);
 	}
@@ -37,24 +29,10 @@ function createSectionHTML(
 }
 
 function createExtLinkSelect(item, reactionId, index) {
-	const linkTypes = [
-		'CHO Models',
-		'COG',
-		'EC Number',
-		'KEGG orthology',
-		'KEGG reaction',
-		'MetanetX',
-		'Rhea',
-		'SEED',
-		'Wikipedia',
-	];
+	const linkTypes = ['CHO Models', 'COG', 'EC Number', 'KEGG orthology', 'KEGG reaction', 'MetanetX', 'Rhea', 'SEED', 'Wikipedia'];
 	let selectHTML = `
         <select class="ext-link-type-select" data-reaction-id="${reactionId}" data-index="${index}">
-            ${linkTypes
-							.map(
-								(type) => `<option value="${type}" ${item.ext_link_type === type ? 'selected' : ''}>${type}</option>`
-							)
-							.join('')}
+            ${linkTypes.map((type) => `<option value="${type}" ${item.ext_link_type === type ? 'selected' : ''}>${type}</option>`).join('')}
         </select>
     `;
 	return selectHTML;
@@ -63,9 +41,7 @@ function createRefSelect(item, reactionId, index) {
 	const refTypes = ['DOI', 'PMID'];
 	let selectHTML = `
         <select class="ref-type-select" data-reaction-id="${reactionId}" data-index="${index}">
-            ${refTypes
-							.map((type) => `<option value="${type}" ${item.ref_type === type ? 'selected' : ''}>${type}</option>`)
-							.join('')}
+            ${refTypes.map((type) => `<option value="${type}" ${item.ref_type === type ? 'selected' : ''}>${type}</option>`).join('')}
         </select>
     `;
 	return selectHTML;
@@ -205,8 +181,7 @@ addToVMHBtn &&
 			let vmhResponse;
 			modal.style.display = 'block'; // Show the modal
 			document.getElementById('loadingIndicator').style.display = 'flex'; // Show loading indicator
-			document.getElementById('loadingText').textContent =
-				'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
+			document.getElementById('loadingText').textContent = 'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
 
 			try {
 				vmhResponse = await callPrepareAddToVMH(checkedReactions);
@@ -240,7 +215,7 @@ addToVMHBtn &&
 			checkedReactions.forEach(function (reactionId) {
 				var reactionIdNum = Number(reactionId);
 				var reactionIndex = checkedReactions.indexOf(reactionId.toString());
-				var reaction = reactions.find((r) => r.pk === reactionIdNum);
+				var reaction = reactions_active.find((r) => r.pk === reactionIdNum);
 				if (reaction) {
 					let substrates_names = JSON.parse(reaction.fields.substrates_names);
 					let products_names = JSON.parse(reaction.fields.products_names);
@@ -274,9 +249,7 @@ addToVMHBtn &&
 											reaction.fields.short_name
 										}" data-reaction-id="${reaction.pk}">
                     <label for="confidencedropdown-${reactionId}">Confidence Score:</label>
-                    <select class="confidencedropdown" id="confidencedropdown-${reaction.pk}" data-reaction-id="${
-						reaction.pk
-					}">
+                    <select class="confidencedropdown" id="confidencedropdown-${reaction.pk}" data-reaction-id="${reaction.pk}">
                         <option value=" " ${confidenceScore === ' ' ? 'selected' : ''}>-</option>
                         <option value="1" ${confidenceScore === '1' ? 'selected' : ''}>1</option>
                         <option value="2" ${confidenceScore === '2' ? 'selected' : ''}>2</option>
@@ -304,9 +277,7 @@ addToVMHBtn &&
                             ${substrates_names
 															.map(
 																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${
-																	reaction.pk
-																}" data-tooltip-content="${formatTooltipContent(
+                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
 																	substrates[index],
 																	substrates_types[index],
 																	subs_comps[index]
@@ -330,9 +301,9 @@ addToVMHBtn &&
 																				}
                                     </td>
                                     <td>
-                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${
-																					subsAbbrForReaction[index]
-																				}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${subsAbbrForReaction[index]}" ${
+																	subsInVMHForReaction[index] ? 'readonly' : ''
+																}>
                                     </td>
                                 </tr>
                             `
@@ -356,9 +327,7 @@ addToVMHBtn &&
                             ${products_names
 															.map(
 																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${
-																	reaction.pk
-																}" data-tooltip-content="${formatTooltipContent(
+                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
 																	products[index],
 																	products_types[index],
 																	prods_comps[index]
@@ -382,9 +351,9 @@ addToVMHBtn &&
 																				}
                                     </td>
                                     <td>
-                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${
-																					prodsAbbrForReaction[index]
-																				}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
+                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${prodsAbbrForReaction[index]}" ${
+																	prodsInVMHForReaction[index] ? 'readonly' : ''
+																}>
                                     </td>
                                 </tr>
                             `
@@ -527,11 +496,7 @@ function toggleInfo() {
 
 function addToVMH() {
 	document.getElementById('loadingIndicator').style.display = 'flex';
-	let loadingTexts = [
-		'Checking if all requirements are met',
-		'Initialising Cobra ToolBox',
-		'Adding reactions to VMH database',
-	];
+	let loadingTexts = ['Checking if all requirements are met', 'Initialising Cobra ToolBox', 'Adding reactions to VMH database'];
 	let currentTextIndex = 0;
 	document.getElementById('loadingText').textContent = loadingTexts[currentTextIndex];
 
@@ -556,7 +521,7 @@ function addToVMH() {
 	let textChangeInterval = setInterval(updateLoadingText, 7500);
 	const updatedReactions = checkedReactions.map((reactionId) => {
 		const reactionIdNum = Number(reactionId);
-		const reaction = reactions.find((r) => r.pk === reactionIdNum);
+		const reaction = reactions_active.find((r) => r.pk === reactionIdNum);
 
 		// Gather Reaction Name and Abbreviation
 		const nameInputField = document.querySelector(`.reaction-name-input[data-reaction-id="${reactionId}"]`);
@@ -594,9 +559,7 @@ function addToVMH() {
 			reaction.fields.short_name = inputField.value.trim();
 		}
 
-		const referencesData = Array.from(
-			document.querySelectorAll(`.reference-input[data-reaction-id="${reactionId}"]`)
-		).map((input) => {
+		const referencesData = Array.from(document.querySelectorAll(`.reference-input[data-reaction-id="${reactionId}"]`)).map((input) => {
 			const select = input.previousElementSibling;
 			return {
 				ref_type: select ? select.value : '', // Ensure select is found, otherwise default to empty string
@@ -604,20 +567,18 @@ function addToVMH() {
 			};
 		});
 		// Gathering External Links Data
-		const extLinksData = Array.from(document.querySelectorAll(`.ext-link-item[data-reaction-id="${reactionId}"]`)).map(
-			(container) => {
-				const select = container.querySelector('.ext-link-type-select');
-				const input = container.querySelector('.ext-link-input');
-				return {
-					ext_link_type: select ? select.value : '', // Ensure select is found, otherwise default to empty string
-					info: input.value.trim(), // Use the input value directly
-				};
-			}
-		);
+		const extLinksData = Array.from(document.querySelectorAll(`.ext-link-item[data-reaction-id="${reactionId}"]`)).map((container) => {
+			const select = container.querySelector('.ext-link-type-select');
+			const input = container.querySelector('.ext-link-input');
+			return {
+				ext_link_type: select ? select.value : '', // Ensure select is found, otherwise default to empty string
+				info: input.value.trim(), // Use the input value directly
+			};
+		});
 		// Gathering Comments Data
-		const commentsData = Array.from(document.querySelectorAll(`.comment-input[data-reaction-id="${reactionId}"]`)).map(
-			(input) => ({ info: input.value.trim() })
-		);
+		const commentsData = Array.from(document.querySelectorAll(`.comment-input[data-reaction-id="${reactionId}"]`)).map((input) => ({
+			info: input.value.trim(),
+		}));
 
 		//Gathering Confidence Score Data
 		const confidenceDropdown = document.querySelector(`.confidencedropdown[data-reaction-id="${reactionId}"]`);
@@ -657,12 +618,8 @@ function addToVMH() {
 				const reactions = Object.entries(data.rxn_added_info); // Array of [abbr, [rxn_ID, reaction_formula]]
 				const metabolites = Object.entries(data.met_added_info); // Array of [abbr, [met_ID, formula, inchiKey]]
 
-				const reactionPart =
-					reactions.length > 0 ? `${reactions.length} ${reactions.length === 1 ? 'reaction' : 'reactions'}` : '';
-				const metabolitePart =
-					metabolites.length > 0
-						? `${metabolites.length} ${metabolites.length === 1 ? 'metabolite' : 'metabolites'}`
-						: '';
+				const reactionPart = reactions.length > 0 ? `${reactions.length} ${reactions.length === 1 ? 'reaction' : 'reactions'}` : '';
+				const metabolitePart = metabolites.length > 0 ? `${metabolites.length} ${metabolites.length === 1 ? 'metabolite' : 'metabolites'}` : '';
 				const conjunction = reactions.length > 0 && metabolites.length > 0 ? 'and' : '';
 				const toDatabasePart = 'to VMH database';
 
@@ -684,6 +641,7 @@ function addToVMH() {
 					responseBody += '<p>Reaction Abbreviation (ID in VMH Database):</p><ul>';
 					reactions.forEach(([abbr, [id, formula]]) => {
 						responseBody += `<li><span class="bold">${abbr}</span> (${id})<div class="info-block" id="rxnInfo_${id}" style="display:none;"><p>Formula: ${formula}</p></div></li>`;
+						moveReactionToAddedTab(id);
 					});
 					responseBody += '</ul>';
 				}
@@ -703,6 +661,7 @@ function addToVMH() {
 				// Show the modal
 				document.getElementById('reactionModal').style.display = 'none';
 				document.getElementById('responseModal').style.display = 'block';
+				reactions = [];
 			} else {
 				// Handle error case
 				document.getElementById('responseModalTitle').textContent = 'Error';
@@ -718,6 +677,19 @@ function addToVMH() {
 			setButtonState(false);
 			window.scrollTo(0, 0);
 		});
+}
+
+function moveReactionToAddedTab(reactionId) {
+	// Remove from current active tab
+	const activeItem = document.querySelector(`#wsReactionList .item[data-reaction-id="${reactionId}"]`);
+	if (activeItem) activeItem.remove();
+
+	// Get the detailed info and move it to the added list
+	const detailElem = document.querySelector(`#wsReactionDetails .reaction-detail[data-reaction-id="${reactionId}"]`);
+	if (detailElem) {
+		document.querySelector('#tab2-reaction').appendChild(detailElem);
+		detailElem.classList.remove('active'); // optional: remove highlight
+	}
 }
 
 const confirmAddToVMHBtn = document.getElementById('confirmAddToVMH');
@@ -748,8 +720,8 @@ const closeResponseModalBtn = document.getElementById('responseModalClose');
 closeResponseModalBtn &&
 	closeResponseModalBtn.addEventListener('click', function (event) {
 		if (event.target.id === 'responseModalClose' || event.target.classList.contains('close')) {
-			this.style.display = 'none';
-			// window.location.reload();
+			var responseModal = document.getElementById('responseModal');
+			responseModal.style.display = 'none';
 		}
 	});
 
@@ -771,9 +743,7 @@ sendBtn &&
 			showToast('Please select at least one reaction', '#f44336');
 			return;
 		}
-		document.getElementById(
-			'confirmSendText'
-		).textContent = `Move ${checkedReactions.length} selected reaction(s) to the VMH Workspace?`;
+		document.getElementById('confirmSendText').textContent = `Move ${checkedReactions.length} selected reaction(s) to the VMH Workspace?`;
 		$('.ui.small.modal#confirmSendModal').modal('show');
 	});
 
@@ -787,7 +757,10 @@ confirmSendBtn &&
 				'Content-Type': 'application/json',
 				'X-CSRFToken': csrfToken,
 			},
-			body: JSON.stringify({ reactionIds: checkedReactions }),
+			body: JSON.stringify({
+				userID: userID,
+				reactionIds: checkedReactions,
+			}),
 		})
 			.then(() => (window.location.href = '/VMH_Workspace/'))
 			.catch((err) => showToast('Could not open workspace', '#f44336'));
