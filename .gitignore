@@ -4,6 +4,7 @@ __pycache__/
 curationTool/rdt-2.4.1-jar-with-dependencies.jar
 curationTool/*.xml
 curationTool/*.rxn
+curationTool/reaction*.json*
 config.json
 staticfiles/
 .venv/
