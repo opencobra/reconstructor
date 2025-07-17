@@ -328,13 +328,19 @@ modalList.addEventListener('click', function (e) {
 const parsedAddedReactions = reactions_added;
 
 const tableBody = document.getElementById('addedReactionTableBody');
-parsedAddedReactions.forEach((entry) => {
-	const f = entry.fields;
+if (parsedAddedReactions.length === 0) {
 	const row = document.createElement('tr');
-	row.innerHTML = `
-        <td>${f.reaction_abbr}</td>
-        <td style="white-space: pre-wrap">${f.reaction_formula}</td>
-        <td>${new Date(f.created_at).toLocaleString()}</td>
-    `;
+	row.innerHTML = `<td colspan="3" style="text-align: center; color: #999;">No reactions have been added yet.</td>`;
 	tableBody.appendChild(row);
-});
+} else {
+	parsedAddedReactions.forEach((entry) => {
+		const f = entry.fields;
+		const row = document.createElement('tr');
+		row.innerHTML = `
+			<td>${f.reaction_abbr}</td>
+			<td style="white-space: pre-wrap">${f.reaction_formula}</td>
+			<td>${new Date(f.created_at).toLocaleString()}</td>
+		`;
+		tableBody.appendChild(row);
+	});
+}
