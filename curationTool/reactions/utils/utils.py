@@ -7,6 +7,7 @@ import xml.etree.ElementTree as ET
 import requests
 import json
 from reactions.models import SavedMetabolite
+from django.core import serializers 
 
 
 def capitalize_first_letter(s):
@@ -240,5 +241,20 @@ def parse_mol_formula(formula):
     for elem, count in matches:
         counts[elem] = counts.get(elem, 0) + (int(count) if count else 1)
     return counts
+
+def reactions_to_json(qs):
+    """
+    Serialises a queryset of SavedReaction objects (and any
+    related fields you need) into the format consumed by
+    handleAdd2VMH.js.
+    """
+    json_str = serializers.serialize(
+        'json',
+        qs,
+        use_natural_foreign_keys=True,
+        # you can control which FK/ManyToMany to follow:
+        # follow = ('flags', …)
+    )
+    return json_str
 
 

@@ -16,6 +16,9 @@ import json
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# base url for api calls
+OLD_VMH_BASE_URL = 'https://www.vmh.life/'
+NEW_VMH_BASE_URL = 'https://vmh2.life/'
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -33,6 +36,7 @@ except Exception as e:
     print(f"Error reading config file: {e}")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.get('DEBUG')
+MOL_FILE_PATH = config.get('mol_file_path')
 
 ALLOWED_HOSTS = ['127.0.0.1','localhost','83.70.173.200','192.168.1.49', 'reconstructor.chatimd.org','reconstructor.humanmetabolism.org','constructor.humanmetabolism.org']
 

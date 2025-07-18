@@ -1,0 +1,12 @@
+
+.button#register-link {
+  background-color: transparent;
+  color: #3273dc; /* Bulma's primary color */
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.button#register-link:hover {
+  background-color: transparent;
+  color: #275aa8; /* Darker shade for hover effect */
+}

@@ -11,6 +11,8 @@ from reactions.utils.to_mol import any_to_mol
 from reactions.utils.search_vmh import check_reaction_vmh
 # Function to gather additional reaction details
 
+from django.conf import settings
+
 
 def gather_reaction_details(reaction_objs):
     """
@@ -303,7 +305,7 @@ def check_reactions_vmh(reaction_objs):
 def check_names_abbrs_vmh(names_abbr_list):
     names_vmh = {}
     abbr_vmh = {}
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     for name, abbr in names_abbr_list:
         endpoint = f"{BASE_URL}_api/reactions/?abbreviation={abbr}"
         response = requests.get(endpoint, verify=False)
@@ -327,7 +329,7 @@ def check_names_abbrs_vmh(names_abbr_list):
 
 
 def make_request_names_abbrs(name, abbr):
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={abbr}"
     response = requests.get(endpoint, verify=False)
     abbr_found = False
@@ -400,7 +402,7 @@ def validate_reaction_fields(reactions):
     missing_conf_scores = [reaction['confidence_score'] == '" "' for reaction in reactions]
     if True in missing_conf_scores:
         return JsonResponse({'status': 'error',
-                             'message': 'Please enter a confidence score for all reactions'})
+                             'message': 'Please enter a confidence score for reaction'})
     
     names_list = [reaction['short_name'] for reaction in reactions]
     for name in names_list:

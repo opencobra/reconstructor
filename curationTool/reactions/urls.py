@@ -22,7 +22,6 @@ urlpatterns = [
 
     path('delete_reaction/', reaction_views.delete_reaction, name='delete_reaction'),
     path('', reaction_views.input_reaction, name='input_reaction'),
-    path('delete_reaction/', reaction_views.delete_reaction, name='delete_reaction'),
     path('add_info_to_reaction/', reaction_views.add_info_to_reaction, name='add_info_to_reaction'),
     path('get_reaction_details/', reaction_views.get_reaction_details, name='get_reaction_details'),
     path('delete_reaction_info/', reaction_views.delete_reaction_info, name='delete_reaction_info'),
@@ -73,6 +72,9 @@ urlpatterns = [
     path('create-formula-abbr/', vmh_views.create_formula_abbr, name='create_formula_abbr'),
     path('check_reaction_vmh/', vmh_views.check_reaction_vmh, name='check_reaction_vmh'),
     path('get_from_vmh/', vmh_views.get_from_vmh, name='get_from_vmh'),
+    
+    path('send_to_workspace/', vmh_views.send_to_workspace, name='send_to_workspace'),
+    path('VMH_Workspace/', vmh_views.vmh_workspace, name='VMH_Workspace'),
 
     path('get_ai_response/', ai_views.get_ai_response, name='get_ai_response'),
 

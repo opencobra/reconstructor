@@ -14,6 +14,8 @@ from reactions_project.settings import MEDIA_ROOT, MEDIA_URL
 from zeep import Client
 from reactions.models import SavedMetabolite
 
+from django.conf import settings
+
 def smiles_with_explicit_hydrogens(smiles):
     """
     Converts a SMILES string to a version with all hydrogen atoms explicitly represented.
@@ -46,11 +48,11 @@ def vmh_to_mol(abbreviation):
     Output:
     - (tuple): A tuple containing RDKIT MOL object and an error message (None if no error).
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbreviation)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
+    # endpoint = f"https://vmh.chatimd.org/api/public/getMetHandler?id={encoded_abbr}"
     response = requests.get(endpoint, verify=False)
-
     if response.status_code != 200:
         return None, f"VMH API returned error {response.status_code} for metabolite {abbreviation}"
     data = response.json()

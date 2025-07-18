@@ -64,7 +64,7 @@ def input_reaction(request):
             - Error: If user input is invalid or processing fails.
     """
     if request.method != 'POST':
-        return render(request, 'reactions/Home_page.html', {'form': ReactionForm()})
+        return render(request, 'reactions/home_page.html', {'form': ReactionForm()})
 
     # Action to perform (either 'create' or 'edit')
     action = request.POST.get('action')
@@ -132,7 +132,7 @@ def input_reaction(request):
                 {'status': 'error', 'message': error_message})
         # Return error message in context for non-AJAX requests
         context = {'form': form, 'error_message': error_message}
-        return render(request, 'reactions/Home_page.html', context)
+        return render(request, 'reactions/home_page.html', context)
     mol_data = get_mol_info(subs_mols + prod_mols)
     smiles = mol_data['smiles']
     inchis = mol_data['inchis']
@@ -206,7 +206,7 @@ def input_reaction(request):
 
     if 'error' in response_data:
         context = {'form': form, 'error_message': response_data['error']}
-        return render(request, 'reactions/Home_page.html', context)
+        return render(request, 'reactions/home_page.html', context)
 
     subs_found, subs_miriams = search_metabolites_vmh(
         substrates_list, substrates_types, request, side='substrates')

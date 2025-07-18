@@ -244,3 +244,11 @@ class SavedMetabolite(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.inchi_key})"
+    
+class Workspace(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='workspace')
+    reactions = models.ManyToManyField(Reaction, related_name='in_workspaces')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.name}'s Workspace"

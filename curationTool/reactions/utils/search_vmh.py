@@ -15,6 +15,7 @@ from django.http import JsonResponse
 from reactions.utils.to_smiles import any_to_smiles
 from reactions.utils.to_mol import any_to_mol
 
+from django.conf import settings
 
 def is_name_in_vmh(name):
     """
@@ -26,7 +27,7 @@ def is_name_in_vmh(name):
     Output:
     - (bool): True if found, False otherwise.
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_name = quote(name)
     endpoint = f"{BASE_URL}_api/metabolites/?fullName={encoded_name}"
     response = requests.get(endpoint, verify=False)
@@ -55,7 +56,7 @@ def any_to_vmh(mols, types, smiles):
     Output:
     - (list): List of VMH database abbreviations or 'error' for unsuccessful conversions.
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     mols_list = []
     for idx, mol in enumerate(mols):
         if types[idx] == 'VMH':
@@ -105,7 +106,7 @@ def check_reaction_vmh(
     - (dict): Dictionary containing reaction information if found, otherwise an 'error' or 'not found' message.
     """
     # Checking lo
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     subs_smiles = any_to_smiles(
         subs_mols, [
             'MDL Mol file' for _ in range(
@@ -233,7 +234,7 @@ def search_vmh(mol, return_abbr=False, return_name=False):
     Output:
     - (tuple): A tuple containing a boolean indicating if found, and the miriam ID if found.
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     found = False
     smiles = Chem.MolToSmiles(mol)
     smiles = smiles_with_explicit_hydrogens(smiles)
@@ -289,7 +290,7 @@ def get_vmh_miriam(abbr):
     Output:
     - (str): The MIRIAM ID for the molecule.
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbr)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
     response = requests.get(endpoint, verify=False)
@@ -483,7 +484,7 @@ def get_from_vmh(request):
     Output:
     - (JsonResponse): A JsonResponse object containing reaction data or an error message.
     """
-    BASE_URL = 'https://www.vmh.life/'
+    BASE_URL = settings.OLD_VMH_BASE_URL
     if request.method == 'POST':
         data = json.loads(request.body)  # Parse JSON data from request body
         reaction_abbreviation = data.get('reactionAbbreviation', '')

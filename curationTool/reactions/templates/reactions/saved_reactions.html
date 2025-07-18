@@ -6,8 +6,8 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Constructor — Saved Reactions</title>
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/saved_reactions.css' %}" />
-		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon.ico' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/saved_reactions.css' %}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/imgs/favicon.ico' %}" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
@@ -17,8 +17,9 @@
 	<body>
 		<div class="top-menu-saved-reactions">
 			<div class="icon">
-				<img src="{% static 'reactions/website-icon.png' %}" alt="icon" />
-				<button id="backToHome" id="back-btn" class="ui blue button back-btn">Home Page</button>
+				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="icon" />
+				<button id="backToHome" class="ui blue button back-btn">Home Page</button>
+				<button id="toWorkspace" class="ui blue button back-btn">VMH Workspace</button>
 			</div>
 			<div class="search-bar">
 				<i class="fas fa-search search-icon"></i>
@@ -52,8 +53,8 @@
 						<span class="tooltip-ai">
 							<i class="fas fa-info-circle"></i>
 							<span class="tooltiptext"
-								>Temperature controls the randomness of the GPT-4 responses. Lower values make the output more focused
-								and deterministic. Higher values make it more creative.</span
+								>Temperature controls the randomness of the GPT-4 responses. Lower values make the output more focused and deterministic. Higher
+								values make it more creative.</span
 							>
 						</span>
 					</div>
@@ -71,9 +72,7 @@
 					<h2 id="reactionModalTitle">Adding the following reactions:</h2>
 					<div id="modalReactionsList" class="modal-reactions-list"></div>
 					<button id="confirmAddToVMH" class="confirm-add-to-vmh-btn">Confirm</button>
-					<div
-						id="loadingIndicator"
-						style="display: none; align-items: center; justify-content: center; flex-direction: column">
+					<div id="loadingIndicator" style="display: none; align-items: center; justify-content: center; flex-direction: column">
 						<div class="loader"></div>
 						<p id="loadingText">Checking if there are metabolites to be added</p>
 					</div>
@@ -105,9 +104,7 @@
 						</div>
 
 						<button type="button" id="createFlagButtonCustom" class="ui button" style="margin-left: 10px">+</button>
-						<button type="button" id="AddFlagtosavedreaction" class="ui button" style="margin-left: 10px">
-							Add Flag to selected reactions
-						</button>
+						<button type="button" id="AddFlagtosavedreaction" class="ui button" style="margin-left: 10px">Add Flag to selected reactions</button>
 					</div>
 
 					<!-- Input fields for new flag -->
@@ -119,6 +116,17 @@
 						<input type="color" id="flagColorInput" value="#ffffff" />
 
 						<button type="button" id="saveFlagButton" class="ui button">Create New Flag</button>
+					</div>
+				</div>
+			</div>
+
+			<div id="confirmSendModal" class="ui small modal">
+				<div class="modal-content">
+					<h2>Send to VMH Workspace?</h2>
+					<p id="confirmSendText"></p>
+					<div class="actions">
+						<button id="confirmSendBtn" class="ui blue button">Yes</button>
+						<button id="cancelSendBtn" class="ui button">No</button>
 					</div>
 				</div>
 			</div>
@@ -140,9 +148,9 @@
 				</div>
 			</div>
 			<div class="header">
-				<button id="addToVMH" class="ui blue button add-to-vmh-btn">
-					<img src="{% static 'reactions/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
-					Add Reaction(s) to VMH
+				<button id="sendToWorkspace" class="ui blue button add-to-vmh-btn">
+					<img src="{% static 'reactions/imgs/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
+					Add Reaction(s) to VMH Workspace
 				</button>
 				<button id="addFlag" class="ui blue button add-flag-btn">Flag Reaction(s)</button>
 				<!-- Mass Edit Confidence Score -->
@@ -195,10 +203,7 @@
 								<input type="checkbox" class="reaction-checkbox" data-reaction-id="{{ item.reaction.id }}" />
 							</td>
 							<td>
-								<span
-									class="reaction-name"
-									data-reaction-id="{{ item.reaction.id }}"
-									data-current-name="{{ item.details.short_name }}">
+								<span class="reaction-name" data-reaction-id="{{ item.reaction.id }}" data-current-name="{{ item.details.short_name }}">
 									{{ item.details.short_name }}
 								</span>
 								<input
@@ -227,9 +232,7 @@
 									View Description
 								</button>
 								{% else %}
-								<span class="no-description" data-reaction-id="{{ item.reaction.id }}" data-description="">
-									No Description
-								</span>
+								<span class="no-description" data-reaction-id="{{ item.reaction.id }}" data-description=""> No Description </span>
 								{% endif %}
 							</td>
 							<td>{{ item.details.subsystem }}</td>
@@ -283,28 +286,15 @@
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
 			var reactions = {{ reactions_json|safe }};
 		</script>
-		<script src="{% static 'reactions/js_savedreactions/reactionChecking.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/flag_saved_reaction.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/FlagFilter.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/delete_flag.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/sort_table.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/reactionChecking.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/dynamicEventListeners.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/reactionViewAndDelete.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/flag_saved_reaction.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/FlagFilter.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/utilities.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/search_reaction.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/delete_flag.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/sort_table.js' %}"></script>
+		<script src="{% static 'reactions/js_VMH_workspace/handleAdd2VMH.js' %}"></script>
 	</body>
-	{% comment %}
-	<div id="descriptionModal" class="ui modal">
-		<div class="header">Reaction Description</div>
-		<div class="content">
-			<p id="descriptionText"></p>
-		</div>
-		<div class="actions">
-			<!-- Edit button (will only be used when there is an existing description) -->
-			<button class="ui button" id="editDescriptionModalBtn" data-reaction-id="">Edit Description</button>
-			<button class="ui button" id="closeDescriptionModal">Close</button>
-		</div>
-	</div>
-	{% endcomment %}
 </html>

@@ -28,6 +28,8 @@ from reactions.utils.utils import capitalize_first_letter, parse_mol_formula
 from reactions.utils.get_from_rhea import get_from_rhea
 from reactions.models import SavedMetabolite, User
 
+from django.conf import settings
+
 def verify_metabolite(request):
     """
     Verify whether a metabolite exists in VMH or the user's saved database.
@@ -60,7 +62,7 @@ def verify_metabolite(request):
 
 def _verify_vmh_metabolite(main_input, input_type):
     """Helper function to verify a metabolite in VMH."""
-    base_url = 'https://www.vmh.life/'
+    base_url = settings.OLD_VMH_BASE_URL
     endpoint = f"{base_url}_api/metabolites/?abbreviation={main_input}"
     response = requests.get(endpoint, verify=False, timeout=10)
 

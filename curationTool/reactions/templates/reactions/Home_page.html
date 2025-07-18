@@ -6,15 +6,15 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<title>Constructor — Home</title>
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/Home_page.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/reactants.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/reactioninfo.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/cheminfo.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/atommapping.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/metabolite-div.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/register_modal.css' %}" />
-		<link rel="stylesheet" type="text/css" href="{% static 'reactions/ask_ai.css' %}" />
-		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/favicon.ico' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/home_page.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/reactants.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/reactioninfo.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/cheminfo.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/atommapping.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/metabolite_div.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/register_modal.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/ask_ai.css' %}" />
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/imgs/favicon.ico' %}" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" />
 
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -36,7 +36,7 @@
 		</div>
 		<div class="top-menu">
 			<div class="image-icon item">
-				<img src="{% static 'reactions/website-icon.png' %}" alt="Website Icon" />
+				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="Website Icon" />
 			</div>
 			<div class="statusAndMessage">
 				<div class="status-item" id="statusTitle"></div>
@@ -79,7 +79,7 @@
 					<div id="createReactionButtons">
 						<button id="submitBtn-form" class="ui button" style="color: black">
 							<img
-								src="{% static 'reactions/beaker_1.png' %}"
+								src="{% static 'reactions/imgs/beaker_1.png' %}"
 								alt="Icon"
 								style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
 							Create Reaction
@@ -92,14 +92,14 @@
 					</div>
 					<button id="saveReactionButton" type="button" class="ui button" style="color: black">
 						<img
-							src="{% static 'reactions/save_icon.png' %}"
+							src="{% static 'reactions/imgs/save_icon.png' %}"
 							alt="Icon"
 							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
 						Save Reaction
 					</button>
 					<button id="ResetButton" type="button" class="ui red button" style="color: black">
 						<img
-							src="{% static 'reactions/reset.png' %}"
+							src="{% static 'reactions/imgs/reset.png' %}"
 							alt="Icon"
 							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
 						Reset
@@ -121,10 +121,7 @@
 									<div class="header-container">
 										<label id="substratelabel">Substrates:</label>
 										<button type="button" id="toggleApplyAllsubs" title="Apply options to all substrates">
-											<img
-												src="{% static 'reactions/apply_icon.svg' %}"
-												alt="Apply All"
-												style="width: 24px; height: 24px" />
+											<img src="{% static 'reactions/imgs/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px" />
 										</button>
 									</div>
 									<div class="apply-all-options" id="applyAllOptionsSubs" style="display: none">
@@ -218,10 +215,7 @@
 									<div class="header-container">
 										<label id="productslabel">Products:</label>
 										<button type="button" id="toggleApplyAllprods" title="Apply options to all products">
-											<img
-												src="{% static 'reactions/apply_icon.svg' %}"
-												alt="Apply All"
-												style="width: 24px; height: 24px" />
+											<img src="{% static 'reactions/imgs/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px" />
 										</button>
 									</div>
 									<div class="apply-all-options" id="applyAllOptionsProds" style="display: none">
@@ -330,12 +324,7 @@
 						<div class="header">
 							<h2>Manage Saved Metabolites</h2>
 							<div id="savedMetabolitesSearchContainer" class="search-bar" style="margin-top: 10px">
-								<input
-									type="text"
-									id="metaboliteSearchInput"
-									placeholder="Search by name or abbreviation..."
-									class="ui input"
-									style="width: 100%" />
+								<input type="text" id="metaboliteSearchInput" placeholder="Search by name or abbreviation..." class="ui input" style="width: 100%" />
 							</div>
 						</div>
 						<div class="scrolling content">
@@ -391,12 +380,7 @@
 							<div class="ui form">
 								<div class="field">
 									<label for="reactionField" style="font-size: 1.2em; font-weight: bold">Reaction Template:</label>
-									<input
-										type="text"
-										id="reactionField"
-										name="reactionField"
-										autocomplete="off"
-										placeholder="Select a template" />
+									<input type="text" id="reactionField" name="reactionField" autocomplete="off" placeholder="Select a template" />
 									<div id="reactionDropdown" class="dropdown-content-templates"></div>
 								</div>
 							</div>
@@ -693,9 +677,7 @@
 						<div class="field">
 							<label for="flagSelectCustom">Choose a flag (optional):</label>
 							<div id="customDropdown" style="position: relative; display: inline-block">
-								<div id="selectedOption" style="padding: 10px; border: 1px solid #ccc; cursor: pointer">
-									Choose a flag
-								</div>
+								<div id="selectedOption" style="padding: 10px; border: 1px solid #ccc; cursor: pointer">Choose a flag</div>
 								<div
 									id="dropdownMenu"
 									style="
@@ -811,11 +793,9 @@
 			</div>
 		</div>
 		<div class="funding-container">
-			<img src="{% static 'reactions/EU logo.webp' %}" alt="EU Logo" class="eu-logo" />
-			<div class="logo-text">
-				Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).
-			</div>
-			<img src="{% static 'reactions/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo" />
+			<img src="{% static 'reactions/imgs/EU logo.webp' %}" alt="EU Logo" class="eu-logo" />
+			<div class="logo-text">Recon4IMD is co-funded by the European Union's Horizon Europe Framework Programme (101080997).</div>
+			<img src="{% static 'reactions/imgs/Recon4IMD logo.webp' %}" alt="Recon4IMD" class="right-logo" />
 		</div>
 
 		<script>
