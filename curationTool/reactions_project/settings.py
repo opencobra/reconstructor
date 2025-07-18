@@ -36,6 +36,7 @@ except Exception as e:
     print(f"Error reading config file: {e}")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config.get('DEBUG')
+MOL_FILE_PATH = config.get('mol_file_path')
 
 ALLOWED_HOSTS = ['127.0.0.1','localhost','83.70.173.200','192.168.1.49', 'reconstructor.chatimd.org','reconstructor.humanmetabolism.org','constructor.humanmetabolism.org']
 

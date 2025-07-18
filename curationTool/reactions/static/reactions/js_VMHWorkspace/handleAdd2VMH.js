@@ -660,6 +660,19 @@ function addToVMH() {
 				// Show the modal
 				document.getElementById('reactionModal').style.display = 'none';
 				document.getElementById('responseModal').style.display = 'block';
+
+				reactions.forEach(([abbr, [id]]) => {
+					// Remove from DOM
+					const reactionItem = document.querySelector(`.item[data-pk="${id}"]`);
+					if (reactionItem) {
+						reactionItem.remove();
+					}
+					// Remove from reactions_active array
+					const index = reactions_active.findIndex((r) => r.pk === id);
+					if (index !== -1) {
+						reactions_active.splice(index, 1);
+					}
+				});
 				reactions = [];
 			} else {
 				// Handle error case
