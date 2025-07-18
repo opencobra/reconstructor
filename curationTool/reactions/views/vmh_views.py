@@ -623,17 +623,17 @@ def add_to_vmh(request):
                 reaction_identifiers,
                 matlab_result['rxn_ids'],
                 reaction_formulas)}
-        for abbr, info in rxn_added_info.items():
+        for idx, (abbr, info) in enumerate(rxn_added_info.items()):
             ReactionsAddedVMH.objects.create(
                 user=user,
                 user_name=user_name,
-                reaction_id=info[0],
+                reaction_id=info[0],         # VMH ID
                 reaction_formula=info[1],
                 reaction_abbr=abbr,
             )
-            
+
             workspace = Workspace.objects.get(user=user)
-            reaction_obj = Reaction.objects.get(pk=info[0])
+            reaction_obj = reaction_objs[idx]  # already loaded!
             workspace.reactions.remove(reaction_obj)
         matlab_session.quit()
         return JsonResponse({'status': 'success',
