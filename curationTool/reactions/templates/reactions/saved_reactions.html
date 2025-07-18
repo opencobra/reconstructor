@@ -53,8 +53,8 @@
 						<span class="tooltip-ai">
 							<i class="fas fa-info-circle"></i>
 							<span class="tooltiptext"
-								>Temperature controls the randomness of the GPT-4 responses. Lower values make the output more focused
-								and deterministic. Higher values make it more creative.</span
+								>Temperature controls the randomness of the GPT-4 responses. Lower values make the output more focused and deterministic. Higher
+								values make it more creative.</span
 							>
 						</span>
 					</div>
@@ -72,9 +72,7 @@
 					<h2 id="reactionModalTitle">Adding the following reactions:</h2>
 					<div id="modalReactionsList" class="modal-reactions-list"></div>
 					<button id="confirmAddToVMH" class="confirm-add-to-vmh-btn">Confirm</button>
-					<div
-						id="loadingIndicator"
-						style="display: none; align-items: center; justify-content: center; flex-direction: column">
+					<div id="loadingIndicator" style="display: none; align-items: center; justify-content: center; flex-direction: column">
 						<div class="loader"></div>
 						<p id="loadingText">Checking if there are metabolites to be added</p>
 					</div>
@@ -106,9 +104,7 @@
 						</div>
 
 						<button type="button" id="createFlagButtonCustom" class="ui button" style="margin-left: 10px">+</button>
-						<button type="button" id="AddFlagtosavedreaction" class="ui button" style="margin-left: 10px">
-							Add Flag to selected reactions
-						</button>
+						<button type="button" id="AddFlagtosavedreaction" class="ui button" style="margin-left: 10px">Add Flag to selected reactions</button>
 					</div>
 
 					<!-- Input fields for new flag -->
@@ -207,10 +203,7 @@
 								<input type="checkbox" class="reaction-checkbox" data-reaction-id="{{ item.reaction.id }}" />
 							</td>
 							<td>
-								<span
-									class="reaction-name"
-									data-reaction-id="{{ item.reaction.id }}"
-									data-current-name="{{ item.details.short_name }}">
+								<span class="reaction-name" data-reaction-id="{{ item.reaction.id }}" data-current-name="{{ item.details.short_name }}">
 									{{ item.details.short_name }}
 								</span>
 								<input
@@ -239,9 +232,7 @@
 									View Description
 								</button>
 								{% else %}
-								<span class="no-description" data-reaction-id="{{ item.reaction.id }}" data-description="">
-									No Description
-								</span>
+								<span class="no-description" data-reaction-id="{{ item.reaction.id }}" data-description=""> No Description </span>
 								{% endif %}
 							</td>
 							<td>{{ item.details.subsystem }}</td>
@@ -301,7 +292,6 @@
 		<script src="{% static 'reactions/js_savedreactions/flag_saved_reaction.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/FlagFilter.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/handleAdd2VMH.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/delete_flag.js' %}"></script>
 		<script src="{% static 'reactions/js_savedreactions/sort_table.js' %}"></script>

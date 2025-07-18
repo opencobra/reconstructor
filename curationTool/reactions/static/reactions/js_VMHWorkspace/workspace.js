@@ -63,7 +63,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 		e.target.classList.add('active');
 	});
 
-	// 3 – helper that re-uses your modal-builders
+	// 3 – helper that re-uses modal-builders
 	async function buildEditableCard(reaction) {
 		let vmhResponse;
 
@@ -280,7 +280,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 		return listItem;
 	}
 
-	// 4 – Save & Submit stubs  (wire into your existing endpoints)
+	// 4 – Save & Submit stubs
 	availableDetailEl.addEventListener('click', (e) => {
 		if (e.target.id === 'submitVMHBtn') {
 			const pk = +e.target.dataset.pk;
@@ -290,7 +290,6 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	});
 
 	function addToVMHforSingle(pk) {
-		// thin wrapper around your big addToVMH(); adapt as you wish
 		window.checkedReactions = [String(pk)];
 		addToVMH(); // comes from handleAdd2VMH.js
 	}

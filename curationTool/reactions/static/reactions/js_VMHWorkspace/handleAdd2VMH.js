@@ -641,7 +641,6 @@ function addToVMH() {
 					responseBody += '<p>Reaction Abbreviation (ID in VMH Database):</p><ul>';
 					reactions.forEach(([abbr, [id, formula]]) => {
 						responseBody += `<li><span class="bold">${abbr}</span> (${id})<div class="info-block" id="rxnInfo_${id}" style="display:none;"><p>Formula: ${formula}</p></div></li>`;
-						moveReactionToAddedTab(id);
 					});
 					responseBody += '</ul>';
 				}
@@ -677,19 +676,6 @@ function addToVMH() {
 			setButtonState(false);
 			window.scrollTo(0, 0);
 		});
-}
-
-function moveReactionToAddedTab(reactionId) {
-	// Remove from current active tab
-	const activeItem = document.querySelector(`#wsReactionList .item[data-reaction-id="${reactionId}"]`);
-	if (activeItem) activeItem.remove();
-
-	// Get the detailed info and move it to the added list
-	const detailElem = document.querySelector(`#wsReactionDetails .reaction-detail[data-reaction-id="${reactionId}"]`);
-	if (detailElem) {
-		document.querySelector('#tab2-reaction').appendChild(detailElem);
-		detailElem.classList.remove('active'); // optional: remove highlight
-	}
 }
 
 const confirmAddToVMHBtn = document.getElementById('confirmAddToVMH');
