@@ -648,9 +648,24 @@ def add_to_vmh(request):
 @require_POST
 def send_to_workspace(request):
     """
-    Called from saved_reactions.
-    Saves the list of selected reaction-PKs in Workspace model
-    and redirects the user to /VMH_Workspace/.
+    Handles the request to add selected reactions to the user's Workspace.
+
+    Process:
+    - Parses JSON data from the POST request body.
+    - Retrieves the user ID and a list of selected reaction primary keys (IDs).
+    - Fetches the corresponding User object.
+    - Retrieves or creates a Workspace object associated with the user.
+    - Adds the selected Reaction objects to the Workspace's many-to-many field.
+    - Saves the updated Workspace.
+
+    Parameters:
+    - request (HttpRequest): The HTTP POST request containing JSON body with:
+        - 'userID' (int): ID of the user.
+        - 'reactionIds' (list of int): List of reaction primary keys to add.
+
+    Returns:
+    - JsonResponse: A JSON response with a success status:
+        { "status": "success" }
     """
     data = json.loads(request.body)
     user_id = data.get('userID')
@@ -665,7 +680,28 @@ def send_to_workspace(request):
 
 def vmh_workspace(request):
     """
-    Loads the user's Workspace reactions and renders VMH_workspace.html
+    View function to render the VMH Workspace page with user's available and added reactions.
+
+    Process:
+    - Retrieves the logged-in user's ID from the session.
+    - If the user is authenticated:
+        - Retrieves the corresponding User object.
+        - Gets or creates a Workspace object for the user.
+        - Fetches all reactions in the user's workspace.
+        - Fetches all reactions the user has already added to VMH, ordered by most recent.
+    - If the user is not authenticated:
+        - Uses empty QuerySets for both workspace and added reactions.
+    - Serializes the data for both available and added reactions to pass to the frontend.
+
+    Parameters:
+    - request (HttpRequest): The HTTP request object, which may contain the session data.
+
+    Returns:
+    - HttpResponse: Renders 'reactions/VMH_workspace.html' with the following context:
+        - 'user_name' (str): Name of the logged-in user (or 'Guest' if unauthenticated).
+        - 'userID' (int or str): ID of the user (or empty string if unauthenticated).
+        - 'reactions_active' (JSON): List of available (non-added) reactions from the workspace.
+        - 'reactions_added' (JSON): List of reactions already added to VMH.
     """
     user_pk = request.session.get('userID')
 

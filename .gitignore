@@ -9,3 +9,4 @@ config.json
 staticfiles/
 .venv/
 .DS_Store
+temp_mol.mol

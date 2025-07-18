@@ -286,28 +286,15 @@
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
 			var reactions = {{ reactions_json|safe }};
 		</script>
-		<script src="{% static 'reactions/js_savedreactions/reactionChecking.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/dynamicEventListeners.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/reactionViewAndDelete.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/flag_saved_reaction.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/FlagFilter.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/utilities.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/search_reaction.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/delete_flag.js' %}"></script>
-		<script src="{% static 'reactions/js_savedreactions/sort_table.js' %}"></script>
-		<script src="{% static 'reactions/js_VMHworkspace/handleAdd2VMH.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/reactionChecking.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/dynamicEventListeners.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/reactionViewAndDelete.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/flag_saved_reaction.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/FlagFilter.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/utilities.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/search_reaction.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/delete_flag.js' %}"></script>
+		<script src="{% static 'reactions/js_saved_reactions/sort_table.js' %}"></script>
+		<script src="{% static 'reactions/js_VMH_workspace/handleAdd2VMH.js' %}"></script>
 	</body>
-	{% comment %}
-	<div id="descriptionModal" class="ui modal">
-		<div class="header">Reaction Description</div>
-		<div class="content">
-			<p id="descriptionText"></p>
-		</div>
-		<div class="actions">
-			<!-- Edit button (will only be used when there is an existing description) -->
-			<button class="ui button" id="editDescriptionModalBtn" data-reaction-id="">Edit Description</button>
-			<button class="ui button" id="closeDescriptionModal">Close</button>
-		</div>
-	</div>
-	{% endcomment %}
 </html>
