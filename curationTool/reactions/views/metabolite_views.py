@@ -79,7 +79,7 @@ def _verify_vmh_metabolite(main_input, input_type):
         )
 
     data = response.json()
-    results = data.get('metData', [])
+    results = data.get('results', [])
 
     if not results:
         return JsonResponse(

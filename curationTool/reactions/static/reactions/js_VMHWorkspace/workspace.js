@@ -67,8 +67,8 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	async function buildEditableCard(reaction) {
 		let vmhResponse;
 
-		const reactionIndex = reaction.pk; // ← Add this!
-		const reactionId = reaction.pk; // ← Add this!
+		const reactionIndex = reaction.pk;
+		const reactionId = reaction.pk;
 
 		document.getElementById('loadingIndicator').style.display = 'flex';
 		document.getElementById('loadingText').textContent = 'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
