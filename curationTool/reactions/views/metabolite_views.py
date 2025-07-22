@@ -12,6 +12,7 @@ It includes:
 """
 
 import json
+import os
 from collections import defaultdict
 import requests
 
@@ -59,67 +60,82 @@ def verify_metabolite(request):
         return _verify_saved_metabolite(request, main_input, input_type)
     return _verify_other_metabolite(request, main_input, input_type)
 
-
 def _verify_vmh_metabolite(main_input, input_type):
     """Helper function to verify a metabolite in VMH."""
     base_url = settings.OLD_VMH_BASE_URL
     endpoint = f"{base_url}_api/metabolites/?abbreviation={main_input}"
-    response = requests.get(endpoint, verify=False, timeout=10)
 
-    if response.status_code != 200:
-        return JsonResponse(
-            {
-                'error': True,
-                'message': (
-                    f"VMH API returned error {response.status_code} "
-                    f"for metabolite `{main_input}`"
-                )
-            },
-            status=500
-        )
+    try:
+        response = requests.get(endpoint, verify=False, timeout=10)
+    except Exception:
+        response = None
 
-    data = response.json()
-    results = data.get('results', [])
+    results = []
+    if response and response.status_code == 200:
+        data = response.json()
+        results = data.get('results', [])
 
-    if not results:
-        return JsonResponse(
-            {
-                'error': True,
-                'message': f"Metabolite `{main_input}` not found in VMH"
-            },
-            status=404
-        )
+    if results:
+        inchi_string = results[0].get('inchiString', '')
+        smile = results[0].get('smile', '')
 
-    inchi_string, smile = results[0].get('inchiString', ''), results[0].get('smile', '')
-
-    if not smile and not inchi_string:
-        return JsonResponse(
-            {
+        if not smile and not inchi_string:
+            return JsonResponse({
                 'error': True,
                 'message': f"Metabolite {main_input} does not have SMILES/Inchi in VMH"
-            },
-            status=404
-        )
+            }, status=404)
 
-    mol_obj = Chem.MolFromSmiles(smile) if smile else Chem.MolFromInchi(inchi_string)
-    atom_counts, charge = {}, None
+        mol_obj = Chem.MolFromSmiles(smile) if smile else Chem.MolFromInchi(inchi_string)
+        if not mol_obj:
+            return JsonResponse({
+                'error': True,
+                'message': f"Failed to parse structure for {main_input}"
+            }, status=500)
 
-    if mol_obj:
         formula = CalcMolFormula(mol_obj)
         atom_counts = parse_mol_formula(formula)
         charge = sum(atom.GetFormalCharge() for atom in mol_obj.GetAtoms())
 
-    return JsonResponse({
-        'found': True,
-        'abbr': results[0]['abbreviation'],
-        'name': results[0]['fullName'],
-        'miriam': results[0]['miriam'],
-        'input_type': input_type,
-        'atom_counts': atom_counts,
-        'charge': charge,
-        'noStructure': False
-    })
+        return JsonResponse({
+            'found': True,
+            'abbr': results[0]['abbreviation'],
+            'name': results[0]['fullName'],
+            'miriam': results[0]['miriam'],
+            'input_type': input_type,
+            'atom_counts': atom_counts,
+            'charge': charge,
+            'noStructure': False
+        })
 
+    # Fallback: Try to load local .mol file
+    mol_path = os.path.join(settings.MOL_FILE_PATH , f"{main_input}.mol")
+    if os.path.exists(mol_path):
+        mol_obj = Chem.MolFromMolFile(mol_path)
+        if mol_obj:
+            formula = CalcMolFormula(mol_obj)
+            atom_counts = parse_mol_formula(formula)
+            charge = sum(atom.GetFormalCharge() for atom in mol_obj.GetAtoms())
+
+            return JsonResponse({
+                'found': True,
+                'abbr': main_input,
+                'name': main_input,
+                'miriam': '',
+                'input_type': input_type,
+                'atom_counts': atom_counts,
+                'charge': charge,
+                'noStructure': False
+            })
+        else:
+            return JsonResponse({
+                'error': True,
+                'message': f"Failed to parse local MOL file for `{main_input}`"
+            }, status=500)
+
+    return JsonResponse({
+        'error': True,
+        'message': f"Metabolite `{main_input}` not found in VMH or storage"
+    }, status=404)
 
 def _verify_saved_metabolite(request, main_input, input_type):
     """Helper function to verify a metabolite in the saved database."""
