@@ -5,6 +5,7 @@
 # operations.
 
 import requests
+import os
 from rdkit import Chem
 from reactions.utils.to_smiles import smiles_with_explicit_hydrogens
 from django.core.files.temp import NamedTemporaryFile
@@ -288,14 +289,30 @@ def get_vmh_miriam(abbr):
     - abbr (str): The molecule abbreviation.
 
     Output:
-    - (str): The MIRIAM ID for the molecule.
+    - (str): The MIRIAM ID for the molecule is found, else empty string.
     """
     BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbr)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
-    response = requests.get(endpoint, verify=False)
-    miriam = response.json().get('results', [[]])[0].get('miriam', '')
-    return miriam
+    try:
+        response = requests.get(endpoint, verify=False, timeout=10)
+        if response.status_code == 200:
+            results = response.json().get('results', [])
+            if results:
+                return results[0].get('miriam', '')
+    except Exception:
+        pass
+
+    # Fallback: local mol file
+    mol_path = os.path.join(settings.MOL_FILE_PATH, f"{abbr}.mol")
+    if os.path.exists(mol_path):
+        try:
+            mol = Chem.MolFromMolFile(mol_path, sanitize=False, removeHs=False)
+            found, miriam = search_vmh(mol)
+            return miriam if found else ''
+        except Exception:
+            return ''
+    return ''
 
 
 def search_metabolites_vmh(
@@ -322,8 +339,8 @@ def search_metabolites_vmh(
     file_idx = 0  # Initialize file index
     for idx, this_type in enumerate(types):
         if this_type == 'VMH':
-            found = True
             miriam = get_vmh_miriam(mols[idx])
+            found = bool(miriam)
         elif this_type == 'SwissLipids':
             base_url = 'https://www.swisslipids.org/api/index.php/entity/'
             endpoint = f"{base_url}{mols[idx]}"
