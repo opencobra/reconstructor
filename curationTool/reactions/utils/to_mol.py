@@ -41,39 +41,66 @@ def smiles_with_explicit_hydrogens(smiles):
 def vmh_to_mol(abbreviation):
     """
     Creates a mol file of a metabolite from the VMH database using its abbreviation.
+    Falls back to /home/sandeep/ctf/mets/molFiles if not found in API.
 
     Input:
-    - abbreviation (str): The abbreviation of the metabolite to query in the VMH database.
+    - abbreviation (str): The abbreviation of the metabolite to query.
 
     Output:
-    - (tuple): A tuple containing RDKIT MOL object and an error message (None if no error).
+    - (tuple): (RDKit Mol object or None, error message or None, metabolite name or '')
     """
     BASE_URL = settings.OLD_VMH_BASE_URL
     encoded_abbr = quote(abbreviation)
     endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
     # endpoint = f"https://vmh.chatimd.org/api/public/getMetHandler?id={encoded_abbr}"
-    response = requests.get(endpoint, verify=False)
+    try:
+        response = requests.get(endpoint, verify=False)
+    except Exception as e:
+        return None, f"Failed to reach VMH API: {e}", abbreviation
+
     if response.status_code != 200:
-        return None, f"VMH API returned error {response.status_code} for metabolite {abbreviation}"
+        return None, f"VMH API returned error {response.status_code} for metabolite {abbreviation}", abbreviation
+
     data = response.json()
     res = data.get('results', [])
+
     if len(res) == 0:
-        return None, f"Metabolite {abbreviation} does not exist in VMH"
+        # Fallback to local mol file
+        MOL_FILE_PATH = settings.MOL_FILE_PATH
+        local_path = os.path.join(MOL_FILE_PATH, f"{abbreviation}.mol")
+        if os.path.exists(local_path):
+            mol = Chem.MolFromMolFile(local_path, sanitize=False, removeHs=False)
+            if mol:
+                mol.UpdatePropertyCache(strict=False)
+                return mol, None, abbreviation
+            else:
+                return None, f"Failed to parse .mol file for {abbreviation}", abbreviation
+        return None, f"Metabolite {abbreviation} does not exist in VMH", abbreviation
+
+    # If VMH returns results
     inchi_string = res[0].get('inchiString', '')
     smile = res[0].get('smile', '')
-    name = res[0].get('fullName', '')
+    name = res[0].get('fullName', '') or abbreviation
+
     if not smile and not inchi_string:
-        return None, f"Metabolite {abbreviation} does not have SMILES or inchi String on VMH", name
-    elif inchi_string:
+        return None, f"Metabolite {abbreviation} does not have SMILES or InChI string on VMH", name
+
+    if inchi_string:
         mol = Chem.MolFromInchi(inchi_string, sanitize=False, removeHs=False)
-        mol.UpdatePropertyCache(strict=False)
-        inchi_string = None if not mol else inchi_string
-    elif smile and not inchi_string:
+        if mol:
+            mol.UpdatePropertyCache(strict=False)
+        else:
+            return None, f"InChI parsing failed for {abbreviation}", name
+    elif smile:
         if '[*]' in smile:
             return None, f"Metabolite {abbreviation} has a placeholder ([*]) in the SMILES string", name
         smile = smiles_with_explicit_hydrogens(smile)
         mol = Chem.MolFromSmiles(smile, sanitize=False, removeHs=False)
-        mol.UpdatePropertyCache(strict=False)
+        if mol:
+            mol.UpdatePropertyCache(strict=False)
+        else:
+            return None, f"SMILES parsing failed for {abbreviation}", name
+
     return mol, None, name
 
 

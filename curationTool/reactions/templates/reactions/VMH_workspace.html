@@ -70,8 +70,8 @@
 					<!-- sub-tabs -->
 					<div class="subtabs">
 						<button class="subtab-link active" data-subtab="tab1-reaction">Reaction</button>
-						<button class="subtab-link" data-subtab="tab1-metabolite">Metabolite</button>
-						<button class="subtab-link" data-subtab="tab1-gene">Gene</button>
+						{% comment %} <button class="subtab-link" data-subtab="tab1-metabolite">Metabolite</button>
+						<button class="subtab-link" data-subtab="tab1-gene">Gene</button> {% endcomment %}
 					</div>
 
 					<div id="tab1-reaction" class="subtab-content active">
@@ -91,12 +91,14 @@
 							</div>
 						</div>
 					</div>
+					{% comment %}
 					<div id="tab1-metabolite" class="subtab-content">
 						<p>Metabolite panel. Available soon...</p>
 					</div>
 					<div id="tab1-gene" class="subtab-content">
 						<p>Gene panel. Available soon...</p>
 					</div>
+					{% endcomment %}
 				</div>
 
 				<div id="tab2" class="tab-content">
