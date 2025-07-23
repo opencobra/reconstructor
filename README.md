@@ -219,7 +219,6 @@ Project Link: [https://github.com/opencobra/reconstructor](https://github.com/op
 - [ChemDoodle Web Components](https://web.chemdoodle.com/) and [3Dmol.js](https://3dmol.org/)
 - [Chart.js](https://www.chartjs.org/)
 - [Semantic UI](https://semantic-ui.com/)
-- [Best‑README‑Template](https://github.com/othneildrew/Best-README-Template)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
