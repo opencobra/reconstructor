@@ -140,11 +140,8 @@ $ source .venv/bin/activate
 # 3. Install Python dependencies
 $ pip install -r requirements.txt
 
-# 4. Configure database
-# Specify the database name, user and password in reactions_project/settings.py
-
-# 5. Create config.json in root directory
-# Follow the format in example.config.json
+# 4. Configure database and create config.json in root directory
+# Follow the format in example.config.json, and fill in requested info
 
 # 5. Apply migrations and run
 $ python manage.py makemigrations
