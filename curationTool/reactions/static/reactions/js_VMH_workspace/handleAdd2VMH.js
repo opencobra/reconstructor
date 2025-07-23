@@ -707,6 +707,7 @@ closeResponseModalBtn &&
 			var responseModal = document.getElementById('responseModal');
 			responseModal.style.display = 'none';
 		}
+		window.location.reload();
 	});
 
 // Navigation buttons
