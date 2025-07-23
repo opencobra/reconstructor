@@ -577,6 +577,7 @@ def add_to_vmh(request):
                         metabolite_abbr=abbr,
                     )
             else:
+                matlab_session.quit()
                 return JsonResponse(
                     {'status': 'error', 'message': matlab_result['message']})
     reaction_formulas = [
@@ -634,10 +635,12 @@ def add_to_vmh(request):
             workspace = Workspace.objects.get(user=user)
             reaction_obj = reaction_objs[idx]  # already loaded!
             workspace.reactions.remove(reaction_obj)
+        matlab_session.quit()
         return JsonResponse({'status': 'success',
                              'rxn_added_info': rxn_added_info,
                              'met_added_info': met_added_info})
 
+    matlab_session.quit()
     return JsonResponse(
         {'status': 'error', 'message': matlab_result['message']})
     
