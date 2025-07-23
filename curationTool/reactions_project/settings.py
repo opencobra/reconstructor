@@ -90,15 +90,21 @@ WSGI_APPLICATION = 'reactions_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+DATABASE_NAME = config.get('DATABASE_NAME')
+DATABASE_USER = config.get('DATABASE_USER')
+DATABASE_PASSWORD = config.get('DATABASE_PASSWORD')
+DATABASE_HOST = config.get('DATABASE_HOST')
+DATABASE_PORT = config.get('DATABASE_PORT')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'curationToolDB',
+        'NAME': DATABASE_NAME,
         #'NAME': 'curationtooldb1',
-        'USER': 'saleh',
-        'PASSWORD': '1curationTool1',
-        'HOST': 'localhost',  
-        'PORT': '5432',       
+        'USER': DATABASE_USER,
+        'PASSWORD': DATABASE_PASSWORD,
+        'HOST': DATABASE_HOST,  
+        'PORT': DATABASE_PORT,       
     }
 }
 
