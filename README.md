@@ -142,8 +142,6 @@ $ pip install -r requirements.txt
 # 4. Configure database
 Specify the database name, user and password in reactions_project/settings.py
 
-#    Then set DB name, user, password and ensure RDT_INSTALL env var points to your RDT folder.
-
 # 5. Apply migrations and run
 $ python manage.py makemigrations
 $ python manage.py migrate
