@@ -119,7 +119,8 @@ Follow these instructions to get a local development instance running.
 - **Python >= 3.10**
 - **Django >= 5.0**
 - **PostgreSQL** (or another Django‑compatible RDBMS)
-- **Reaction Decoder Tool (RDT) >= 2.4.1** – [Download](https://github.com/asad/ReactionDecoder/releases)
+- **Reaction Decoder Tool (RDT) >= 2.4.1** – [Download](https://github.com/asad/ReactionDecoder/releases), and put the jar file under folder curationTool
+- **Matlab 2024a**
 
 ```bash
 # Ubuntu example – install system packages
@@ -140,7 +141,10 @@ $ source .venv/bin/activate
 $ pip install -r requirements.txt
 
 # 4. Configure database
-Specify the database name, user and password in reactions_project/settings.py
+# Specify the database name, user and password in reactions_project/settings.py
+
+# 5. Create config.json in root directory
+# Follow the format in example.config.json
 
 # 5. Apply migrations and run
 $ python manage.py makemigrations
