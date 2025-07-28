@@ -480,17 +480,22 @@ function toggleInfo() {
 }
 
 function addToVMH() {
-	document.getElementById('loadingIndicator').style.display = 'flex';
+	const loadingIndicator = document.getElementById('loadingIndicator');
+	loadingIndicator.innerHTML = `
+        <div class="loader"></div>
+        <span id="loadingText"></span>
+    `;
+	loadingIndicator.style.display = 'flex';
+
 	let loadingTexts = ['Checking if all requirements are met', 'Initialising Cobra ToolBox', 'Adding reactions to VMH database'];
 	let currentTextIndex = 0;
 	document.getElementById('loadingText').textContent = loadingTexts[currentTextIndex];
 
-	// Disable the confirm button to prevent multiple submissions
 	setButtonState(true);
 
 	if (!validateInputs()) {
 		displayValidationMessage(true, 'Fill in all non-VMH metabolite names');
-		document.getElementById('loadingIndicator').style.display = 'none'; // Hide loading indicator
+		loadingIndicator.style.display = 'none'; // Hide loading indicator
 		setButtonState(false);
 		return;
 	} else {

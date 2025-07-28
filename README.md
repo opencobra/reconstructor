@@ -60,6 +60,7 @@
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <li><a href="#citation">Citation</a></li>
   </ol>
 </details>
 
@@ -140,13 +141,11 @@ $ source .venv/bin/activate
 # 3. Install Python dependencies
 $ pip install -r requirements.txt
 
-# 4. Configure database
-# Specify the database name, user and password in reactions_project/settings.py
-
-# 5. Create config.json in root directory
-# Follow the format in example.config.json
+# 4. Configure database and create config.json in root directory
+# Follow the format in example.config.json, and fill in requested values
 
 # 5. Apply migrations and run
+$ cd curationTool
 $ python manage.py makemigrations
 $ python manage.py migrate
 $ python manage.py runserver
@@ -225,6 +224,12 @@ Project Link: [https://github.com/opencobra/reconstructor](https://github.com/op
 - [Semantic UI](https://semantic-ui.com/)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+## Citation
+
+Cite this work in your paper:
+
+Alwer, S., Sathe, V., Brennan, A., and McGoldrick J. "Constructor: An open-source interface for quality-controlled metabolic reconstruction." Available at: https://github.com/opencobra/reconstructor.
 
 <!-- MARKDOWN LINKS & IMAGES -->
 
