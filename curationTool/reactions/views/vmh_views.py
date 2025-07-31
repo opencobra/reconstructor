@@ -454,7 +454,8 @@ def add_to_vmh(request):
     prods_abbr = []
     for reaction in reactions:
         obj = Reaction.objects.get(pk=reaction['pk'])
-        obj.short_name = reaction['short_name']
+        obj.short_name = reaction['abbreviation']
+        obj.description = reaction['short_name']
         reaction_ids.append(obj.id)
         # Update substrate names and abbreviations
         subs_info = json.loads(reaction['substrates_info'])

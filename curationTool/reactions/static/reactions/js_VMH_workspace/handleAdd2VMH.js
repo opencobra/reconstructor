@@ -544,11 +544,6 @@ function addToVMH() {
 			}
 		});
 
-		const inputField = document.querySelector(`.reaction-name-input[data-reaction-id="${reactionId}"]`);
-		if (inputField && inputField.value.trim() !== '') {
-			reaction.fields.short_name = inputField.value.trim();
-		}
-
 		const referencesData = Array.from(document.querySelectorAll(`.reference-input[data-reaction-id="${reactionId}"]`)).map((input) => {
 			const select = input.previousElementSibling;
 			return {
