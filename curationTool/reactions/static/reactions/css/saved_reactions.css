@@ -1205,3 +1205,15 @@ button#backToHome {
 #confirmSendModal .content {
 	text-align: center;
 }
+
+#descriptionModal.ui.modal {
+	position: fixed;
+	inset: 0; /* shorthand for top/right/bottom/left:0 */
+	display: none; /* JS toggles to flex */
+	align-items: center; /* vertical centring */
+	justify-content: center; /* horizontal centring */
+	background: rgba(0, 0, 0, 0.4); /* dimmer */
+	z-index: 1000; /* above the rest of the page */
+	background: transparent !important;
+	box-shadow: none !important;
+}
