@@ -27,7 +27,7 @@
   <p align="center">
     A web application to build, curate, and validate biochemical reactions for genome‑scale reconstructions.
     <br />
-    <a href="https://constructor.humanmetabolism.org"><strong>Live demo »</strong></a>
+    <a href="https://constructor.humanmetabolism.org"><strong>Launch Constructor »</strong></a>
     <br />
     <br />
     <a href="https://github.com/opencobra/reconstructor">View Source</a>

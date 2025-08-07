@@ -454,7 +454,8 @@ def add_to_vmh(request):
     prods_abbr = []
     for reaction in reactions:
         obj = Reaction.objects.get(pk=reaction['pk'])
-        obj.short_name = reaction['short_name']
+        obj.short_name = reaction['abbreviation']
+        obj.description = reaction['description']
         reaction_ids.append(obj.id)
         # Update substrate names and abbreviations
         subs_info = json.loads(reaction['substrates_info'])
@@ -533,7 +534,7 @@ def add_to_vmh(request):
 
     reaction_identifiers, reaction_names = [
         reaction['abbreviation'] for reaction in reactions], [
-        reaction.short_name for reaction in reaction_objs]
+        reaction['description'] for reaction in reaction_objs]
     matlab_session = None  if all_vmh  else  MatlabSessionManager() 
     if not all_vmh:
         unique_abbrs, unique_mols, unique_types, unique_names = get_nonfound_metabolites(
@@ -633,6 +634,7 @@ def add_to_vmh(request):
 
             workspace = Workspace.objects.get(user=user)
             reaction_obj = reaction_objs[idx]  
+            reaction_obj.vmh_found = True
             workspace.reactions.remove(reaction_obj)
         return JsonResponse({'status': 'success',
                              'rxn_added_info': rxn_added_info,

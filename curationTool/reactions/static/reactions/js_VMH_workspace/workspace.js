@@ -128,7 +128,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 
                     <div class="reaction-field">
                         <label>Description:</label>
-                        <input type="text" class="reaction-name-input" placeholder="Reaction Description"
+                        <input type="text" class="reaction-name-input" placeholder="Reaction Name in VMH"
                             value="${reaction.fields.description}" data-reaction-id="${reaction.pk}">
                     </div>
 

@@ -145,239 +145,6 @@ function toggleDetails(event, headerElement) {
 	}
 }
 
-const addToVMHBtn = document.getElementById('addToVMH');
-addToVMHBtn &&
-	addToVMHBtn.addEventListener('click', async function () {
-		var modal = document.getElementById('reactionModal');
-		var modalList = document.getElementById('modalReactionsList');
-		var modalTitle = document.getElementById('reactionModalTitle');
-		modalList.innerHTML = ''; // Clear previous content
-
-		if (checkedReactions.length === 1) {
-			modalTitle.textContent = 'Adding the following reaction:';
-		} else {
-			modalTitle.textContent = 'Adding the following reactions:';
-		}
-
-		if (checkedReactions.length === 0) {
-			document.getElementById('alertMessage').textContent = 'Please choose reactions to be added.';
-			document.getElementById('alertModal').style.display = 'block';
-		} else {
-			let vmhResponse;
-			modal.style.display = 'block'; // Show the modal
-			document.getElementById('loadingIndicator').style.display = 'flex'; // Show loading indicator
-			document.getElementById('loadingText').textContent = 'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
-
-			try {
-				vmhResponse = await callPrepareAddToVMH(checkedReactions);
-			} catch (error) {
-				console.error('Error fetching VMH preparation data: ', error);
-				document.getElementById('alertMessage').textContent =
-					'An error occurred while fetching data from VMH. Check console for error. Please try again later.';
-				document.getElementById('alertModal').style.display = 'block';
-				modal.style.display = 'none';
-				return;
-			}
-
-			if (vmhResponse.status === 'error') {
-				document.getElementById('alertMessage').textContent = vmhResponse.message;
-				document.getElementById('alertModal').style.display = 'block';
-				modal.style.display = 'none';
-				return;
-			}
-
-			document.getElementById('loadingIndicator').style.display = 'none';
-			document.getElementById('loadingText').textContent = '';
-
-			subsInVMH = vmhResponse.subs_in_vmh;
-			prodsInVMH = vmhResponse.prods_in_vmh;
-			subsAbbr = vmhResponse.subs_abbr;
-			prodsAbbr = vmhResponse.prods_abbr;
-			subsNeedNewNames = vmhResponse.subs_need_new_names;
-			prodsNeedNewNames = vmhResponse.prods_need_new_names;
-			reactionAbbrs = vmhResponse.reaction_abbrs;
-
-			checkedReactions.forEach(function (reactionId) {
-				var reactionIdNum = Number(reactionId);
-				var reactionIndex = checkedReactions.indexOf(reactionId.toString());
-				var reaction = reactions_active.find((r) => r.pk === reactionIdNum);
-				if (reaction) {
-					let substrates_names = JSON.parse(reaction.fields.substrates_names);
-					let products_names = JSON.parse(reaction.fields.products_names);
-					let subs_comps = JSON.parse(reaction.fields.subs_comps);
-					let prods_comps = JSON.parse(reaction.fields.prods_comps);
-					let subs_stoich = JSON.parse(reaction.fields.subs_sch);
-					let prods_stoich = JSON.parse(reaction.fields.prods_sch);
-					let substrates = JSON.parse(reaction.fields.substrates);
-					let products = JSON.parse(reaction.fields.products);
-					let substrates_types = JSON.parse(reaction.fields.substrates_types);
-					let products_types = JSON.parse(reaction.fields.products_types);
-					let subsInVMHForReaction = subsInVMH[reactionIndex];
-					let prodsInVMHForReaction = prodsInVMH[reactionIndex];
-					let subsAbbrForReaction = subsAbbr[reactionIndex];
-					let prodsAbbrForReaction = prodsAbbr[reactionIndex];
-					let subsNeedNewNamesForReaction = subsNeedNewNames[reactionIndex];
-					let prodsNeedNewNamesForReaction = prodsNeedNewNames[reactionIndex];
-					let reactionAbbrForReaction = reactionAbbrs[reactionIndex];
-					let confidenceScore = reaction.fields.confidence_score || ' ';
-					var listItem = document.createElement('div');
-					listItem.className = 'modal-reaction-entry';
-					listItem.innerHTML = `
-                <div class="reaction-header" onclick="toggleDetails(event, this)" style="cursor: pointer;">
-                    <span class="toggle-icon">−</span>
-                    <text>Description:</text>
-                    <input type="text" class="reaction-name-input" placeholder="Reaction Description" value="${
-											reaction.fields.description
-										}" data-reaction-id="${reaction.pk}">
-                    <text>Abbreviation:</text>
-                    <input type="text" class="reaction-abbreviation-input" placeholder="Enter reaction abbreviation" value="${
-											reaction.fields.short_name
-										}" data-reaction-id="${reaction.pk}">
-                    <label for="confidencedropdown-${reactionId}">Confidence Score:</label>
-                    <select class="confidencedropdown" id="confidencedropdown-${reaction.pk}" data-reaction-id="${reaction.pk}">
-                        <option value=" " ${confidenceScore === ' ' ? 'selected' : ''}>-</option>
-                        <option value="1" ${confidenceScore === '1' ? 'selected' : ''}>1</option>
-                        <option value="2" ${confidenceScore === '2' ? 'selected' : ''}>2</option>
-                        <option value="3" ${confidenceScore === '3' ? 'selected' : ''}>3</option>
-                        <option value="4" ${confidenceScore === '4' ? 'selected' : ''}>4</option>
-                    </select>
-                    
-                    <div class= "cs-info" onclick="toggleInfo()" style="cursor: pointer;">
-                    <button class="cs-info-button">i</button>
-                    </div>
-                </div>
-
-                <div class="reaction-details">
-                    <p>Substrates:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Stoichiometry</th>
-                                <th>Comp</th>
-                                <th>Name</th>
-                                <th>Abbreviation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${substrates_names
-															.map(
-																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
-																	substrates[index],
-																	substrates_types[index],
-																	subs_comps[index]
-																)}">
-                                    <td>
-                                        <text>${subs_stoich[index]}</text>
-                                    </td>
-                                    <td>
-                                        <text>${subs_comps[index]}</text>
-                                    </td>
-                                    <td>
-                                        <input type="text" name=subsNameInput placeholder="Name" value="${name}" ${
-																	subsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                        ${
-																					subsNeedNewNamesForReaction[index]
-																						? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' +
-																						  name +
-																						  ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>'
-																						: ''
-																				}
-                                    </td>
-                                    <td>
-                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${subsAbbrForReaction[index]}" ${
-																	subsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                    </td>
-                                </tr>
-                            `
-															)
-															.join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="reaction-details">
-                    <p>Products:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Stoichiometry</th>
-                                <th>Comp</th>
-                                <th>Name</th>
-                                <th>Abbreviation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${products_names
-															.map(
-																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
-																	products[index],
-																	products_types[index],
-																	prods_comps[index]
-																)}">
-                                    <td>
-                                        <text>${prods_stoich[index]}</text>
-                                    </td>
-                                    <td>
-                                        <text>${prods_comps[index]}</text>
-                                    </td>
-                                    <td>
-                                        <input type="text" name=prodsNameInput placeholder="Name" value="${name}" ${
-																	prodsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                        ${
-																					prodsNeedNewNamesForReaction[index]
-																						? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' +
-																						  name +
-																						  ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>'
-																						: ''
-																				}
-                                    </td>
-                                    <td>
-                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${prodsAbbrForReaction[index]}" ${
-																	prodsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                    </td>
-                                </tr>
-                            `
-															)
-															.join('')}
-                        </tbody>
-                    </table>
-                </div>
-                `;
-					// Append references, external links, comments as before
-					let references = reaction.fields.references || [];
-					let ext_links = reaction.fields.ext_links || [];
-					let comments = reaction.fields.comments || [];
-					let gene_info = reaction.fields.gene_info || [];
-
-					gene_info = gene_info.map((item) => {
-						if (item.info) {
-							// Split the 'info' field and update it
-							item.info = item.info.split(';')[0];
-						}
-						return item;
-					});
-
-					listItem.innerHTML += createSectionHTML('References', 'reference', references, reaction.pk, false, true);
-					listItem.innerHTML += createSectionHTML('External Links', 'ext-link', ext_links, reaction.pk, true, false);
-					listItem.innerHTML += createSectionHTML('Comments', 'comment', comments, reaction.pk);
-					listItem.innerHTML += createSectionHTML('Gene Info', 'gene-info', gene_info, reaction.pk, false, false, true);
-					modalList.appendChild(listItem);
-				}
-			});
-			setupTooltips();
-			displayValidationMessage(false); // Clear any previous validation message
-			if (!eventListenersAttached) {
-				attachDynamicEventListeners();
-				eventListenersAttached = true;
-			}
-		}
-	});
-
 function toggleInfo() {
 	// Create modal div
 	var modal = document.createElement('div');
@@ -517,7 +284,7 @@ function addToVMH() {
 		const nameInputField = document.querySelector(`.reaction-name-input[data-reaction-id="${reactionId}"]`);
 		const abbrInputField = document.querySelector(`.reaction-abbreviation-input[data-reaction-id="${reactionId}"]`);
 		if (nameInputField && nameInputField.value.trim() !== '') {
-			reaction.fields.short_name = nameInputField.value.trim();
+			reaction.fields.description = nameInputField.value.trim();
 		}
 		let reactionAbbr = '';
 		if (abbrInputField && abbrInputField.value.trim() !== '') {
@@ -543,11 +310,6 @@ function addToVMH() {
 				prodsDetails.push(detail);
 			}
 		});
-
-		const inputField = document.querySelector(`.reaction-name-input[data-reaction-id="${reactionId}"]`);
-		if (inputField && inputField.value.trim() !== '') {
-			reaction.fields.short_name = inputField.value.trim();
-		}
 
 		const referencesData = Array.from(document.querySelectorAll(`.reference-input[data-reaction-id="${reactionId}"]`)).map((input) => {
 			const select = input.previousElementSibling;
@@ -577,7 +339,7 @@ function addToVMH() {
 		// Returning the updated reaction object
 		return {
 			pk: reaction.pk,
-			short_name: reaction.fields.short_name,
+			description: reaction.fields.description,
 			abbreviation: reactionAbbr, // Add reaction abbreviation
 			substrates_info: JSON.stringify(subsDetails), // Include substrates names and abbreviations
 			products_info: JSON.stringify(prodsDetails), // Include products names and abbreviations
@@ -648,7 +410,6 @@ function addToVMH() {
 				});
 
 				// Show the modal
-				document.getElementById('reactionModal').style.display = 'none';
 				document.getElementById('responseModal').style.display = 'block';
 
 				reactions.forEach(([abbr, [id]]) => {
@@ -719,10 +480,10 @@ closeResponseModalBtn &&
 const homeBtn = document.getElementById('backToHome');
 homeBtn && homeBtn.addEventListener('click', () => (window.location.href = '/'));
 
-const wsBtn = document.getElementById('toWorkspace'); // <-- new id
+const wsBtn = document.getElementById('toWorkspace');
 wsBtn && wsBtn.addEventListener('click', () => (window.location.href = '/VMH_Workspace/'));
 
-const srBtn = document.getElementById('backToSavedReactions'); // <-- new id
+const srBtn = document.getElementById('backToSavedReactions');
 srBtn && srBtn.addEventListener('click', () => (window.location.href = '/saved_reactions/'));
 
 // send_to_workspace
