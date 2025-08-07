@@ -386,10 +386,10 @@ def check_met_names_abbrs_vmh(
 
 def validate_reaction_fields(reactions):
     """
-    Validate that each reaction has non-empty short_name, abbreviation, and confidence_score.
+    Validate that each reaction has non-empty description, abbreviation, and confidence_score.
     Also check for duplicates in the list.
     """
-    missing_names = [reaction['short_name'] == '' for reaction in reactions]
+    missing_names = [reaction['description'] == '' for reaction in reactions]
     if True in missing_names:
         return JsonResponse({'status': 'error',
                              'message': 'Please enter a description for reaction'})
@@ -404,7 +404,7 @@ def validate_reaction_fields(reactions):
         return JsonResponse({'status': 'error',
                              'message': 'Please enter a confidence score for reaction'})
     
-    names_list = [reaction['short_name'] for reaction in reactions]
+    names_list = [reaction['description'] for reaction in reactions]
     for name in names_list:
         if names_list.count(name) > 1:
             return JsonResponse({'status': 'error',
@@ -423,13 +423,13 @@ def validate_reaction_existence(reactions):
     Validate that the reaction names and abbreviations do not already exist in VMH.
     """
     name_in_vmh, abbr_in_vmh = check_names_abbrs_vmh(
-        [(reaction['short_name'], reaction['abbreviation']) for reaction in reactions]
+        [(reaction['description'], reaction['abbreviation']) for reaction in reactions]
     )
     if True in list(name_in_vmh.values()):
         name_in_vmh_reactions = [
             reaction for reaction, in_vmh in zip(reactions, name_in_vmh.values()) if in_vmh
         ]
-        reaction_names = ", ".join([reaction["short_name"] for reaction in name_in_vmh_reactions])
+        reaction_names = ", ".join([reaction["description"] for reaction in name_in_vmh_reactions])
         return JsonResponse({'status': 'error',
                              'message': f'The following reaction descriptions are already in VMH: {reaction_names}'})
     

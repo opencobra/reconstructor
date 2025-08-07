@@ -534,7 +534,7 @@ def add_to_vmh(request):
 
     reaction_identifiers, reaction_names = [
         reaction['abbreviation'] for reaction in reactions], [
-        reaction['description'] for reaction in reaction_objs]
+        reaction.description for reaction in reaction_objs]
     matlab_session = None  if all_vmh  else  MatlabSessionManager() 
     if not all_vmh:
         unique_abbrs, unique_mols, unique_types, unique_names = get_nonfound_metabolites(
