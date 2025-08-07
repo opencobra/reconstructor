@@ -448,12 +448,24 @@ confirmAddToVMHBtn && confirmAddToVMHBtn.addEventListener('click', addToVMH);
 // Close the alert modal when the user clicks on <span> (x)
 document.querySelector('.close-alert-btn').addEventListener('click', function () {
 	document.getElementById('alertModal').style.display = 'none';
+
+	if (window.pkPendingRemoval !== null) {
+		const li = document.querySelector(`#wsAvailableReactionList li[data-pk="${window.pkPendingRemoval}"]`);
+		if (li) li.remove();
+		window.pkPendingRemoval = null;
+	}
 });
 
 // Also close the modal if the user clicks anywhere outside of the modal
 window.onclick = function (event) {
 	if (event.target == document.getElementById('alertModal')) {
 		document.getElementById('alertModal').style.display = 'none';
+
+		if (window.pkPendingRemoval !== null) {
+			const li = document.querySelector(`#wsAvailableReactionList li[data-pk="${window.pkPendingRemoval}"]`);
+			if (li) li.remove();
+			window.pkPendingRemoval = null;
+		}
 	}
 };
 

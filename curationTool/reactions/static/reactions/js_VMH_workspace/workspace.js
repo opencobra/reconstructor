@@ -36,6 +36,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	// 1 – draw the list of abbreviations
 	const availableListEl = document.getElementById('wsAvailableReactionList');
 	const availableDetailEl = document.getElementById('wsAvailableReactionDetails');
+	window.pkPendingRemoval = null;
 
 	// Load available reactions
 	reactions_active.forEach((r) => {
@@ -80,6 +81,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 				'An error occurred while fetching data from VMH. Check console for error. Please try again later.';
 			document.getElementById('alertModal').style.display = 'block';
 			document.getElementById('loadingIndicator').style.display = 'none';
+			window.pkPendingRemoval = reaction.pk;
 			return '';
 		}
 
@@ -87,6 +89,7 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 			document.getElementById('alertMessage').textContent = vmhResponse.message;
 			document.getElementById('alertModal').style.display = 'block';
 			document.getElementById('loadingIndicator').style.display = 'none';
+			window.pkPendingRemoval = reaction.pk;
 			return '';
 		}
 
