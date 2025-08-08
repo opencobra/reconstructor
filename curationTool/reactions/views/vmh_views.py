@@ -635,6 +635,7 @@ def add_to_vmh(request):
             workspace = Workspace.objects.get(user=user)
             reaction_obj = reaction_objs[idx]  
             reaction_obj.vmh_found = True
+            reaction_obj.save(update_fields=['vmh_found'])
             workspace.reactions.remove(reaction_obj)
         return JsonResponse({'status': 'success',
                              'rxn_added_info': rxn_added_info,
