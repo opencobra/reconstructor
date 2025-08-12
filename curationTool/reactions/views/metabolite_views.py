@@ -134,7 +134,7 @@ def _verify_vmh_metabolite(main_input, input_type):
 
     return JsonResponse({
         'error': True,
-        'message': f"Metabolite `{main_input}` not found in VMH or storage"
+        'message': f"Metabolite `{main_input}` not found in VMH."
     }, status=404)
 
 def _verify_saved_metabolite(request, main_input, input_type):
