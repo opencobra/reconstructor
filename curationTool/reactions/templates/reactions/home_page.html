@@ -308,7 +308,9 @@
 									</div>
 									<div id="organDropdown" class="organ-dropdown-content"></div>
 								</div>
+								{% comment %}
 								<div id="atomChargeComparison" class="atom-charge-comparison"></div>
+								{% endcomment %}
 							</form>
 						</div>
 					</div>
@@ -462,14 +464,19 @@
 					</div>
 					<div class="content-div" name="cheminfo-div" style="display: none">
 						<div class="div-header">Chemical Information</div>
+
 						<div class="placeholder">
 							<p class="balanced-status">Balanced: <span class="status-text">Checking...</span></p>
+
 							<p>
 								Molecular Formula:
 								<span class="formula-placeholder">C<sub>x</sub>H<sub>y</sub>O<sub>z</sub></span>
 							</p>
-							<p class="balance-info">Mass Balanced? <span>Checking...</span></p>
-							<p class="balance-info">Charge Balanced? <span>Checking...</span></p>
+
+							<!-- add class hooks 'mass' and 'charge' -->
+							<p class="balance-info mass">Mass Balanced? <span>Checking...</span></p>
+							<p class="balance-info charge">Charge Balanced? <span>Checking...</span></p>
+
 							<div class="atoms-comparison">
 								<table class="atom-comparison-table">
 									<thead>
@@ -479,28 +486,21 @@
 											<th>Products</th>
 										</tr>
 									</thead>
-									<tbody>
-										<tr>
-											<td>C</td>
-											<td>-</td>
-											<td>-</td>
-										</tr>
-										<tr>
-											<td>H</td>
-											<td>-</td>
-											<td>-</td>
-										</tr>
-									</tbody>
+									<!-- keep tbody; JS will fully rebuild rows here -->
+									<tbody></tbody>
 								</table>
+
 								<div class="charge-info">
 									<strong>Charge Info</strong><br />
-									Substrates: <span>-</span><br />
-									Products: <span>-</span>
+									Substrates: <span class="charge-sub">-</span><br />
+									Products: <span class="charge-prod">-</span>
 								</div>
 							</div>
 						</div>
 
-						<!-- Modal placed inside the Chemical Information div -->
+						<!-- give a stable anchor for the VMH formula card (so we don’t duplicate it) -->
+						<div id="vmh-formula-section"></div>
+
 						<div class="cheminfo-loader-modal" id="cheminfo-loader-modal" style="display: none">
 							<div class="cheminfo-loader-content">
 								<div class="loader"></div>
