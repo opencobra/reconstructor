@@ -486,40 +486,6 @@ function hideLoaderdiv(button, closeButton) {
 	closeButton.style.cursor = 'pointer';
 }
 
-// Ensure a dedicated live panel exists inside cheminfo-div and return its inner holder
-function ensureChemLivePanel() {
-	const contentDiv = document.querySelector('div.content-div[name="cheminfo-div"]');
-	if (!contentDiv) return null;
-
-	// Container for the whole chemical info page already exists; we add our live section.
-	let liveSection = contentDiv.querySelector('#chem-live-panel');
-	if (!liveSection) {
-		liveSection = document.createElement('div');
-		liveSection.id = 'chem-live-panel';
-		liveSection.className = 'chem-live-panel';
-		liveSection.style.marginTop = '24px';
-		liveSection.style.padding = '16px';
-		liveSection.style.border = '1px solid #ddd';
-		liveSection.style.borderRadius = '8px';
-		liveSection.style.background = '#fff';
-
-		const title = document.createElement('h4');
-		title.textContent = 'Live Mass & Charge (editing)';
-		title.style.margin = '0 0 12px 0';
-		liveSection.appendChild(title);
-
-		// holder where we will draw table + charge
-		const holder = document.createElement('div');
-		holder.className = 'chem-live-holder';
-		liveSection.appendChild(holder);
-
-		contentDiv.appendChild(liveSection);
-	}
-
-	const holder = liveSection.querySelector('.chem-live-holder');
-	return holder;
-}
-
 // Aggregate totals from the current form (same logic you already use)
 function getTotalsFromForm() {
 	const totalAtomsSubs = {};
@@ -663,23 +629,15 @@ function renderAtomComparisonTableInPlace(substratesData, productsData, symb_to_
 	tbody.appendChild(frag);
 }
 
-// Update the four headline lines + charge box
+// Updates Balanced / Mass? / Charge? + Molecular Formula (per-metabolite, not aggregated)
+// Reuses a stable color map so element colors don't jump between updates.
 function renderChemInfoHeader({ massBalanced, chargeBalanced, subsAtoms, prodsAtoms, subsCharge, prodsCharge }) {
 	const root = document.querySelector('div.content-div[name="cheminfo-div"]');
 	if (!root) return;
 
-	// Balanced: ...
+	// Balanced
 	const statusSpan = root.querySelector('.balanced-status .status-text');
 	if (statusSpan) statusSpan.textContent = massBalanced && chargeBalanced ? 'Yes' : 'No';
-
-	// Molecular Formula: show both sides so it’s informative in real-time
-	// (If you prefer only one, replace with countsToFormula(subsAtoms))
-	const formulaSpan = root.querySelector('.formula-placeholder');
-	if (formulaSpan) {
-		const subsF = countsToFormula(subsAtoms);
-		const prodF = countsToFormula(prodsAtoms);
-		formulaSpan.innerHTML = `Subs: ${subsF} &nbsp; | &nbsp; Prods: ${prodF}`;
-	}
 
 	// Mass Balanced?
 	const massSpan = root.querySelector('.balance-info.mass span');
@@ -692,6 +650,130 @@ function renderChemInfoHeader({ massBalanced, chargeBalanced, subsAtoms, prodsAt
 	// Charge info box
 	const chargeSub = root.querySelector('.charge-info .charge-sub');
 	const chargeProd = root.querySelector('.charge-info .charge-prod');
-	if (chargeSub) chargeSub.textContent = subsCharge ?? '0';
-	if (chargeProd) chargeProd.textContent = prodsCharge ?? '0';
+	if (chargeSub) chargeSub.textContent = subsCharge ?? 0;
+	if (chargeProd) chargeProd.textContent = prodsCharge ?? 0;
+
+	// Molecular Formula (PER metabolite: e.g., H2O + O2 | ...), not aggregated
+	const formulaSpan = root.querySelector('.formula-placeholder');
+	if (!formulaSpan) return;
+
+	// Gather all element symbols currently present so we can build a stable color map
+	const atomsSet = collectAtomsFromGroups('substratesDiv');
+	for (const a of collectAtomsFromGroups('productsDiv')) atomsSet.add(a);
+
+	const colorMap = ensureStableAtomColorMap(formulaSpan, atomsSet);
+	const subsHTML = buildSideFormula('substratesDiv', colorMap);
+	const prodsHTML = buildSideFormula('productsDiv', colorMap);
+
+	formulaSpan.innerHTML = `Subs: ${subsHTML} &nbsp; | &nbsp; Prods: ${prodsHTML}`;
+}
+
+// Collect all element symbols present in a side by reading each group's data-atomCounts
+function collectAtomsFromGroups(sideDivId) {
+	const out = new Set();
+	const container = document.getElementById(sideDivId);
+	if (!container) return out;
+	container.querySelectorAll('.inputs-group').forEach((group) => {
+		if (!group.dataset.atomCounts) return;
+		try {
+			const counts = JSON.parse(group.dataset.atomCounts);
+			Object.keys(counts || {}).forEach((k) => {
+				if (counts[k] > 0) out.add(k);
+			});
+		} catch (_) {}
+	});
+	return out;
+}
+
+// Build the per-metabolite formula string (e.g., "2 H2O + O2") from groups in a side.
+function buildSideFormula(sideDivId, colorMap) {
+	const container = document.getElementById(sideDivId);
+	if (!container) return '—';
+
+	const parts = [];
+	container.querySelectorAll('.inputs-group').forEach((group) => {
+		if (!group.dataset.atomCounts) return;
+		let counts;
+		try {
+			counts = JSON.parse(group.dataset.atomCounts);
+		} catch {
+			return;
+		}
+
+		// Read the stoichiometry input inside this group (your markup uses duplicate ids, so scope to group)
+		const stoichInput = group.querySelector('input[type="number"]');
+		const coeff = stoichInput ? parseFloat(stoichInput.value) : 1;
+		const coeffTxt = coeff && coeff !== 1 ? `${stripTrailingZeros(coeff)} ` : '';
+
+		const formulaHTML = countsToFormulaHTML(counts, colorMap);
+		parts.push(`${coeffTxt}${formulaHTML}`);
+	});
+
+	return parts.length ? parts.join(' + ') : '—';
+}
+
+// Turn an element-count object into Hill-ordered, colored HTML with subscripts (e.g., C6H12O6)
+function countsToFormulaHTML(counts, colorMap) {
+	if (!counts) return '—';
+	const keys = Object.keys(counts).filter((k) => counts[k] > 0);
+	if (!keys.length) return '—';
+
+	keys.sort(hillOrder);
+	return keys
+		.map((k) => {
+			const sym = colorMap && colorMap[k] ? `<span style="color:${colorMap[k]}">${k}</span>` : k;
+			const n = counts[k];
+			return n === 1 ? sym : `${sym}<sub>${n}</sub>`;
+		})
+		.join('');
+}
+
+// Hill-system ordering: C, H, then alphabetical
+function hillOrder(a, b) {
+	if (a === 'C') return -1;
+	if (b === 'C') return 1;
+	if (a === 'H' && b !== 'C') return -1;
+	if (b === 'H' && a !== 'C') return 1;
+	return a.localeCompare(b);
+}
+
+// Make a stable color map for current atoms; reuse previous one if stored on the span
+function ensureStableAtomColorMap(formulaSpan, atomsSet) {
+	// Reuse prior map if present
+	try {
+		if (formulaSpan.dataset.atomColorMap) {
+			const prev = JSON.parse(formulaSpan.dataset.atomColorMap);
+			// Ensure it covers any new atoms (assign colors deterministically if needed)
+			const missing = [...atomsSet].filter((a) => !prev[a]);
+			if (missing.length === 0) return prev;
+
+			const addColors =
+				typeof getDistinctColors === 'function' ? getDistinctColors(missing.length) : missing.map((_, i) => `hsl(${(i * 137.508) % 360} 100% 50%)`);
+
+			missing.forEach((el, i) => {
+				prev[el] = addColors[i];
+			});
+			formulaSpan.dataset.atomColorMap = JSON.stringify(prev);
+			return prev;
+		}
+	} catch (_) {}
+
+	// Build fresh
+	const atoms = [...atomsSet].sort(hillOrder);
+	const colors =
+		typeof getDistinctColors === 'function' ? getDistinctColors(atoms.length) : atoms.map((_, i) => `hsl(${(i * 137.508) % 360} 100% 50%)`);
+
+	const map = {};
+	atoms.forEach((el, i) => {
+		map[el] = colors[i];
+	});
+	try {
+		formulaSpan.dataset.atomColorMap = JSON.stringify(map);
+	} catch (_) {}
+	return map;
+}
+
+function stripTrailingZeros(n) {
+	const s = String(n);
+	return s.includes('.') ? s.replace(/\.?0+$/, '') : s;
 }
