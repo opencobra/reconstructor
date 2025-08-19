@@ -3,6 +3,7 @@ This module provides various functions related to gene data retrieval, parsing,
 and mapping to metabolic reactions.
 
 It includes:
+- `suggest_genes`: Returns type-ahead gene suggestions (HGNC / Entrez).
 - `get_gene_info`: Retrieves gene information from external databases (Entrez, VMH, HGNC).
 - `gene_parsing`: Parses gene expressions and validates logical statements.
 - `gene_details_view`: Fetches detailed gene-related data including organ and subcellular locations.
@@ -19,10 +20,75 @@ import requests
 import pandas as pd
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_GET
 from reactions.organ_data import ORGAN_MAPPING, location_mapping
-from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular_locations
+from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular_locations, _vmh_gene_exists, _entrez_exists, _hgnc_symbol_exists_exact
 
 from django.conf import settings
+
+HGNC_BASE = "https://rest.genenames.org"
+HGNC_HEADERS = {"Accept": "application/json"}
+
+@require_GET
+def suggest_genes(request):
+    """
+    Provide type-ahead gene suggestions from HGNC (supports HGNC symbols, aliases, names, and Entrez IDs).
+
+    Process:
+        - Read query token `q` from the query string; ignore if shorter than 2 chars unless it is all digits.
+        - Build an HGNC REST query:
+            * If `q` is numeric, search by Entrez ID (`entrez_id:q`).
+            * Otherwise, use a Lucene query to match symbol, alias_symbol, prev_symbol, or name prefixes.
+        - Call HGNC, parse the response, and take at most the first 8 documents.
+        - For each candidate, check whether it already exists in VMH via `_vmh_gene_exists`.
+        - Return a compact list of suggestion items.
+
+    Parameters:
+        request (HttpRequest): Django GET request with query parameter `q` (partial gene token).
+
+    Returns:
+        JsonResponse: An object with key `"items"` containing up to 8 dicts:
+            {
+                "symbol": str,        # HGNC-approved symbol
+                "name": str,          # Full gene name (may be empty)
+                "hgnc_id": str,       # Stable HGNC identifier (e.g., "HGNC:1234")
+                "entrez_id": str,     # Entrez Gene ID as string (may be "")
+                "present": bool       # True if present in VMH; False if new
+            }
+        On any request/parse error, returns {"items": []}.
+    """
+    q = (request.GET.get("q") or "").strip()
+    if len(q) < 2 and not q.isdigit():
+        return JsonResponse({"items": []})
+
+    # Build HGNC query
+    if q.isdigit():
+        url = f"{HGNC_BASE}/search/entrez_id:{q}"
+    else:
+        # match symbol / alias / previous symbol / full name prefix
+        lucene = f"(symbol:{q}* OR alias_symbol:{q}* OR prev_symbol:{q}* OR name:{q}*)"
+        url = f"{HGNC_BASE}/search/{requests.utils.quote(lucene)}"
+
+    try:
+        r = requests.get(url, headers=HGNC_HEADERS, timeout=6)
+        r.raise_for_status()
+        docs = r.json().get("response", {}).get("docs", [])
+    except Exception:
+        return JsonResponse({"items": []})
+
+    items = []
+    for d in docs[:8]:
+        symbol = d.get("symbol")
+        name = d.get("name", "")
+        hgnc_id = d.get("hgnc_id")
+        entrez = str(d.get("entrez_id") or "")
+
+        present = _vmh_gene_exists(symbol=symbol, entrez_id=entrez)
+        items.append({
+            "symbol": symbol, "name": name, "hgnc_id": hgnc_id,
+            "entrez_id": entrez, "present": bool(present),
+        })
+    return JsonResponse({"items": items})
 
 def get_gene_info(request):
     """
@@ -129,66 +195,135 @@ def get_gene_info(request):
 @csrf_exempt
 def gene_parsing(request):
     """
-    Parse a gene logical expression and validate its format.
+    Validate and normalize a user-provided GPR (gene–protein–reaction) expression.
 
     Process:
-        - Ensures the input follows logical statement rules (e.g., `GENE1 AND GENE2`).
-        - Identifies errors in the logical structure.
-        - Returns the processed string or an error message.
+        - Ensures the request is POST and parses JSON body for the `geneinfo` string.
+        - Rejects illegal characters (anything other than letters, digits, spaces, and parentheses).
+        - Tokenizes the string into genes, AND/OR operators, and parentheses.
+        - Validates expression grammar (balanced parentheses, correct operator/operand order).
+        - Verifies each gene token:
+            • If numeric → checks existence as an Entrez Gene ID via NCBI.
+            • If alphabetic/alphanumeric → checks exact HGNC symbol existence.
+        - On success, pretty-prints spacing around operators and returns the normalized expression.
+        - On failure, returns a clear error message and (when applicable) the list of invalid genes.
 
     Parameters:
-        request (HttpRequest): The HTTP request containing a JSON with `geneinfo`.
+        request (HttpRequest): POST request with JSON body containing:
+            {
+                "geneinfo": "<GPR expression, e.g., 'AOC3 AND (AOC1 OR AOC2)'>"
+            }
 
     Returns:
         JsonResponse:
-            - Success: JSON with the processed logical statement.
-            - Error: JSON with an error message if the format is incorrect.
+            - Success (HTTP 200):
+                {
+                  "processed_string": "<normalized GPR>",
+                  "error": None
+                }
+            - Client error (HTTP 400/405) with details:
+                {
+                  "processed_string": None,
+                  "error": "<reason>",
+                  "invalid_genes": ["<gene1>", "<gene2>", ...]  # present only when gene validation fails
+                }
     """
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        statement = data.get('geneinfo', '')
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-        # Patterns for various parts of the logical statement
-        alphanumeric_pattern = r'[A-Za-z0-9]+'
-        operator_pattern = r'(AND|OR)'
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except Exception:
+        return JsonResponse({'processed_string': None, 'error': 'Invalid JSON'}, status=400)
 
-        # Full pattern combining the subpatterns
-        full_pattern = fr'^{alphanumeric_pattern}\s*({operator_pattern}\s*{alphanumeric_pattern}\s*)*$' # pylint: disable=line-too-long
+    statement = (data.get('geneinfo') or '').strip()
+    if not statement:
+        return JsonResponse({'processed_string': None, 'error': 'Empty expression'}, status=400)
 
-        # Compile the regular expression
-        pattern = re.compile(full_pattern)
+    # reject illegal characters
+    if re.search(r'[^A-Za-z0-9()\s]', statement):
+        return JsonResponse({
+            'processed_string': None,
+            'error': ('The statement contains invalid characters. '
+                      'Only letters, numbers, spaces, and parentheses are allowed. '
+                      'Use AND/OR as operators.')
+        }, status=400)
 
-        # Match the statement against the pattern
-        match = pattern.match(statement)
+    # tokenize
+    tokens = re.findall(r'AND|OR|\(|\)|[A-Za-z0-9]+', statement, flags=re.IGNORECASE)
+    if not tokens:
+        return JsonResponse({'processed_string': None, 'error': 'No tokens found'}, status=400)
 
-        response_data = {
-            'processed_string': statement if match else None,
-            'error': None
-        }
+    # grammar: Expr -> Term ( (AND|OR) Term )*
+    stack, expect_operand = [], True
+    normalized = []
 
-        # If there's no match, determine why
-        if not match:
-            if not re.match(alphanumeric_pattern, statement):
-                response_data['error'] = 'The statement must start with a Gene.'
-            elif not re.search(fr'\s*{operator_pattern}\s*', statement):
-                response_data['error'] = (
-                    "The statement must contain at least one AND/OR operator "
-                    "after an alphanumeric string."
-                    )
-            elif re.search(r'[^A-Za-z0-9\s\(\)ANDOR]', statement):
-                response_data['error'] = (
-                    "The statement contains invalid characters. Only alphanumeric characters, "
-                    "spaces, parentheses, and the words AND/OR are allowed."
-                )
-            else:
-                response_data['error'] = (
-                    "The statement does not match the required logical pattern. "
-                    "Ensure it follows the structure: alphanumeric (AND/OR alphanumeric)."
-                )
+    for tok in tokens:
+        up = tok.upper()
+        if up in ('AND', 'OR'):
+            if expect_operand:
+                return JsonResponse({'processed_string': None,
+                                     'error': 'Operator found where a gene or "(" was expected.'}, status=400)
+            expect_operand = True
+            normalized.append(up)
+        elif tok == '(':
+            if not expect_operand:
+                return JsonResponse({'processed_string': None,
+                                     'error': 'Missing operator before "(".'}, status=400)
+            stack.append('(')
+            expect_operand = True
+            normalized.append('(')
+        elif tok == ')':
+            if expect_operand:
+                return JsonResponse({'processed_string': None,
+                                     'error': '")" found where a gene was expected.'}, status=400)
+            if not stack:
+                return JsonResponse({'processed_string': None, 'error': 'Unmatched ")".'}, status=400)
+            stack.pop()
+            expect_operand = False
+            normalized.append(')')
+        else:
+            # gene token (leave as typed)
+            if not expect_operand:
+                return JsonResponse({'processed_string': None,
+                                     'error': 'Missing operator between genes.'}, status=400)
+            expect_operand = False
+            normalized.append(tok)
 
+    if stack:
+        return JsonResponse({'processed_string': None, 'error': 'Unmatched "(".'}, status=400)
+    if expect_operand:
+        return JsonResponse({'processed_string': None, 'error': 'Expression ends with an operator.'}, status=400)
 
-        return JsonResponse(response_data)
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+    # VALIDATE tokens against HGNC/NCBI WITHOUT altering them
+    genes = [t for t in normalized if t not in ('AND', 'OR', '(', ')')]
+    invalid = []
+    for g in genes:
+        ok = _entrez_exists(g) if g.isdigit() else _hgnc_symbol_exists_exact(g)
+        if not ok:
+            invalid.append(g)
+
+    if invalid:
+        unique = sorted(set(invalid), key=str.upper)
+        return JsonResponse({
+            'processed_string': None,
+            'error': 'These genes could not be found in HGNC/NCBI. Please correct them: ' + ', '.join(unique),
+            'invalid_genes': unique,
+        }, status=400)
+
+    # pretty spacing, keep original gene tokens intact
+    pretty = []
+    for t in normalized:
+        if t in ('(', ')'):
+            pretty.append(t)
+        elif t in ('AND', 'OR'):
+            pretty.append(f' {t} ')
+        else:
+            pretty.append(t)
+    pretty_str = re.sub(r'\s+', ' ', ''.join(pretty)).strip()
+    pretty_str = pretty_str.replace('( ', '(').replace(' )', ')')
+
+    return JsonResponse({'processed_string': pretty_str, 'error': None})
 
 
 @csrf_exempt

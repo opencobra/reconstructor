@@ -931,3 +931,17 @@ footer {
 	margin-right: 8px; /* Add spacing to keep alignment clean */
 	cursor: pointer; /* Optional: Adds a pointer cursor for better UX */
 }
+
+.suggest.hidden {
+	display: none;
+}
+.s-item:hover,
+.s-item.active {
+	background: #f7f7f7;
+}
+.s-badge.ok {
+	color: #1b5e20;
+}
+.s-badge.new {
+	color: #b26a00;
+}

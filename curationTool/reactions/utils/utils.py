@@ -9,6 +9,8 @@ import json
 from reactions.models import SavedMetabolite
 from django.core import serializers 
 
+from django.conf import settings
+
 
 def capitalize_first_letter(s):
     return re.sub(
@@ -256,5 +258,92 @@ def reactions_to_json(qs):
         # follow = ('flags', …)
     )
     return json_str
+
+def _vmh_gene_exists(symbol: str = "", entrez_id: str = "") -> bool:
+    """
+    Check whether a gene already exists in the VMH database.
+
+    Process:
+        - Use the legacy VMH API (if `settings.OLD_VMH_BASE_URL` is configured).
+        - If `symbol` is provided, query `_api/genes/?symbol=<symbol>` and check if count > 0.
+        - If `entrez_id` is provided, query `_api/genes/?gene_number=<entrez_id>.1` and check if count > 0.
+          (The `.1` suffix reflects versioned gene numbers in the legacy API—adjust if your API differs.)
+        - Return True if any query indicates presence; otherwise False.
+
+    Parameters:
+        symbol (str): HGNC gene symbol to check (optional).
+        entrez_id (str): Entrez Gene ID to check (optional).
+
+    Returns:
+        bool: True if the gene exists in VMH, False otherwise.
+    """
+    BASE_URL = settings.OLD_VMH_BASE_URL
+    if BASE_URL:
+        try:
+            if symbol:
+                r = requests.get(f"{BASE_URL}_api/genes/?symbol={symbol}", verify=False, timeout=6)
+                if r.status_code == 200 and r.json().get("count", 0) > 0:
+                    return True
+            if entrez_id:
+                r = requests.get(f"{BASE_URL}_api/genes/?gene_number={entrez_id}.1", verify=False, timeout=6)
+                if r.status_code == 200 and r.json().get("count", 0) > 0:
+                    return True
+        except Exception:
+            pass
+    return False
+
+HGNC_BASE = "https://rest.genenames.org"
+HGNC_HEADERS = {"Accept": "application/json"}
+
+def _hgnc_symbol_exists_exact(sym: str) -> bool:
+    """
+    Check whether an HGNC gene symbol exists (exact match only).
+
+    Process:
+        - Query HGNC at `/search/symbol/{sym}`.
+        - Parse the response and look for a case-insensitive exact match in `docs[*].symbol`.
+        - Return True on exact match, otherwise False. Any request error also yields False.
+
+    Parameters:
+        sym (str): The HGNC symbol to verify (e.g., "AOC3").
+
+    Returns:
+        bool: True if an exact symbol match is found in HGNC; False otherwise.
+    """
+    try:
+        r = requests.get(f"{HGNC_BASE}/search/symbol/{sym}",
+                         headers=HGNC_HEADERS, timeout=6)
+        r.raise_for_status()
+        docs = r.json().get("response", {}).get("docs", [])
+        # exact match only
+        return any((d.get("symbol") or "").lower() == sym.lower() for d in docs)
+    except Exception:
+        return False
+
+def _entrez_exists(eid: str) -> bool:
+    """
+    Verify that an Entrez Gene ID exists in NCBI.
+
+    Process:
+        - Call NCBI E-utilities `esummary` for `db=gene` and the provided ID.
+        - Confirm the JSON has a `result` entry keyed by the same ID.
+        - Return True when present; otherwise False. Any request error also yields False.
+
+    Parameters:
+        eid (str): The Entrez Gene ID to check (numeric string).
+
+    Returns:
+        bool: True if NCBI returns a summary containing the given ID; False otherwise.
+    """
+    try:
+        r = requests.get(
+            "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi",
+            params={"db":"gene","id":eid,"retmode":"json"}, timeout=6
+        )
+        r.raise_for_status()
+        j = r.json()
+        return "result" in j and eid in j["result"]
+    except Exception:
+        return False
 
 
