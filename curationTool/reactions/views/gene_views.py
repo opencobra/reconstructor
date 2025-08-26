@@ -26,22 +26,24 @@ from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular
 
 from django.conf import settings
 
-HGNC_BASE = "https://rest.genenames.org"
-HGNC_HEADERS = {"Accept": "application/json"}
+from reactions.models import Gene
+from django.db.models import Q
 
 @require_GET
 def suggest_genes(request):
     """
-    Provide type-ahead gene suggestions from HGNC (supports HGNC symbols, aliases, names, and Entrez IDs).
+    Provide type-ahead gene suggestions from the **local Gene database** (instead of querying HGNC API).  
+    This allows near real-time response with no external latency.
 
     Process:
         - Read query token `q` from the query string; ignore if shorter than 2 chars unless it is all digits.
-        - Build an HGNC REST query:
-            * If `q` is numeric, search by Entrez ID (`entrez_id:q`).
-            * Otherwise, use a Lucene query to match symbol, alias_symbol, prev_symbol, or name prefixes.
-        - Call HGNC, parse the response, and take at most the first 8 documents.
-        - For each candidate, check whether it already exists in VMH via `_vmh_gene_exists`.
-        - Return a compact list of suggestion items.
+        - Search local Gene table for matches:
+            * HGNC symbol (case-insensitive, startswith)
+            * Aliases (substring match, case-insensitive)
+            * Full gene name (substring match, case-insensitive)
+            * Entrez ID (if query is numeric)
+        - Return up to 8 results ordered alphabetically by symbol.
+        - Each result is always marked `"present": True` since it exists in our DB.
 
     Parameters:
         request (HttpRequest): Django GET request with query parameter `q` (partial gene token).
@@ -50,44 +52,37 @@ def suggest_genes(request):
         JsonResponse: An object with key `"items"` containing up to 8 dicts:
             {
                 "symbol": str,        # HGNC-approved symbol
-                "name": str,          # Full gene name (may be empty)
-                "hgnc_id": str,       # Stable HGNC identifier (e.g., "HGNC:1234")
+                "name": str,          # Full gene name
+                "hgnc_id": str,       # Stable HGNC identifier
                 "entrez_id": str,     # Entrez Gene ID as string (may be "")
-                "present": bool       # True if present in VMH; False if new
+                "present": True       # True if present in VMH; False if new
             }
-        On any request/parse error, returns {"items": []}.
+        If no match is found, returns {"items": []}.
     """
     q = (request.GET.get("q") or "").strip()
     if len(q) < 2 and not q.isdigit():
         return JsonResponse({"items": []})
 
-    # Build HGNC query
-    if q.isdigit():
-        url = f"{HGNC_BASE}/search/entrez_id:{q}"
-    else:
-        # match symbol / alias / previous symbol / full name prefix
-        lucene = f"(symbol:{q}* OR alias_symbol:{q}* OR prev_symbol:{q}* OR name:{q}*)"
-        url = f"{HGNC_BASE}/search/{requests.utils.quote(lucene)}"
-
-    try:
-        r = requests.get(url, headers=HGNC_HEADERS, timeout=6)
-        r.raise_for_status()
-        docs = r.json().get("response", {}).get("docs", [])
-    except Exception:
-        return JsonResponse({"items": []})
+    # Search locally (symbol, aliases, or name)
+    results = (
+        Gene.objects.filter(
+            Q(symbol__istartswith=q) |
+            (Q(entrez_id__startswith=q) if q.isdigit() else Q())
+        )
+        .order_by("symbol")[:8]
+    )
 
     items = []
-    for d in docs[:8]:
-        symbol = d.get("symbol")
-        name = d.get("name", "")
-        hgnc_id = d.get("hgnc_id")
-        entrez = str(d.get("entrez_id") or "")
-
-        present = _vmh_gene_exists(symbol=symbol, entrez_id=entrez)
+    for g in results:
+        present = _vmh_gene_exists(symbol=g.symbol, entrez_id=g.entrez_id or "")
         items.append({
-            "symbol": symbol, "name": name, "hgnc_id": hgnc_id,
-            "entrez_id": entrez, "present": bool(present),
+            "symbol": g.symbol,
+            "name": g.name,
+            "hgnc_id": g.hgnc_id,
+            "entrez_id": g.entrez_id or "",
+            "present": bool(present),
         })
+    
     return JsonResponse({"items": items})
 
 def get_gene_info(request):
