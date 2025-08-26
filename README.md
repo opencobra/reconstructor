@@ -1,12 +1,4 @@
-<!-- Improved compatibility of back to top link: See: https://github.com/othneildrew/Best-README-Template/pull/73 -->
-
 <a id="readme-top"></a>
-
-<!--
-*** This README was generated from the "Best‑README‑Template" with project‑specific details for the
-*** openCOBRA *Constructor* application.
-*** Feel free to keep iterating – just ask and we can refine any part! :)
--->
 
 <!-- PROJECT SHIELDS -->
 
@@ -60,7 +52,7 @@
     <li><a href="#license">License</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
-    <li><a href="#citation">Citation</a></li>
+    <li><a href="#citation">How to Cite?</a></li>
   </ol>
 </details>
 
@@ -68,7 +60,13 @@
 
 ## About The Project
 
-[![Constructor Screenshot][product-screenshot]](https://constructor.humanmetabolism.org)
+<p align="center">Architecture Overview</p>
+
+![Constructor architecture][architecture-screenshot]
+
+<p align="center">Interface Overview</p>
+
+![Constructor Screenshot][product-screenshot]
 
 Constructor (sometimes referred to simply as the _Reconstruction Curation Tool_) helps domain experts and the wider metabolic‑modeling community create **balanced, well‑annotated biochemical reactions** that can be seamlessly incorporated into genome‑scale metabolic reconstructions such as those hosted by the [Virtual Metabolic Human (VMH)](https://vmh.life/).
 
@@ -141,13 +139,14 @@ $ source .venv/bin/activate
 # 3. Install Python dependencies
 $ pip install -r requirements.txt
 
-# 4. Configure database and create config.json in root directory
-# Follow the format in example.config.json, and fill in requested values
+# 4. Create config.json, configure database, and fill in other required entry in root directory
+$ cp example.config.json config.json
 
 # 5. Apply migrations and run
 $ cd curationTool
 $ python manage.py makemigrations
 $ python manage.py migrate
+$ python manage.py load_genes ./hgnc_complete_set.txt
 $ python manage.py runserver
 ```
 
@@ -225,7 +224,7 @@ Project Link: [https://github.com/opencobra/reconstructor](https://github.com/op
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## Citation
+## How to Cite?
 
 Cite this work in your paper:
 
@@ -264,3 +263,4 @@ Alwer, S., Sathe, V., Brennan, A., and McGoldrick J. "Constructor: An open-sourc
 <!-- Images -->
 
 [product-screenshot]: Reconstruction-Interface-Architecture.png
+[architecture-screenshot]: constructor_architecture.png
