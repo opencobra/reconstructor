@@ -255,6 +255,19 @@ def prepare_add_to_vmh(request):
                 reaction for reaction, found in zip(
                     reaction_objs, in_vmh) if found]
             names = [reaction.short_name for reaction in reaction_objs_in_vmh]
+            
+            # Remove already-in-VMH reactions from workspace
+            user_id = request.session.get('userID')
+            if user_id:
+                try:
+                    user_obj = User.objects.get(pk=user_id)
+                    workspace, _ = Workspace.objects.get_or_create(user=user_obj)
+                    for rxn in reaction_objs_in_vmh:
+                        workspace.reactions.remove(rxn)
+                    workspace.save()
+                except User.DoesNotExist:
+                    pass  # ignore if user not found (failsafe)
+        
             return JsonResponse(
                 {'status': 'error',
                  'message': f'The following reactions are already in VMH: {", ".join(names)}'}
@@ -635,6 +648,7 @@ def add_to_vmh(request):
             workspace = Workspace.objects.get(user=user)
             reaction_obj = reaction_objs[idx]  
             reaction_obj.vmh_found = True
+            reaction_obj.save(update_fields=['vmh_found'])
             workspace.reactions.remove(reaction_obj)
         return JsonResponse({'status': 'success',
                              'rxn_added_info': rxn_added_info,

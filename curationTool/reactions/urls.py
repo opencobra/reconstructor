@@ -49,6 +49,7 @@ urlpatterns = [
     path("gene_details_view/", gene_views.gene_details_view, name="gene_details_view"),
     path("parse_gene_info/", gene_views.parse_gene_info, name="parse_gene_info"),
     path('gene_parsing/', gene_views.gene_parsing, name='gene_parsing'),
+    path("api/gene/suggest", gene_views.suggest_genes, name="suggest_genes"),
 
 
     path('fetch_rhea_rxn', metabolite_views.fetch_rhea_rxn, name='fetch_rhea_rxn'),
