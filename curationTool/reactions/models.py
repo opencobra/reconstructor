@@ -252,3 +252,14 @@ class Workspace(models.Model):
 
     def __str__(self):
         return f"{self.user.name}'s Workspace"
+   
+# Gene table, populated by HGNC to show suggested gene name list in Gene Info interface 
+class Gene(models.Model):
+    symbol = models.CharField(max_length=50, db_index=True)
+    name = models.TextField(blank=True)
+    hgnc_id = models.CharField(max_length=20, unique=True)
+    entrez_id = models.CharField(max_length=20, blank=True, null=True, db_index=True)
+    aliases = models.TextField(blank=True)  # store comma-separated aliases
+
+    def __str__(self):
+        return self.symbol
