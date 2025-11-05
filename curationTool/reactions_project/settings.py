@@ -12,9 +12,22 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
-import json
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).resolve().parent.parent.parent / '.env'
+    print(f"Loading .env from: {env_path}")
+    print(f".env exists: {env_path.exists()}")
+    load_dotenv(dotenv_path=env_path)
+    print(f"After load_dotenv, DJANGO_DEBUG={os.getenv('DJANGO_DEBUG')}")
+except ImportError:
+    # python-dotenv not installed, environment variables must be set manually
+    print("WARNING: python-dotenv not installed, environment variables must be set manually")
+    pass
 
 # base url for api calls
 OLD_VMH_BASE_URL = 'https://www.vmh.life/'
@@ -23,22 +36,56 @@ NEW_VMH_BASE_URL = 'https://vmh2.life/'
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
+
+def _str_to_bool(value, default=False):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return default
+    return str(value).strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-3x4rk(#0pr)5c&z=52$w_v^gj@jpl^*fw@8fa!wxg(o@3sw#mh'
+SECRET_KEY = os.getenv(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-3x4rk(#0pr)5c&z=52$w_v^gj@jpl^*fw@8fa!wxg(o@3sw#mh'
+)
 
-OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
-try:
-    CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), 'config.json')
-    with open(CONFIG_PATH, 'r') as config_file:
-        config = json.load(config_file)
-except Exception as e:
-    config = {'DEBUG': False}
-    print(f"Error reading config file: {e}")
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config.get('DEBUG')
-MOL_FILE_PATH = config.get('mol_file_path')
+DEBUG = _str_to_bool(os.getenv('DJANGO_DEBUG', 'False'))
 
-ALLOWED_HOSTS = ['127.0.0.1','localhost','83.70.173.200','192.168.1.49', 'reconstructor.chatimd.org','reconstructor.humanmetabolism.org','constructor.humanmetabolism.org']
+# OpenAI API Key
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
+
+# File paths
+MOL_FILE_PATH = os.getenv('MOL_FILE_PATH', str(BASE_DIR / 'media' / 'mol_files'))
+FILE_PATH = os.getenv('FILE_PATH', 'curationTool/reactions/normal_tissue.tsv')
+
+# MATLAB/COBRA Toolbox paths (comma-separated for multiple directories)
+SCRIPT_DIRECTORIES = os.getenv('SCRIPT_DIRECTORIES', '').split(',') if os.getenv('SCRIPT_DIRECTORIES') else []
+COBRA_PATH = os.getenv('COBRA_PATH', '')
+print(f"debug={DEBUG}")
+print(f"SCRIPT_DIRECTORIES={SCRIPT_DIRECTORIES}")
+print(f"COBRA_PATH={COBRA_PATH}")
+
+# Media serving configuration (useful for containerized development with DEBUG=False)
+SERVE_MEDIA = _str_to_bool(os.getenv('SERVE_MEDIA'), DEBUG)
+
+# Allowed hosts
+_allowed_hosts_env = os.getenv('DJANGO_ALLOWED_HOSTS')
+if _allowed_hosts_env:
+    ALLOWED_HOSTS = [
+        host.strip() for host in _allowed_hosts_env.split(',') if host.strip()]
+else:
+    ALLOWED_HOSTS = [
+        '127.0.0.1',
+        'localhost',
+        '83.70.173.200',
+        '192.168.1.49',
+        'reconstructor.chatimd.org',
+        'reconstructor.humanmetabolism.org',
+        'constructor.humanmetabolism.org'
+    ]
 
 
 
@@ -56,6 +103,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -90,21 +138,14 @@ WSGI_APPLICATION = 'reactions_project.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASE_NAME = config.get('DATABASE_NAME')
-DATABASE_USER = config.get('DATABASE_USER')
-DATABASE_PASSWORD = config.get('DATABASE_PASSWORD')
-DATABASE_HOST = config.get('DATABASE_HOST')
-DATABASE_PORT = config.get('DATABASE_PORT')
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': DATABASE_NAME,
-        #'NAME': 'curationtooldb1',
-        'USER': DATABASE_USER,
-        'PASSWORD': DATABASE_PASSWORD,
-        'HOST': DATABASE_HOST,  
-        'PORT': DATABASE_PORT,       
+        'NAME': os.getenv('POSTGRES_DB', 'curationtooldb1'),
+        'USER': os.getenv('POSTGRES_USER', 'saleh'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD', '1curationTool1'),
+        'HOST': os.getenv('POSTGRES_HOST', 'localhost'),
+        'PORT': os.getenv('POSTGRES_PORT', '5432'),
     }
 }
 
@@ -142,11 +183,14 @@ X_FRAME_OPTIONS = 'SAMEORIGIN'
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
-STATICFILES_DIRS = [ 
-    os.path.join(BASE_DIR, "reactions/static"),
-]
+STATICFILES_DIRS = []
+_additional_static_dir = BASE_DIR / "static"
+if _additional_static_dir.exists():
+    STATICFILES_DIRS.append(str(_additional_static_dir))
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 

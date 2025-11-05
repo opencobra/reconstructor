@@ -1,7 +1,6 @@
 curationTool/media/
 curationTool/staticfiles
 __pycache__/
-curationTool/rdt-2.4.1-jar-with-dependencies.jar
 curationTool/*.xml
 curationTool/*.rxn
 curationTool/reaction*.json*
@@ -10,3 +9,4 @@ staticfiles/
 .venv/
 .DS_Store
 temp_mol.mol
+.env

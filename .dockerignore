@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.log
+*.sqlite3
+venv/
+.venv/
+.env
+.env.*
+.git
+.gitignore
+node_modules/
+__MACOSX

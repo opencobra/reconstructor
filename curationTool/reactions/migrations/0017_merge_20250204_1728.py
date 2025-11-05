@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('reactions', '0013_reactiontemplate_user_templates'),
+        ('reactions', '0014_user_templates'),
         ('reactions', '0016_reaction_description'),
     ]
 

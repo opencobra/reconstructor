@@ -59,7 +59,10 @@ from reactions.utils.add_to_vmh_utils import (
     smiles_to_charged_formula,
     get_nonfound_metabolites
 )
-from reactions.utils.MatlabSessionManager import MatlabSessionManager
+try:
+    from reactions.utils.MatlabSessionManager import MatlabSessionManager
+except Exception:
+    pass
 from reactions.utils.utils import get_external_ids, get_mol_weights, reactions_to_json
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):

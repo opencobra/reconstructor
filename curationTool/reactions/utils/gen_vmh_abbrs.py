@@ -1,8 +1,11 @@
 import random
 import requests
 import json
-from reactions.utils.MatlabSessionManager import MatlabSessionManager
-
+skip = False
+try: 
+    from reactions.utils.MatlabSessionManager import MatlabSessionManager
+except Exception:
+    skip = True
 from django.conf import settings
 
 def check_reaction_abbr_exists(abbr):

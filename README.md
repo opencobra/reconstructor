@@ -127,6 +127,10 @@ sudo apt update && sudo apt install python3.10 python3.10-venv build-essential p
 ```
 
 ### Installation
+## Docker
+
+Run the full stack (Django, Gunicorn, PostgreSQL) with containers:
+
 
 ```bash
 # 1. Clone the repo

@@ -1,0 +1,1 @@
+{"tasks":[{"id":"static_django_debug_false","description":"Ensure static assets are served correctly in Docker when DEBUG=false by fixing static file storage and build pipeline","status":"done"},{"id":"env_loading_fix","description":"Make environment variable loading deterministic in Docker and local runs (python-dotenv/print warnings)","status":"done"}]}

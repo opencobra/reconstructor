@@ -278,19 +278,12 @@ def help_format_answer_with_gpt(raw_answer):
 
 
 def askGPT4(geneName, temperature):
-    import json
     # what is the protein associated with gene X
     # metabolic reactions catalyzed by the protein Y
-    base_dir = os.path.abspath(
-        os.path.join(
-            os.path.dirname(__file__),
-            '..',
-            '..',
-            '..'))
-    config_path = os.path.join(base_dir, 'config.json')
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
-        os.environ["OPENAI_API_KEY"] = config['API_KEY']
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        os.environ["OPENAI_API_KEY"] = api_key
+    
     question = "what are all the metabolic reaction(s) catalyzed by the gene: " + geneName + \
         "? only give the chemical reactions and no other information. Note there may be more than 1 reaction."
     message = [{"role": "user", "content": question}]

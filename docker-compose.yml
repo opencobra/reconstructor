@@ -1,0 +1,31 @@
+services:
+  web:
+    build: .
+    command: gunicorn reactions_project.wsgi:application --bind 0.0.0.0:8000
+    env_file:
+      - .env
+    volumes:
+      - ./curationTool/media:/app/curationTool/media
+      - staticfiles:/app/curationTool/staticfiles
+      - ./curationTool:/app/curationTool
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+  db:
+    image: postgres:15-alpine
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
+  staticfiles:
+  

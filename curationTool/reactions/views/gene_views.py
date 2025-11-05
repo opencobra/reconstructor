@@ -346,17 +346,11 @@ def gene_details_view(request):
             '..',
             '..',
             '..'))
-    # Construct the full path to the config.json file
-    config_path = os.path.join(base_dir, 'config.json')
-    # Load the config file
-    with open(config_path, 'r') as config_file:
-        config = json.load(config_file)
-
-    # Extract the file_path from the config
-    file_path = config.get('file_path')
-
-    # Construct the full path to the file using base_dir and file_path from
-    # the config
+    
+    # Get file path from environment variable
+    file_path = os.getenv('FILE_PATH', 'curationTool/reactions/normal_tissue.tsv')
+    
+    # Construct the full path to the file
     full_file_path = os.path.join(base_dir, file_path)
 
     # Load the CSV file using the full file path

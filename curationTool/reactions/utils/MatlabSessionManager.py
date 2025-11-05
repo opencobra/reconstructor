@@ -1,4 +1,3 @@
-import json
 import os
 import matlab.engine
 
@@ -18,29 +17,16 @@ class MatlabSessionManager:
         return cls._instance
 
     def _setup_cobra_toolbox(self):
-        # Get the base directory (two levels up from this script)
-        base_dir = os.path.abspath(
-            os.path.join(
-                os.path.dirname(__file__),
-                '..',
-                '..',
-                '..'))
-        config_path = os.path.join(base_dir, 'config.json')
-
-        if not os.path.exists(config_path):
-            raise FileNotFoundError(
-                f"Configuration file {config_path} not found.")
-
-        with open(config_path, 'r') as config_file:
-            config = json.load(config_file)
-
-        script_directories = config.get('script_directories', [])
-        cobra_path = config.get('cobra_path', '')
+        # Read configuration from environment variables
+        script_directories_env = os.getenv('SCRIPT_DIRECTORIES', '')
+        script_directories = [d.strip() for d in script_directories_env.split(',') if d.strip()]
+        cobra_path = os.getenv('COBRA_PATH', '')
 
         for script_directory in script_directories:
             self.engine.addpath(script_directory, nargout=0)
-        self.engine.addpath(cobra_path, nargout=0)
-        self.engine.eval("initCobraToolbox(0)", nargout=0)
+        if cobra_path:
+            self.engine.addpath(cobra_path, nargout=0)
+            self.engine.eval("initCobraToolbox(0)", nargout=0)
 
     def execute(self, command, *args, **kwargs):
         try:
