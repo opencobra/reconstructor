@@ -87,7 +87,8 @@ else:
         'constructor.humanmetabolism.org'
     ]
 
-
+#allow CsrfViewMiddleware
+CSRF_TRUSTED_ORIGINS = os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if os.getenv('CSRF_TRUSTED_ORIGINS') else []
 
 # Application definition
 
@@ -100,7 +101,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'reactions',
 ]
-
+#
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
