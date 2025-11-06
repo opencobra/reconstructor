@@ -228,7 +228,7 @@ Project Link: [https://github.com/opencobra/reconstructor](https://github.com/op
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-## How to Cite?
+## How to Cite? <a id="citation"></a>
 
 Cite this work in your paper:
 
