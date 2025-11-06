@@ -172,8 +172,6 @@ Below is the most common workflow – see the [tutorials](./tutorials) directory
 
 For code structure explanation, please check [docs/CODE_STRUCTURE.md](./tutorials/docs/CODE_STRUCTURE.md).
 
-_For more examples, please refer to the [Documentation](https://opencobra.github.io)_
-
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTRIBUTING -->
