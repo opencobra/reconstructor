@@ -13,3 +13,4 @@ venv/
 .gitignore
 node_modules/
 __MACOSX
+docker/postgres_data/
