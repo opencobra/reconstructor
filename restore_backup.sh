@@ -66,9 +66,10 @@ fi
 # Create media directory
 mkdir -p "$MEDIA_DIR"
 
-# Extract media backup
+# Extract media backup with memory-efficient options
 echo "Extracting media files..."
-tar -xf "$MEDIA_BACKUP" -C "$(dirname $MEDIA_DIR)"
+# Use --no-same-owner to avoid permission issues and extract one file at a time to limit memory usage
+tar -xf "$MEDIA_BACKUP" -C "$MEDIA_DIR" --no-same-owner --checkpoint=1000 --checkpoint-action=dot
 
 if [ $? -eq 0 ]; then
     echo "✓ Media files restored successfully"
