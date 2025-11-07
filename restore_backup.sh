@@ -68,8 +68,24 @@ mkdir -p "$MEDIA_DIR"
 
 # Extract media backup with memory-efficient options
 echo "Extracting media files..."
-# Use --no-same-owner to avoid permission issues and extract one file at a time to limit memory usage
-tar -xf "$MEDIA_BACKUP" -C "$MEDIA_DIR" --no-same-owner --checkpoint=1000 --checkpoint-action=dot
+# Extract to a temporary directory first, then move the contents to media
+TEMP_EXTRACT_DIR="/tmp/media_restore_$$"
+mkdir -p "$TEMP_EXTRACT_DIR"
+tar -xf "$MEDIA_BACKUP" -C "$TEMP_EXTRACT_DIR" --no-same-owner --checkpoint=1000 --checkpoint-action=dot
+
+# Move the extracted directories to the media folder
+if [ -d "$TEMP_EXTRACT_DIR/images" ]; then
+    mv "$TEMP_EXTRACT_DIR/images" "$MEDIA_DIR/"
+fi
+if [ -d "$TEMP_EXTRACT_DIR/mol_files" ]; then
+    mv "$TEMP_EXTRACT_DIR/mol_files" "$MEDIA_DIR/"
+fi
+if [ -d "$TEMP_EXTRACT_DIR/rxn_files" ]; then
+    mv "$TEMP_EXTRACT_DIR/rxn_files" "$MEDIA_DIR/"
+fi
+
+# Clean up temp directory
+rm -rf "$TEMP_EXTRACT_DIR"
 
 if [ $? -eq 0 ]; then
     echo "✓ Media files restored successfully"
