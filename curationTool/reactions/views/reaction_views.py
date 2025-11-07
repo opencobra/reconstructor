@@ -15,6 +15,7 @@ Dependencies:
 """
 import json
 import re
+import os
 
 from rdkit import RDLogger, Chem
 from rdkit.Chem import MolToInchiKey, AllChem
@@ -176,10 +177,10 @@ def input_reaction(request):
     else:
         response_data = RDT(
             reaction_rxn_file,
-            destination_path_png=f'media/images/visual{reaction.id}.png',
-            destination_path_rxn=f'media/rxn_files/rxn{reaction.id}.rxn')
+            destination_path_png=os.path.join(settings.MEDIA_ROOT, 'images', f'visual{reaction.id}.png'),
+            destination_path_rxn=os.path.join(settings.MEDIA_ROOT, 'rxn_files', f'rxn{reaction.id}.rxn'))
         reaction_info = get_reaction_info(
-            f'media/rxn_files/rxn{reaction.id}.rxn', direction
+            os.path.join(settings.MEDIA_ROOT, 'rxn_files', f'rxn{reaction.id}.rxn'), direction
         )
     balanced_count = reaction_info['balanced_count']
     subs_atoms = reaction_info['subs_atoms']
