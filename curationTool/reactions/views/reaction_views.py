@@ -175,12 +175,18 @@ def input_reaction(request):
             '/images/atom_mapping_skip.png']}
         reaction_info = get_reaction_info(reaction_rxn_file, direction)
     else:
+        # Use relative paths for RDT, but ensure directories exist with absolute paths
+        png_rel_path = f'media/images/visual{reaction.id}.png'
+        rxn_rel_path = f'media/rxn_files/rxn{reaction.id}.rxn'
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'images'), exist_ok=True)
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'rxn_files'), exist_ok=True)
+        
         response_data = RDT(
             reaction_rxn_file,
-            destination_path_png=os.path.join(settings.MEDIA_ROOT, 'images', f'visual{reaction.id}.png'),
-            destination_path_rxn=os.path.join(settings.MEDIA_ROOT, 'rxn_files', f'rxn{reaction.id}.rxn'))
+            destination_path_png=png_rel_path,
+            destination_path_rxn=rxn_rel_path)
         reaction_info = get_reaction_info(
-            os.path.join(settings.MEDIA_ROOT, 'rxn_files', f'rxn{reaction.id}.rxn'), direction
+            rxn_rel_path, direction
         )
     balanced_count = reaction_info['balanced_count']
     subs_atoms = reaction_info['subs_atoms']
