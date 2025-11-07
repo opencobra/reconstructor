@@ -43,6 +43,8 @@ def RDT(rxn_file_path, destination_path_png='ECBLAST_smiles_AAM.png',
     # destination_path_rxn = os.path.join('reactions/static/reactions', destination_path_rxn)
     img_path = 'ECBLAST_temp_AAM.png'
     rxn_file_path = 'ECBLAST_temp_AAM.rxn'
+    os.makedirs(os.path.dirname(destination_path_png), exist_ok=True)
+    os.makedirs(os.path.dirname(destination_path_rxn), exist_ok=True)
     shutil.move(img_path, destination_path_png)
     shutil.move(rxn_file_path, destination_path_rxn)
 
