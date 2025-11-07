@@ -22,11 +22,51 @@ accesslog = "-"
 # Error log - set to '-' to log to stderr
 errorlog = "-"
 # Log level - set to 'debug' for maximum verbosity, 'info' for production
-loglevel = "info"
+loglevel = "debug"
 # Capture stdout/stderr from application
 capture_output = True
 # Enable detailed error logging
 enable_stdio_inheritance = True
+# Log to stdout/stderr instead of files
+logconfig_dict = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'generic': {
+            'format': '[%(levelname)s] %(asctime)s [%(process)d] [%(name)s] %(message)s',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'generic',
+            'stream': 'ext://sys.stdout',
+        },
+        'error_console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'generic',
+            'stream': 'ext://sys.stderr',
+        },
+    },
+    'root': {
+        'level': 'INFO',
+        'handlers': ['console'],
+    },
+    'loggers': {
+        'gunicorn.error': {
+            'level': 'DEBUG',
+            'handlers': ['error_console'],
+            'propagate': False,
+        },
+        'gunicorn.access': {
+            'level': 'INFO',
+            'handlers': ['console'],
+            'propagate': False,
+        },
+    },
+}
+
 
 # Process naming
 proc_name = "curationTool"
