@@ -29,4 +29,4 @@ ENV DJANGO_SETTINGS_MODULE=reactions_project.settings
 EXPOSE 8000
 
 ENTRYPOINT ["/app/docker/entrypoint.sh"]
-CMD ["gunicorn", "reactions_project.wsgi:application", "--bind", "0.0.0.0:8000"]
+CMD ["gunicorn", "reactions_project.wsgi:application", "--config", "/app/gunicorn.conf.py"]
