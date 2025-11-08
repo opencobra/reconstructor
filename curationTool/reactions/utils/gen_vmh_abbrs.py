@@ -1,9 +1,14 @@
 import random
 import requests
 import json
+import os
 skip = False
-try: 
-    from reactions.utils.MatlabSessionManager import MatlabSessionManager
+try:
+    # Use remote MATLAB session manager if enabled, otherwise use local
+    if os.getenv('MATLAB_REMOTE_ENABLED', 'false').lower() == 'true':
+        from reactions.utils.MatlabSessionManagerRemote import MatlabSessionManager
+    else:
+        from reactions.utils.MatlabSessionManager import MatlabSessionManager
 except Exception:
     skip = True
 from django.conf import settings

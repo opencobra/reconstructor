@@ -230,8 +230,7 @@ Project Link: [https://github.com/opencobra/reconstructor](https://github.com/op
 
 Cite this work in your paper:
 
-Alwer, S., Sathe, V., Brennan, A., and McGoldrick J. "Constructor: An open-source interface for quality-controlled metabolic reconstruction." Available at: https://github.com/opencobra/reconstructor.
-
+Alwer, S., Sathe, V., Liu, Y., Cooney, J., Brennan, A., McGoldrick, J., Thiele, I., and Fleming, R.M.T. Constructor: An open-source interface for quality-controlled metabolic reconstruction. (in preparation)
 <!-- MARKDOWN LINKS & IMAGES -->
 
 <!-- Shields -->

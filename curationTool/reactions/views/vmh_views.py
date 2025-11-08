@@ -60,7 +60,11 @@ from reactions.utils.add_to_vmh_utils import (
     get_nonfound_metabolites
 )
 try:
-    from reactions.utils.MatlabSessionManager import MatlabSessionManager
+    # Use remote MATLAB session manager if enabled, otherwise use local
+    if os.getenv('MATLAB_REMOTE_ENABLED', 'false').lower() == 'true':
+        from reactions.utils.MatlabSessionManagerRemote import MatlabSessionManager
+    else:
+        from reactions.utils.MatlabSessionManager import MatlabSessionManager
 except Exception:
     pass
 from reactions.utils.utils import get_external_ids, get_mol_weights, reactions_to_json

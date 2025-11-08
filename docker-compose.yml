@@ -13,6 +13,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      matlab:
+        condition: service_started
+    environment:
+      - MATLAB_REMOTE_ENABLED=true
+      - MATLAB_SESSION_NAME=matlab_shared_session
+      
   db:
     image: postgres:15-alpine
     env_file:
@@ -24,6 +30,38 @@ services:
       retries: 5
     volumes:
       - ./docker/postgres_data:/var/lib/postgresql/data
+
+  matlab:
+    build:
+      context: ./docker/matlab
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    environment:
+      - MLM_LICENSE_FILE=${MLM_LICENSE_FILE}
+      - MATLAB_SESSION_NAME=matlab_shared_session
+      # These are the CONTAINER paths where volumes are mounted
+      - COBRA_PATH=/matlab/toolboxes/cobratoolbox
+      - SCRIPT_DIRECTORIES=/matlab/scripts,/matlab/toolboxes/vmh_revamped
+    # Use host network to ensure consistent MAC address for licensing
+    network_mode: "host"
+    volumes:
+      # Mount your MATLAB scripts
+      - ./matlab_scripts:/matlab/scripts:ro
+      # Mount COBRA Toolbox from host
+      - ${COBRATOOLBOX_HOST_PATH}:/matlab/toolboxes/cobratoolbox:ro
+      # Mount VMH revamped code from host
+      - ${VMH_REVAMPED_HOST_PATH}:/matlab/toolboxes/vmh_revamped:ro
+      # Mount license file
+      - ./licenses:/licenses:ro
+    shm_size: 512M
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c 'import matlab.engine; print(len(matlab.engine.find_matlab()))' || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
 
 volumes:
   staticfiles:
