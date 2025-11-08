@@ -19,6 +19,10 @@ RUN python3 setup.py install
 RUN mkdir -p /matlab/scripts
 RUN mkdir -p /matlab/toolboxes/cobratoolbox
 RUN mkdir -p /matlab/toolboxes/vmh_revamped
+
+# Create MATLAB user directories to prevent startup errors
+RUN mkdir -p /root/Documents/MATLAB
+
 WORKDIR /matlab/scripts
 
 # Copy any custom MATLAB scripts or toolboxes
