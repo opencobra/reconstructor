@@ -19,12 +19,14 @@ RUN python3 setup.py install
 
 # Create directories for MATLAB scripts and toolboxes
 RUN mkdir -p /matlab/scripts
-RUN mkdir -p /matlab/toolboxes/vmh_revamped
 
 # Clone and initialize COBRA Toolbox with submodules
 RUN git clone --depth=1 https://github.com/opencobra/cobratoolbox.git /matlab/toolboxes/cobratoolbox && \
     cd /matlab/toolboxes/cobratoolbox && \
     git submodule update --init --recursive
+
+# Clone VMH revamped code
+RUN git clone https://github.com/opencobra/vmh_revamped.git /matlab/toolboxes/vmh_revamped
 
 # Create MATLAB user directories to prevent startup errors
 RUN mkdir -p /root/Documents/MATLAB
