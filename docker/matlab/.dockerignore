@@ -1,0 +1,4 @@
+# Ignore everything except what we need
+*
+!vmh_revamped/
+!matlab_engine_server.py
