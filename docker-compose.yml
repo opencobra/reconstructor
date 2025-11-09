@@ -35,6 +35,7 @@ services:
     build:
       context: ./docker/matlab
       dockerfile: Dockerfile
+    mem_limit: 2g
     env_file:
       - .env
     environment:
