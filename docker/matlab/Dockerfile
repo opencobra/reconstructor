@@ -31,14 +31,16 @@ RUN mkdir -p /root/Documents/MATLAB
 
 WORKDIR /matlab/scripts
 
-# Copy VMH revamped code from build context (must be after WORKDIR)
+# Note: vmh_revamped should be accessible in build context
+# If using symlink: ln -s /home/saleh/vmh_revamped vmh_revamped (from project root)
+# Copy VMH revamped code from build context
 COPY --chown=root:root vmh_revamped/ /matlab/toolboxes/vmh_revamped/
 
-# Copy any custom MATLAB scripts or toolboxes
+# Copy any custom MATLAB scripts or toolboxes  
 # COPY ./scripts /matlab/scripts
 
 # Create a startup script that runs MATLAB in server mode
-COPY matlab_engine_server.py /matlab/
+COPY docker/matlab/matlab_engine_server.py /matlab/
 RUN chmod +x /matlab/matlab_engine_server.py
 
 # Create directory for license files
