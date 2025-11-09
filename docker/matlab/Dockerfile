@@ -41,5 +41,8 @@ EXPOSE 9090
 # Stay as root user since license is activated for root
 USER root
 
+# Override the default MATLAB entrypoint to run our Python script instead
+ENTRYPOINT []
+
 # Run MATLAB Engine API server
 CMD ["python3", "/matlab/matlab_engine_server.py"]
