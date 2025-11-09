@@ -48,8 +48,8 @@ services:
     volumes:
       # Mount your MATLAB scripts
       - ./matlab_scripts:/matlab/scripts:ro
-      # Mount COBRA Toolbox from host
-      - ${COBRATOOLBOX_HOST_PATH}:/matlab/toolboxes/cobratoolbox:ro
+      # Mount COBRA Toolbox from host (rw needed for git submodule init)
+      - ${COBRATOOLBOX_HOST_PATH}:/matlab/toolboxes/cobratoolbox
       # Mount VMH revamped code from host
       - ${VMH_REVAMPED_HOST_PATH}:/matlab/toolboxes/vmh_revamped:ro
       # Mount license file
