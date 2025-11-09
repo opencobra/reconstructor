@@ -38,7 +38,12 @@ def start_matlab_engine_server():
             print(f"Adding COBRA path: {cobra_path}", flush=True)
             engine.addpath(cobra_path, nargout=0)
             print("Initializing COBRA Toolbox...", flush=True)
-            engine.eval("initCobraToolbox(0)", nargout=0)
+            try:
+                engine.eval("initCobraToolbox(0)", nargout=0)
+                print("COBRA Toolbox initialized successfully", flush=True)
+            except Exception as e:
+                print(f"Warning: COBRA Toolbox initialization failed: {e}", flush=True)
+                print("Continuing without COBRA Toolbox...", flush=True)
         
         # Share the MATLAB session with a specific name
         session_name = os.getenv('MATLAB_SESSION_NAME', 'matlab_shared_session')
