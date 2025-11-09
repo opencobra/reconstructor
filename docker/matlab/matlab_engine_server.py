@@ -38,18 +38,10 @@ def start_matlab_engine_server():
             print(f"Adding COBRA path: {cobra_path}", flush=True)
             engine.addpath(cobra_path, nargout=0)
             
-            # Configure git to trust the COBRA directory (for mounted volumes)
-            try:
-                import subprocess
-                subprocess.run(['git', 'config', '--global', '--add', 'safe.directory', cobra_path], 
-                             check=True, capture_output=True)
-                print(f"Configured git to trust {cobra_path}", flush=True)
-            except Exception as git_err:
-                print(f"Warning: Could not configure git safe.directory: {git_err}", flush=True)
-            
             print("Initializing COBRA Toolbox...", flush=True)
             try:
-                engine.eval("initCobraToolbox(0)", nargout=0)
+                # Initialize without checking for updates (since we're in a container)
+                engine.eval("initCobraToolbox(false)", nargout=0)
                 print("COBRA Toolbox initialized successfully", flush=True)
             except Exception as e:
                 print(f"Warning: COBRA Toolbox initialization failed: {e}", flush=True)

@@ -41,7 +41,7 @@ services:
     environment:
       - MLM_LICENSE_FILE=${MLM_LICENSE_FILE}
       - MATLAB_SESSION_NAME=matlab_shared_session
-      # These are the CONTAINER paths where volumes are mounted
+      # Override paths for MATLAB container (COBRA installed in image, not mounted)
       - COBRA_PATH=/matlab/toolboxes/cobratoolbox
       - SCRIPT_DIRECTORIES=/matlab/scripts,/matlab/toolboxes/vmh_revamped
     # Use host network to ensure consistent MAC address for licensing
@@ -49,12 +49,11 @@ services:
     volumes:
       # Mount your MATLAB scripts
       - ./matlab_scripts:/matlab/scripts:ro
-      # Mount COBRA Toolbox from host (rw needed for git submodule init)
-      - ${COBRATOOLBOX_HOST_PATH}:/matlab/toolboxes/cobratoolbox
       # Mount VMH revamped code from host
       - ${VMH_REVAMPED_HOST_PATH}:/matlab/toolboxes/vmh_revamped:ro
       # Mount license file
       - ./licenses:/licenses:ro
+      # Note: COBRA Toolbox is now installed in the image, not mounted
     shm_size: 512M
     restart: unless-stopped
     healthcheck:
