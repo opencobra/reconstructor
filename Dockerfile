@@ -4,15 +4,25 @@
 # The mathworks/matlab:r2024b image uses Python 3.12
 FROM mathworks/matlab:r2024b AS matlab-builder
 USER root
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
+# Install Python 3.11 in the MATLAB image and use it to build the MATLAB Engine
+# so the engine wheel/extension matches the Python runtime we use for the web image.
+RUN apt-get update && apt-get install -y \
+    python3.11 \
+    python3.11-dev \
+    python3.11-venv \
+    python3-pip \
+    python3-distutils \
+    && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/matlab/R2024b/extern/engines/python
-# Install the MATLAB Engine API into a staging directory that we can copy later
-RUN python3 setup.py install --prefix=/tmp/matlabengine
-RUN find /tmp/matlabengine -maxdepth 4 -type d
+# Ensure pip/setuptools/wheel for python3.11 are available, then build the engine
+RUN python3.11 -m pip install --upgrade pip setuptools wheel && \
+    python3.11 setup.py install --prefix=/tmp/matlabengine
+# Inspect created layout
+RUN find /tmp/matlabengine -maxdepth 5 -type d -print
 
 # Stage 2: Web application
-# Must match the Python version used in matlab-builder (3.12)
-FROM python:3.12-slim AS base
+# We'll use Python 3.11 for the web image so manylinux wheels for your requirements
+FROM python:3.11-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -30,12 +40,13 @@ WORKDIR /app
 
 # Install Python dependencies first (for better caching)
 COPY requirements.txt ./
-RUN pip install --no-cache-dir --upgrade pip && \
+# Upgrade pip/setuptools/wheel first so build backends can be imported if needed
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy MATLAB Engine API from builder - installed under local/ prefix
 # The path structure is /tmp/matlabengine/local/lib/python3.12/dist-packages/
-COPY --from=matlab-builder /tmp/matlabengine/local/ /usr/local/
+COPY --from=matlab-builder /tmp/matlabengine/ /usr/local/
 
 # Copy application code
 COPY . .
