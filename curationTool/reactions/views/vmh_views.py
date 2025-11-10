@@ -59,14 +59,16 @@ from reactions.utils.add_to_vmh_utils import (
     smiles_to_charged_formula,
     get_nonfound_metabolites
 )
+# Use remote MATLAB session manager if enabled, otherwise use local
+MatlabSessionManager = None
 try:
-    # Use remote MATLAB session manager if enabled, otherwise use local
     if os.getenv('MATLAB_REMOTE_ENABLED', 'false').lower() == 'true':
         from reactions.utils.MatlabSessionManagerRemote import MatlabSessionManager
     else:
         from reactions.utils.MatlabSessionManager import MatlabSessionManager
-except Exception:
-    pass
+except Exception as e:
+    print(f"Warning: Could not import MatlabSessionManager: {e}")
+
 from reactions.utils.utils import get_external_ids, get_mol_weights, reactions_to_json
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):

@@ -2,16 +2,19 @@ import random
 import requests
 import json
 import os
+from django.conf import settings
+
+# Use remote MATLAB session manager if enabled, otherwise use local
 skip = False
+MatlabSessionManager = None
 try:
-    # Use remote MATLAB session manager if enabled, otherwise use local
     if os.getenv('MATLAB_REMOTE_ENABLED', 'false').lower() == 'true':
         from reactions.utils.MatlabSessionManagerRemote import MatlabSessionManager
     else:
         from reactions.utils.MatlabSessionManager import MatlabSessionManager
-except Exception:
+except Exception as e:
+    print(f"Warning: Could not import MatlabSessionManager: {e}")
     skip = True
-from django.conf import settings
 
 def check_reaction_abbr_exists(abbr):
     BASE_URL = settings.OLD_VMH_BASE_URL
@@ -66,6 +69,9 @@ def gen_metabolite_abbr(
     if found:
         return abbr
     else:
+        if MatlabSessionManager is None:
+            raise RuntimeError("MatlabSessionManager is not available. MATLAB integration is not configured.")
+        
         matlab_session = MatlabSessionManager()
         result = matlab_session.execute('generateVMHMetAbbr', metabolite_name)
         abbr = result['result'] if result['status'] == 'success' else metabolite_name
