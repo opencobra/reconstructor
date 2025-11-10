@@ -42,9 +42,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy MATLAB Engine API from builder
-# The setup.py creates lib/python3.12/dist-packages under the prefix, not local/lib
-# Copy the site-packages content directly into the runtime's site-packages
-COPY --from=matlab-builder /tmp/matlabengine/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
+# Structure: /tmp/matlabengine/local/lib/python3.12/dist-packages/
+COPY --from=matlab-builder /tmp/matlabengine/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
 
 # Copy application code
 COPY . .
