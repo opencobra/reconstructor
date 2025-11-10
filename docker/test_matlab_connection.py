@@ -29,17 +29,13 @@ def test_matlab_connection():
     
     # Check environment
     print(f"\nEnvironment Configuration:")
-    print(f"  MATLAB_REMOTE_ENABLED: {os.getenv('MATLAB_REMOTE_ENABLED', 'not set')}")
-    print(f"  MATLAB_SESSION_NAME: {os.getenv('MATLAB_SESSION_NAME', 'not set')}")
+    print(f"  MATLAB_HOST: {os.getenv('MATLAB_HOST', 'not set')}")
+    print(f"  MATLAB_HTTP_PORT: {os.getenv('MATLAB_HTTP_PORT', 'not set')}")
     
-    # Import the session manager
+    # Import the HTTP-based session manager
     try:
-        if os.getenv('MATLAB_REMOTE_ENABLED', 'false').lower() == 'true':
-            from reactions.utils.MatlabSessionManagerRemote import MatlabSessionManager
-            print("  Using: Remote MATLAB Session Manager")
-        else:
-            from reactions.utils.MatlabSessionManager import MatlabSessionManager
-            print("  Using: Local MATLAB Session Manager")
+        from reactions.utils.MatlabHTTPClient import MatlabSessionManager
+        print("  Using: HTTP-based MATLAB Client")
     except ImportError as e:
         print(f"\n❌ Failed to import MatlabSessionManager: {e}")
         return False
