@@ -104,9 +104,10 @@ def start_matlab_engine_server():
         # Keep the server running
         while True:
             time.sleep(10)
-            # Optionally perform health checks
+            # Perform health check (suppress output with nargout=0 and semicolon)
             try:
-                engine.eval("1+1", nargout=0)
+                # Use nargout=0 and eval with semicolon to suppress output
+                engine.eval("x = 1 + 1;", nargout=0)
             except Exception as e:
                 print(f"Health check failed: {e}", flush=True)
                 break
