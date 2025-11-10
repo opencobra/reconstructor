@@ -3,7 +3,7 @@
 # Stage 1: Install MATLAB Engine API in MATLAB container
 # Keep PYTHON_VERSION aligned with the interpreter used to build the MATLAB Engine
 # so the compiled extension matches the runtime ABI in the web image.
-ARG PYTHON_VERSION=3.10
+ARG PYTHON_VERSION=3.11
 FROM mathworks/matlab:r2024b AS matlab-builder
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
@@ -35,9 +35,8 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy MATLAB Engine API and all its dependencies from builder stage
-# These are installed under the staging prefix
-COPY --from=matlab-builder /tmp/matlabengine/lib/python${PYTHON_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_VERSION}/site-packages/
+# Copy MATLAB Engine API artifacts from the builder stage; prefix layout matches /usr/local
+COPY --from=matlab-builder /tmp/matlabengine/ /usr/local/
 
 # Copy application code
 COPY . .
