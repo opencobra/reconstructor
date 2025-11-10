@@ -83,7 +83,7 @@ class MatlabHTTPClient:
                     'args': list(args),
                     'kwargs': kwargs
                 },
-                timeout=self.timeout
+                timeout=(5, self.timeout)
             )
             print(f"[DEBUG MatlabHTTPClient] Response status: {response.status_code}", flush=True)
             print(f"[DEBUG MatlabHTTPClient] Response body: {response.text[:200]}", flush=True)
@@ -134,7 +134,7 @@ class MatlabHTTPClient:
             response = requests.post(
                 f"{self.base_url}/eval",
                 json=payload,
-                timeout=self.timeout
+                timeout=(5, self.timeout)
             )
             
             result = response.json()

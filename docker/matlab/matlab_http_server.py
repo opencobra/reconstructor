@@ -96,6 +96,11 @@ def execute_function():
         args = data.get('args', [])
         kwargs = data.get('kwargs', {})
         nargout = data.get('nargout', 1)
+
+        print(
+            f"[MATLAB HTTP] Received execute request: function={function_name}, args={args}, kwargs={kwargs}, nargout={nargout}",
+            flush=True
+        )
         
         # Validate that function exists
         if not hasattr(matlab_engine, function_name):
@@ -123,6 +128,11 @@ def execute_function():
                     result = [r.tolist() if hasattr(r, 'tolist') else r for r in result]
             except:
                 pass  # Keep result as-is if conversion fails
+
+        print(
+            f"[MATLAB HTTP] Execution completed: function={function_name}, result_summary={str(result)[:200] if result is not None else 'None'}",
+            flush=True
+        )
         
         return jsonify({
             'status': 'success',
@@ -130,11 +140,14 @@ def execute_function():
         }), 200
         
     except matlab.engine.MatlabExecutionError as e:
+        print(f"[MATLAB HTTP] MATLAB execution error for function {function_name}: {e}", flush=True)
         return jsonify({
             'status': 'error',
             'message': f'MATLAB execution error: {str(e)}'
         }), 500
     except Exception as e:
+        print(f"[MATLAB HTTP] Unexpected error for function {locals().get('function_name', 'unknown')}: {e}", flush=True)
+        print(traceback.format_exc(), flush=True)
         return jsonify({
             'status': 'error',
             'message': f'Unexpected error: {str(e)}',
@@ -170,6 +183,11 @@ def eval_code():
         
         code = data['code']
         nargout = data.get('nargout', 0)
+
+        print(
+            f"[MATLAB HTTP] Received eval request: nargout={nargout}, code_snippet={code[:100]}...",
+            flush=True
+        )
         
         # Execute the code
         if nargout == 0:
@@ -185,6 +203,8 @@ def eval_code():
                     result = result.tolist()
             except:
                 pass
+
+        print("[MATLAB HTTP] Eval completed", flush=True)
         
         return jsonify({
             'status': 'success',
@@ -192,11 +212,14 @@ def eval_code():
         }), 200
         
     except matlab.engine.MatlabExecutionError as e:
+        print(f"[MATLAB HTTP] MATLAB execution error during eval: {e}", flush=True)
         return jsonify({
             'status': 'error',
             'message': f'MATLAB execution error: {str(e)}'
         }), 500
     except Exception as e:
+        print(f"[MATLAB HTTP] Unexpected error during eval: {e}", flush=True)
+        print(traceback.format_exc(), flush=True)
         return jsonify({
             'status': 'error',
             'message': f'Unexpected error: {str(e)}',
