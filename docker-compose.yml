@@ -1,15 +1,13 @@
 services:
   web:
     build: .
-    command: gunicorn reactions_project.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn reactions_project.wsgi:application --bind 0.0.0.0:8001
     env_file:
       - .env
     volumes:
       - ./curationTool/media:/app/curationTool/media
       - staticfiles:/app/curationTool/staticfiles
       - ./curationTool:/app/curationTool
-    ports:
-      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
