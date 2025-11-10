@@ -1,12 +1,12 @@
 # syntax=docker/dockerfile:1
 
-# Stage 1: Build MATLAB Engine API wheel using MATLAB container
+# Stage 1: Install MATLAB Engine API in MATLAB container
 FROM mathworks/matlab:r2024b AS matlab-builder
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/matlab/R2024b/extern/engines/python
-# Build the wheel (this requires MATLAB to be present during build)
-RUN python3 setup.py bdist_wheel
+# Install the MATLAB Engine API (this installs all dependencies including compiled extensions)
+RUN python3 setup.py install
 
 # Stage 2: Web application
 FROM python:3.11-slim AS base
@@ -30,10 +30,11 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy and install MATLAB Engine API wheel from builder stage
-# This wheel was built with MATLAB present, but works without MATLAB at runtime
-COPY --from=matlab-builder /opt/matlab/R2024b/extern/engines/python/dist/*.whl /tmp/
-RUN pip install --no-cache-dir /tmp/*.whl && rm -rf /tmp/*.whl
+# Copy MATLAB Engine API and all its dependencies from builder stage
+# This includes matlab, matlabengineforpython, and matlabmultidimarrayforpython packages
+COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlab /usr/local/lib/python3.11/site-packages/matlab
+COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlabengineforpython* /usr/local/lib/python3.11/site-packages/
+COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlabmultidimarrayforpython* /usr/local/lib/python3.11/site-packages/
 
 # Copy application code
 COPY . .
