@@ -15,14 +15,19 @@ services:
         condition: service_healthy
       matlab:
         condition: service_started
+    # Use host network to communicate with MATLAB container (which is also on host network)
+    network_mode: "host"
     environment:
-      - MATLAB_HOST=matlab
+      - MATLAB_HOST=localhost
       - MATLAB_HTTP_PORT=9090
+      - POSTGRES_HOST=localhost
       
   db:
     image: postgres:15-alpine
     env_file:
       - .env
+    ports:
+      - "5432:5432"  # Expose port for host network access
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
       interval: 10s
