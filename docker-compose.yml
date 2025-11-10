@@ -16,8 +16,8 @@ services:
       matlab:
         condition: service_started
     environment:
-      - MATLAB_REMOTE_ENABLED=true
-      - MATLAB_SESSION_NAME=matlab_shared_session
+      - MATLAB_HOST=matlab
+      - MATLAB_HTTP_PORT=9090
       
   db:
     image: postgres:15-alpine
@@ -40,7 +40,7 @@ services:
       - .env
     environment:
       - MLM_LICENSE_FILE=${MLM_LICENSE_FILE}
-      - MATLAB_SESSION_NAME=matlab_shared_session
+      - MATLAB_HTTP_PORT=9090
       # Override paths for MATLAB container (COBRA and VMH installed in image)
       - COBRA_PATH=/matlab/toolboxes/cobratoolbox
       - SCRIPT_DIRECTORIES=/matlab/scripts,/matlab/toolboxes/vmh_revamped/vmh_db_update/src,/matlab/toolboxes/cobratoolbox/src/dataIntegration/metaboAnnotator/buildMetStruct,/matlab/toolboxes/cobratoolbox
@@ -56,7 +56,7 @@ services:
     # Restart on failure but not on manual stop or successful exit
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "python3 -c 'import matlab.engine; print(len(matlab.engine.find_matlab()))' || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9090/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

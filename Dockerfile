@@ -1,24 +1,6 @@
 # syntax=docker/dockerfile:1
 
-# Stage 1: Install MATLAB Engine API in MATLAB container
-# The mathworks/matlab:r2024b image uses Python 3.12 (Ubuntu Noble)
-FROM mathworks/matlab:r2024b AS matlab-builder
-USER root
-RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
-WORKDIR /opt/matlab/R2024b/extern/engines/python
-# Build with system Python 3.12; the compiled extension uses stable ABI and works with 3.11+
-# System pip/setuptools are sufficient; no need to upgrade
-RUN python3 setup.py install --prefix=/tmp/matlabengine
-RUN find /tmp/matlabengine -maxdepth 5 -type d -print
-# The installer creates lib/python3.12/site-packages but we'll copy to 3.11 runtime
-# Create a symlink so both 3.11 and 3.12 paths work
-RUN if [ -d /tmp/matlabengine/lib/python3.12 ]; then \
-        cd /tmp/matlabengine/lib && \
-        ln -s python3.12 python3.11; \
-    fi
-
-# Stage 2: Web application
-# We'll use Python 3.11 for the web image so manylinux wheels for your requirements
+# Web application - no MATLAB Engine needed
 FROM python:3.11-slim AS base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -40,20 +22,6 @@ COPY requirements.txt ./
 # Upgrade pip/setuptools/wheel first so build backends can be imported if needed
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
-
-# Copy MATLAB Engine API from builder
-# Structure: /tmp/matlabengine/local/lib/python3.12/dist-packages/
-COPY --from=matlab-builder /tmp/matlabengine/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
-
-# Copy MATLAB runtime libraries (compiled .so files) into site-packages so Python can find them
-COPY --from=matlab-builder /opt/matlab/R2024b/extern/bin/glnxa64/*.so /usr/local/lib/python3.11/site-packages/
-
-# Extract the .egg file so Python can import the matlab module
-RUN cd /usr/local/lib/python3.11/site-packages && \
-    if [ -d matlabengine-24.2-py3.12.egg ]; then \
-        cp -r matlabengine-24.2-py3.12.egg/matlab . && \
-        cp -r matlabengine-24.2-py3.12.egg/EGG-INFO matlabengine-24.2.egg-info; \
-    fi
 
 # Copy application code
 COPY . .

@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /opt/matlab/R2024b/extern/engines/python
 RUN python3 setup.py install
 
+# Install Flask for HTTP API server
+RUN python3 -m pip install --break-system-packages flask
+
 # Create directories for MATLAB scripts and toolboxes
 RUN mkdir -p /matlab/scripts
 RUN mkdir -p /matlab/toolboxes/vmh_revamped
@@ -40,8 +43,8 @@ COPY --chown=root:root vmh_revamped/ /matlab/toolboxes/vmh_revamped/
 # COPY ./scripts /matlab/scripts
 
 # Create a startup script that runs MATLAB in server mode
-COPY docker/matlab/matlab_engine_server.py /matlab/
-RUN chmod +x /matlab/matlab_engine_server.py
+COPY docker/matlab/matlab_http_server.py /matlab/
+RUN chmod +x /matlab/matlab_http_server.py
 
 # Create directory for license files
 RUN mkdir -p /licenses
@@ -55,5 +58,5 @@ USER root
 # Override the default MATLAB entrypoint to run our Python script instead
 ENTRYPOINT []
 
-# Run MATLAB Engine API server
-CMD ["python3", "/matlab/matlab_engine_server.py"]
+# Run MATLAB HTTP API server
+CMD ["python3", "/matlab/matlab_http_server.py"]
