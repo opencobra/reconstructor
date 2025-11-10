@@ -45,6 +45,9 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Structure: /tmp/matlabengine/local/lib/python3.12/dist-packages/
 COPY --from=matlab-builder /tmp/matlabengine/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
 
+# Copy MATLAB runtime libraries (compiled .so files)
+COPY --from=matlab-builder /opt/matlab/R2024b/extern/bin/glnxa64/*.so /usr/local/lib/
+
 # Extract the .egg file so Python can import the matlab module
 RUN cd /usr/local/lib/python3.11/site-packages && \
     if [ -d matlabengine-24.2-py3.12.egg ]; then \
