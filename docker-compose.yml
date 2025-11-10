@@ -1,24 +1,25 @@
 services:
   web:
     build: .
-    command: gunicorn reactions_project.wsgi:application --bind 0.0.0.0:8001
+    command: gunicorn reactions_project.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env
     volumes:
       - ./curationTool/media:/app/curationTool/media
       - staticfiles:/app/curationTool/staticfiles
       - ./curationTool:/app/curationTool
+    ports:
+      - "8001:8000"
     depends_on:
       db:
         condition: service_healthy
       matlab:
         condition: service_started
-    # Use host network to communicate with MATLAB container (which is also on host network)
-    network_mode: "host"
+    extra_hosts:
+      - "matlab:host-gateway"
     environment:
-      - MATLAB_HOST=localhost
+      - MATLAB_HOST=matlab
       - MATLAB_HTTP_PORT=9090
-      - POSTGRES_HOST=localhost
       
   db:
     image: postgres:15-alpine
