@@ -1,7 +1,7 @@
 services:
   web:
     build: .
-    command: gunicorn reactions_project.wsgi:application --config gunicorn.conf.py
+    command: gunicorn reactions_project.wsgi:application --config /app/gunicorn.conf.py
     env_file:
       - .env
     volumes:
