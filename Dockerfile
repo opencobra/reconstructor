@@ -45,8 +45,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Structure: /tmp/matlabengine/local/lib/python3.12/dist-packages/
 COPY --from=matlab-builder /tmp/matlabengine/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
 
-# Copy MATLAB runtime libraries (compiled .so files)
-COPY --from=matlab-builder /opt/matlab/R2024b/extern/bin/glnxa64/*.so /usr/local/lib/
+# Copy MATLAB runtime libraries (compiled .so files) into site-packages so Python can find them
+COPY --from=matlab-builder /opt/matlab/R2024b/extern/bin/glnxa64/*.so /usr/local/lib/python3.11/site-packages/
 
 # Extract the .egg file so Python can import the matlab module
 RUN cd /usr/local/lib/python3.11/site-packages && \
