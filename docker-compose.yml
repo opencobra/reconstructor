@@ -51,8 +51,8 @@ services:
     # Use host network to ensure consistent MAC address for licensing
     network_mode: "host"
     volumes:
-      # Mount your MATLAB scripts
-      - ./matlab_scripts:/matlab/scripts:ro
+      # Mount your MATLAB scripts (writable so MATLAB can create data directories)
+      - ./matlab_scripts:/matlab/scripts
       # Mount license file
       - ./licenses:/licenses:ro
       # Note: COBRA Toolbox and VMH revamped are now installed in the image, not mounted
