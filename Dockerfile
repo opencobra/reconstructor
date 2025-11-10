@@ -7,6 +7,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -
 WORKDIR /opt/matlab/R2024b/extern/engines/python
 # Install the MATLAB Engine API into a staging directory that we can copy later
 RUN python3 setup.py install --prefix=/tmp/matlabengine
+RUN find /tmp/matlabengine -maxdepth 4 -type d
 
 # Stage 2: Web application
 FROM python:3.11-slim AS base
