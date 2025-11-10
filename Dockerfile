@@ -5,8 +5,8 @@ FROM mathworks/matlab:r2024b AS matlab-builder
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/matlab/R2024b/extern/engines/python
-# Install the MATLAB Engine API (this installs all dependencies including compiled extensions)
-RUN python3 setup.py install
+# Install the MATLAB Engine API into a staging directory that we can copy later
+RUN python3 setup.py install --prefix=/tmp/matlabengine
 
 # Stage 2: Web application
 FROM python:3.11-slim AS base
@@ -31,10 +31,8 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy MATLAB Engine API and all its dependencies from builder stage
-# This includes matlab, matlabengineforpython, and matlabmultidimarrayforpython packages
-COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlab /usr/local/lib/python3.11/site-packages/matlab
-COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlabengineforpython* /usr/local/lib/python3.11/site-packages/
-COPY --from=matlab-builder /usr/local/lib/python3.11/site-packages/matlabmultidimarrayforpython* /usr/local/lib/python3.11/site-packages/
+# These are installed under the staging prefix
+COPY --from=matlab-builder /tmp/matlabengine/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
 
 # Copy application code
 COPY . .
