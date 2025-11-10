@@ -60,4 +60,3 @@ zeep
 pandas
 pubchempy
 coreapi
-matlabengine==24.1.1
