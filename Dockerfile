@@ -7,7 +7,8 @@ USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/matlab/R2024b/extern/engines/python
 # Build with system Python 3.12; the compiled extension uses stable ABI and works with 3.11+
-RUN python3 -m pip install --upgrade pip setuptools wheel && \
+# Use --break-system-packages since this is a throwaway builder stage
+RUN python3 -m pip install --break-system-packages --upgrade pip setuptools wheel && \
     python3 setup.py install --prefix=/tmp/matlabengine
 RUN find /tmp/matlabengine -maxdepth 5 -type d -print
 # The installer creates lib/python3.12/site-packages but we'll copy to 3.11 runtime
