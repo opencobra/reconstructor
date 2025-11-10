@@ -13,9 +13,25 @@ Usage:
 """
 
 import os
+import sys
 import time
 import logging
-import matlab.engine
+import traceback
+
+# Debug: Check if matlab.engine is available
+print(f"[DEBUG MatlabSessionManagerRemote] Python version: {sys.version}", flush=True)
+print(f"[DEBUG MatlabSessionManagerRemote] Attempting to import matlab.engine...", flush=True)
+
+try:
+    import matlab.engine
+    print(f"[DEBUG MatlabSessionManagerRemote] Successfully imported matlab.engine", flush=True)
+    print(f"[DEBUG MatlabSessionManagerRemote] matlab.engine module: {matlab.engine}", flush=True)
+except ImportError as e:
+    print(f"[ERROR MatlabSessionManagerRemote] Failed to import matlab.engine: {e}", flush=True)
+    print(f"[ERROR MatlabSessionManagerRemote] Traceback:", flush=True)
+    traceback.print_exc(file=sys.stdout)
+    raise
+
 from typing import Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
