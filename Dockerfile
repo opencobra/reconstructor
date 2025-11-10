@@ -45,6 +45,13 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Structure: /tmp/matlabengine/local/lib/python3.12/dist-packages/
 COPY --from=matlab-builder /tmp/matlabengine/local/lib/python3.12/dist-packages/ /usr/local/lib/python3.11/site-packages/
 
+# Extract the .egg file so Python can import the matlab module
+RUN cd /usr/local/lib/python3.11/site-packages && \
+    if [ -d matlabengine-24.2-py3.12.egg ]; then \
+        cp -r matlabengine-24.2-py3.12.egg/matlab . && \
+        cp -r matlabengine-24.2-py3.12.egg/EGG-INFO matlabengine-24.2.egg-info; \
+    fi
+
 # Copy application code
 COPY . .
 
