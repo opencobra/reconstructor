@@ -50,10 +50,56 @@ def start_matlab_engine_server():
         # Share the MATLAB session with a specific name
         session_name = os.getenv('MATLAB_SESSION_NAME', 'matlab_shared_session')
         print(f"Sharing MATLAB session as: {session_name}", flush=True)
-        engine.matlab.engine.shareEngine(session_name, nargout=0)
         
-        print("MATLAB Engine Server is ready and accepting connections!", flush=True)
-        print(f"Session name: {session_name}", flush=True)
+        try:
+            engine.matlab.engine.shareEngine(session_name, nargout=0)
+            print("MATLAB Engine Server is ready and accepting connections!", flush=True)
+            print(f"Session name: {session_name}", flush=True)
+        except Exception as share_error:
+            # If session name already exists, it might be from a previous container run
+            print(f"Warning: Could not share session as '{session_name}': {share_error}", flush=True)
+            
+            # Check if we can find and connect to the existing session
+            try:
+                existing_sessions = matlab.engine.find_matlab()
+                print(f"Found existing MATLAB sessions: {existing_sessions}", flush=True)
+                
+                if session_name in existing_sessions:
+                    print(f"Session '{session_name}' already exists. Attempting to verify it's alive...", flush=True)
+                    try:
+                        # Try to connect to the existing session to see if it's valid
+                        test_engine = matlab.engine.connect_matlab(session_name)
+                        test_engine.eval("1+1", nargout=0)
+                        test_engine.quit()
+                        print(f"Existing session '{session_name}' is alive and functional.", flush=True)
+                        print("The existing session will continue to serve requests.", flush=True)
+                        print("This container will exit to avoid conflicts.", flush=True)
+                        sys.exit(0)  # Exit successfully since a valid session exists
+                    except Exception as connect_error:
+                        print(f"Existing session appears to be dead/orphaned: {connect_error}", flush=True)
+                        print("Waiting 5 seconds for session cleanup and retrying...", flush=True)
+                        time.sleep(5)
+                        
+                        # Retry sharing after waiting
+                        try:
+                            engine.matlab.engine.shareEngine(session_name, nargout=0)
+                            print(f"Successfully shared session as '{session_name}' after retry", flush=True)
+                        except Exception as retry_error:
+                            print(f"Retry failed: {retry_error}. Using unique session name instead.", flush=True)
+                            import uuid
+                            fallback_name = f"{session_name}_{uuid.uuid4().hex[:8]}"
+                            engine.matlab.engine.shareEngine(fallback_name, nargout=0)
+                            print(f"Using fallback session name: {fallback_name}", flush=True)
+                else:
+                    # Session name not in list, but shareEngine still failed - use fallback
+                    import uuid
+                    fallback_name = f"{session_name}_{uuid.uuid4().hex[:8]}"
+                    print(f"Sharing with fallback name: {fallback_name}", flush=True)
+                    engine.matlab.engine.shareEngine(fallback_name, nargout=0)
+                    print(f"MATLAB Engine Server is ready with session name: {fallback_name}", flush=True)
+            except Exception as find_error:
+                print(f"Error checking existing sessions: {find_error}", flush=True)
+                print("Continuing with unnamed shared session...", flush=True)
         
         # Keep the server running
         while True:
