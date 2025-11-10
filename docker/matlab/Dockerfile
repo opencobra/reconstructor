@@ -23,6 +23,7 @@ RUN python3 -m pip install --break-system-packages flask
 # Create directories for MATLAB scripts and toolboxes
 RUN mkdir -p /matlab/scripts
 RUN mkdir -p /matlab/toolboxes/vmh_revamped
+RUN mkdir -p /matlab/data
 
 # Clone and initialize COBRA Toolbox with submodules
 RUN git clone --depth=1 https://github.com/opencobra/cobratoolbox.git /matlab/toolboxes/cobratoolbox && \
@@ -31,6 +32,9 @@ RUN git clone --depth=1 https://github.com/opencobra/cobratoolbox.git /matlab/to
 
 # Create MATLAB user directories to prevent startup errors
 RUN mkdir -p /root/Documents/MATLAB
+
+# Make /matlab directory writable for MATLAB operations
+RUN chmod -R 777 /matlab
 
 WORKDIR /matlab/scripts
 

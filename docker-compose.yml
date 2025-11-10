@@ -56,6 +56,8 @@ services:
       # Mount license file
       - ./licenses:/licenses:ro
       # Note: COBRA Toolbox and VMH revamped are now installed in the image, not mounted
+      # Writable directory for MATLAB to create temporary data files
+      - matlab_data:/matlab/data
     shm_size: 512M
     # Restart on failure but not on manual stop or successful exit
     restart: on-failure
@@ -68,4 +70,5 @@ services:
 
 volumes:
   staticfiles:
+  matlab_data:
   
