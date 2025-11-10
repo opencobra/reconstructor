@@ -60,14 +60,19 @@ def gen_metabolite_abbr(
         [metabolite], [mtype], None, side='substrates', nofile=True, return_abbr=True)
     found, abbr = found[0], abbr[0]
     if found:
+        print(f"[DEBUG gen_vmh_abbrs] Metabolite '{metabolite_name}' found in VMH with abbr: {abbr}", flush=True)
         return abbr
     else:
+        print(f"[DEBUG gen_vmh_abbrs] Metabolite '{metabolite_name}' NOT found in VMH, calling MATLAB...", flush=True)
         matlab_session = MatlabSessionManager()
+        print(f"[DEBUG gen_vmh_abbrs] MatlabSessionManager created, calling generateVMHMetAbbr...", flush=True)
         result = matlab_session.execute('generateVMHMetAbbr', metabolite_name)
+        print(f"[DEBUG gen_vmh_abbrs] MATLAB result: {result}", flush=True)
         abbr = result['result'] if result['status'] == 'success' else metabolite_name
         # abbr = abbr[-1] if isinstance(abbr, list) else abbr
         exists = check_met_abbr_exists(abbr)
         while exists:
             abbr = abbr + '_'
             exists = check_met_abbr_exists(abbr)
+        print(f"[DEBUG gen_vmh_abbrs] Final abbreviation: {abbr}", flush=True)
         return abbr

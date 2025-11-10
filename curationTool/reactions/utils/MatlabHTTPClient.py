@@ -37,6 +37,8 @@ class MatlabHTTPClient:
         self.base_url = f"http://{self.matlab_host}:{self.matlab_port}"
         self.timeout = 300  # 5 minutes timeout for MATLAB operations
         
+        print(f"[INFO MatlabHTTPClient] Initializing with host={self.matlab_host}, port={self.matlab_port}", flush=True)
+        print(f"[INFO MatlabHTTPClient] Base URL: {self.base_url}", flush=True)
         logger.info(f"MATLAB HTTP Client initialized: {self.base_url}")
         self._initialized = True
 
@@ -57,62 +59,53 @@ class MatlabHTTPClient:
             logger.error(f"MATLAB health check failed: {e}")
             return False
 
-    def execute(
-        self,
-        function: str,
-        *args,
-        nargout: int = 1,
-        **kwargs
-    ) -> Dict[str, Any]:
+    def execute(self, function_name: str, *args, **kwargs) -> Dict[str, Any]:
         """
-        Execute a MATLAB function.
+        Execute a MATLAB function with arguments.
         
         Args:
-            function: Name of the MATLAB function to execute
-            *args: Positional arguments to pass to the function
-            nargout: Number of output arguments (default 1)
-            **kwargs: Keyword arguments to pass to the function
+            function_name: Name of the MATLAB function to execute
+            *args: Positional arguments for the function
+            **kwargs: Keyword arguments for the function
             
         Returns:
-            Dictionary with 'status' and either 'result' or 'message':
-            - {'status': 'success', 'result': <return_value>}
-            - {'status': 'error', 'message': <error_message>}
+            Dict with 'status' ('success' or 'error'), 'result', and optional 'message'
         """
+        print(f"[DEBUG MatlabHTTPClient] Executing MATLAB function: {function_name}", flush=True)
+        print(f"[DEBUG MatlabHTTPClient] Args: {args}, Kwargs: {kwargs}", flush=True)
+        print(f"[DEBUG MatlabHTTPClient] Sending request to: {self.base_url}/execute", flush=True)
+        
         try:
-            payload = {
-                'function': function,
-                'args': list(args),
-                'kwargs': kwargs,
-                'nargout': nargout
-            }
-            
-            logger.debug(f"Executing MATLAB function: {function}")
-            
             response = requests.post(
                 f"{self.base_url}/execute",
-                json=payload,
+                json={
+                    'function': function_name,
+                    'args': list(args),
+                    'kwargs': kwargs
+                },
                 timeout=self.timeout
             )
+            print(f"[DEBUG MatlabHTTPClient] Response status: {response.status_code}", flush=True)
+            print(f"[DEBUG MatlabHTTPClient] Response body: {response.text[:200]}", flush=True)
             
+            response.raise_for_status()
             result = response.json()
+            print(f"[DEBUG MatlabHTTPClient] Result: {result}", flush=True)
+            return result
             
-            if response.status_code == 200:
-                logger.debug(f"Function executed successfully: {function}")
-                return result
-            else:
-                logger.error(f"Function execution failed: {result.get('message', 'Unknown error')}")
-                return result
-                
-        except requests.exceptions.Timeout:
-            error_msg = f"MATLAB function {function} timed out after {self.timeout} seconds"
+        except requests.exceptions.ConnectionError as e:
+            error_msg = f"Cannot connect to MATLAB server at {self.base_url}: {e}"
+            print(f"[ERROR MatlabHTTPClient] {error_msg}", flush=True)
             logger.error(error_msg)
             return {'status': 'error', 'message': error_msg}
-        except requests.exceptions.ConnectionError as e:
-            error_msg = f"Cannot connect to MATLAB server at {self.base_url}: {str(e)}"
+        except requests.exceptions.Timeout as e:
+            error_msg = f"Request to MATLAB server timed out after {self.timeout}s: {e}"
+            print(f"[ERROR MatlabHTTPClient] {error_msg}", flush=True)
             logger.error(error_msg)
             return {'status': 'error', 'message': error_msg}
         except Exception as e:
-            error_msg = f"Unexpected error executing {function}: {str(e)}"
+            error_msg = f"Error executing MATLAB function '{function_name}': {e}"
+            print(f"[ERROR MatlabHTTPClient] {error_msg}", flush=True)
             logger.error(error_msg)
             return {'status': 'error', 'message': error_msg}
 
