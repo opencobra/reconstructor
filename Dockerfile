@@ -1,6 +1,9 @@
 # syntax=docker/dockerfile:1
 
 # Stage 1: Install MATLAB Engine API in MATLAB container
+# Keep PYTHON_VERSION aligned with the interpreter used to build the MATLAB Engine
+# so the compiled extension matches the runtime ABI in the web image.
+ARG PYTHON_VERSION=3.10
 FROM mathworks/matlab:r2024b AS matlab-builder
 USER root
 RUN apt-get update && apt-get install -y python3 python3-pip python3-dev && rm -rf /var/lib/apt/lists/*
@@ -10,7 +13,8 @@ RUN python3 setup.py install --prefix=/tmp/matlabengine
 RUN find /tmp/matlabengine -maxdepth 4 -type d
 
 # Stage 2: Web application
-FROM python:3.11-slim AS base
+FROM python:${PYTHON_VERSION}-slim AS base
+ARG PYTHON_VERSION
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -33,7 +37,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy MATLAB Engine API and all its dependencies from builder stage
 # These are installed under the staging prefix
-COPY --from=matlab-builder /tmp/matlabengine/lib/python3.11/site-packages/ /usr/local/lib/python3.11/site-packages/
+COPY --from=matlab-builder /tmp/matlabengine/lib/python${PYTHON_VERSION}/site-packages/ /usr/local/lib/python${PYTHON_VERSION}/site-packages/
 
 # Copy application code
 COPY . .
