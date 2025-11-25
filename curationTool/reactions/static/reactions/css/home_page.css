@@ -358,28 +358,164 @@ body {
 	background: linear-gradient(180deg, rgba(12, 74, 110, 0.95), #073651) !important;
 }
 
-#saveReactionButton {
-	background-color: Coral;
-}
-#saveReactionButton:hover {
-	background-color: #fb4300;
-}
 #userIcon {
 	height: 20px;
 }
 
-#FormButtons {
+.workspace-actions {
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-	gap: 15px;
-	margin-top: 12px;
+	gap: 20px;
+	padding: 18px 32px;
+	margin: 16px auto 0 auto;
+	width: 100%;
+	max-width: 1600px;
+	background: linear-gradient(180deg, #fdfdfd, #f5f7fa);
+	border-radius: 18px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 12px 30px rgba(15, 23, 42, 0.08);
+	color: #0f172a;
+	flex-wrap: wrap;
 }
+
+.actions-primary,
+.actions-secondary {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.actions-secondary {
+	margin-left: auto;
+}
+
+.primary-action {
+	display: flex;
+	align-items: center;
+	gap: 18px;
+}
+
+.action-btn {
+	background: linear-gradient(180deg, #f8fafc, #e2e8f0);
+	color: #0f172a !important;
+	border: 1px solid #e2e8f0 !important;
+	border-radius: 12px !important;
+	font-weight: 600 !important;
+	padding: 12px 22px !important;
+	box-shadow: 0 6px 15px rgba(15, 23, 42, 0.12);
+	transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.action-btn:hover {
+	background: linear-gradient(180deg, #ffffff, #edf2f7);
+	transform: translateY(-1px);
+	box-shadow: 0 12px 22px rgba(15, 23, 42, 0.18);
+}
+
 #submitBtn-form {
-	background-color: lightblue;
+	background: linear-gradient(180deg, #4ade80, #22c55e);
+	color: #042f1a !important;
+	border-color: rgba(34, 197, 94, 0.4) !important;
 }
+
 #submitBtn-form:hover {
-	background-color: #60b3ce;
+	background: linear-gradient(180deg, #86efac, #22c55e);
+}
+
+#saveReactionButton.action-btn {
+	background: linear-gradient(180deg, #92d5f7, #53c0f7);
+	color: #042f1a !important;
+	border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+#saveReactionButton.action-btn:hover {
+	filter: brightness(1.05);
+}
+.skip-toggle {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	font-size: 0.85rem;
+	color: #475569;
+}
+
+.skip-toggle-label {
+	font-weight: 500;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.skip-toggle-control {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.skip-toggle input {
+	opacity: 0;
+	width: 0;
+	height: 0;
+	position: absolute;
+}
+
+.toggle-slider {
+	position: relative;
+	width: 52px;
+	height: 26px;
+	border-radius: 999px;
+	background: #e2e8f0;
+	border: 1px solid rgba(148, 163, 184, 0.7);
+	box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.12);
+	transition: background 0.2s ease, border 0.2s ease;
+}
+
+.toggle-slider::after {
+	content: '';
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	background: #ffffff;
+	box-shadow: 0 3px 8px rgba(15, 23, 42, 0.15);
+	top: 50%;
+	left: 4px;
+	transform: translateY(-50%);
+	transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.skip-toggle input:checked + .toggle-slider {
+	background: #d1fae5;
+	border-color: rgba(34, 197, 94, 0.6);
+}
+
+.skip-toggle input:checked + .toggle-slider::after {
+	transform: translate(22px, -50%);
+	background: #22c55e;
+}
+
+.workspace-actions .ui.red.button.action-btn {
+	background: linear-gradient(180deg, #fecaca, #f87171);
+	color: #7f1d1d !important;
+	border-color: rgba(248, 113, 113, 0.5) !important;
+}
+
+.workspace-actions .ui.red.button.action-btn:hover {
+	background: linear-gradient(180deg, #fee2e2, #ef4444);
+	color: #fff !important;
+}
+
+@media (max-width: 900px) {
+	.workspace-actions {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+	.actions-secondary {
+		margin-left: 0;
+		width: 100%;
+		justify-content: flex-start;
+		flex-wrap: wrap;
+	}
 }
 
 /* Ensure full-screen coverage for the loader */

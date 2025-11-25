@@ -35,7 +35,7 @@ function toggleCreateTemplateMode() {
     if (!createTemplateButton) {
         createTemplateButton = document.createElement('button');
         createTemplateButton.id = 'createTemplateButton';
-        createTemplateButton.className = 'ui button';
+        createTemplateButton.className = 'ui button action-btn';
         createTemplateButton.textContent = 'Create Template';
 
         // Copy styles from submitBtn-form
@@ -48,8 +48,9 @@ function toggleCreateTemplateMode() {
             );
         }
 
-        // Place 'Create Template' button before the ResetButton
-        formButtonsContainer.insertBefore(createTemplateButton, resetButton);
+        // Place 'Create Template' button before the ResetButton, respecting new layout
+        const insertionTarget = resetButton && resetButton.parentElement ? resetButton.parentElement : formButtonsContainer;
+        insertionTarget.insertBefore(createTemplateButton, resetButton);
 
         // Add event listener for creating the template
         createTemplateButton.addEventListener('click', function() {
@@ -57,7 +58,7 @@ function toggleCreateTemplateMode() {
             createTemplate();
         });
     } else {
-        createTemplateButton.style.display = 'inline-block';
+        createTemplateButton.style.display = 'inline-flex';
     }
 }
 

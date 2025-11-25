@@ -75,35 +75,41 @@
 				</div>
 			</div>
 			<div class="main-content">
-				<div id="FormButtons">
-					<div id="createReactionButtons">
-						<button id="submitBtn-form" class="ui button" style="color: black">
+				<div id="FormButtons" class="workspace-actions">
+					<div class="actions-primary">
+						<div class="primary-action">
+							<button id="submitBtn-form" class="ui button action-btn">
+								<img
+									src="{% static 'reactions/imgs/beaker_1.png' %}"
+									alt="Icon"
+									style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
+								Create Reaction
+							</button>
+							<label class="skip-atom-mapping skip-toggle" for="skipAtomMapping">
+								<span class="skip-toggle-label">Skip atom mapping (faster)</span>
+								<span class="skip-toggle-control">
+									<input type="checkbox" id="skipAtomMapping" name="skip_atom_mapping" />
+									<span class="toggle-slider" aria-hidden="true"></span>
+								</span>
+							</label>
+						</div>
+					</div>
+					<div class="actions-secondary">
+						<button id="saveReactionButton" type="button" class="ui button action-btn">
 							<img
-								src="{% static 'reactions/imgs/beaker_1.png' %}"
+								src="{% static 'reactions/imgs/save_icon.png' %}"
 								alt="Icon"
 								style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
-							Create Reaction
+							Save Reaction
+						</button>
+						<button id="ResetButton" type="button" class="ui button action-btn">
+							<img
+								src="{% static 'reactions/imgs/reset.png' %}"
+								alt="Icon"
+								style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
+							Reset
 						</button>
 					</div>
-
-					<div class="skip-atom-mapping">
-						<input type="checkbox" id="skipAtomMapping" name="skip_atom_mapping" />
-						<label for="skipAtomMapping">Skip atom mapping (faster)</label>
-					</div>
-					<button id="saveReactionButton" type="button" class="ui button" style="color: black">
-						<img
-							src="{% static 'reactions/imgs/save_icon.png' %}"
-							alt="Icon"
-							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
-						Save Reaction
-					</button>
-					<button id="ResetButton" type="button" class="ui red button" style="color: black">
-						<img
-							src="{% static 'reactions/imgs/reset.png' %}"
-							alt="Icon"
-							style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
-						Reset
-					</button>
 				</div>
 				<div class="divs-container workspace-panels" id="workspacePanels">
 					<div class="content-div workspace-panel" name="reactants-div" style="display: block">
