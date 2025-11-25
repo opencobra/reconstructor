@@ -8,6 +8,14 @@ function hideChemdoodlestatus(show) {
     }
 }
 
+function getIdentifierCell(selectElement) {
+    return selectElement.closest('.inputs-group')?.querySelector('.cell-identifier');
+}
+
+function getIdentifierInput(selectElement) {
+    return getIdentifierCell(selectElement)?.querySelector('input[type="text"]');
+}
+
 function attachEventListenersToSelects() {
     // Attaches 'change' event listeners to substrate and product type select elements.
     const substrateSelects = document.querySelectorAll('#substratesDiv select[name="substrates_type"]');
@@ -31,12 +39,15 @@ function handleSelectChange(event) {
     } else {
         removeStartDrawingButton(selectElement);
         removeEditDrawingButton(selectElement);
-        selectElement.parentNode.querySelector('input[type="text"]').style.visibility = 'visible';
+        const textField = getIdentifierInput(selectElement);
+        if (textField) {
+            textField.style.visibility = 'visible';
+        }
     }
 }
 function addStartDrawingButton(selectElement) {
     // Hide the input field and replace it with the 'Start Drawing' button
-    let textField = selectElement.parentNode.querySelector('input[type="text"]');
+    let textField = getIdentifierInput(selectElement);
     if (textField) {
         textField.style.display = 'none'; // Hide the input field
         if (!textField.nextElementSibling || textField.nextElementSibling.className !== 'start-drawing-btn') {
@@ -52,14 +63,14 @@ function addStartDrawingButton(selectElement) {
 
 function removeStartDrawingButton(selectElement) {
     // Removes the 'Start Drawing' button adjacent to the specified select element, if it exists.
-    let startDrawingButton = selectElement.parentNode.querySelector('.start-drawing-btn');
+    let startDrawingButton = getIdentifierCell(selectElement)?.querySelector('.start-drawing-btn');
     if (startDrawingButton) {
         startDrawingButton.remove();
     }
 }
 function removeEditDrawingButton(selectElement) {
 
-    let editDrawingButton = selectElement.parentNode.querySelector('.edit-drawing-btn');
+    let editDrawingButton = getIdentifierCell(selectElement)?.querySelector('.edit-drawing-btn');
 
     if (editDrawingButton) {
         editDrawingButton.remove();
@@ -97,7 +108,7 @@ function saveDrawing() {
     // Find the currently active select element
     let currentlyDrawingSelect = document.querySelector('select[currentlyDrawing="true"]');
     if (currentlyDrawingSelect) {
-        let textField = currentlyDrawingSelect.parentNode.querySelector('input[type="text"]');
+        let textField = getIdentifierInput(currentlyDrawingSelect);
         if (textField) {
             textField.value = encodedMolFile; // Save the encoded molecule data in the input field
         }
@@ -114,7 +125,7 @@ function saveDrawing() {
 
 function addEditDrawingButton(selectElement) {
     // Check if the input field exists
-    let textField = selectElement.parentNode.querySelector('input[type="text"]');
+    let textField = getIdentifierInput(selectElement);
     
     if (textField) {
         // Hide the input field
@@ -133,7 +144,8 @@ function addEditDrawingButton(selectElement) {
         }
     } else {
         // If no input field is found, insert the button after the select element
-        if (!selectElement.nextElementSibling || selectElement.nextElementSibling.className !== 'edit-drawing-btn') {
+        const cell = getIdentifierCell(selectElement);
+        if (cell && (!cell.querySelector('.edit-drawing-btn'))) {
             let editDrawingBtn = document.createElement('button');
             editDrawingBtn.type = 'button';
             editDrawingBtn.className = 'edit-drawing-btn';
@@ -141,8 +153,11 @@ function addEditDrawingButton(selectElement) {
             editDrawingBtn.onclick = editDrawing; // Assign the editDrawing function
 
             // Insert the button after the select element
-            selectElement.parentNode.insertBefore(editDrawingBtn, selectElement.nextSibling);
-            selectElement.parentNode.querySelector('input[type="text"]').style.visibility = 'hidden';
+            cell.insertBefore(editDrawingBtn, cell.firstChild);
+            const identifierInput = getIdentifierInput(selectElement);
+            if (identifierInput) {
+                identifierInput.style.visibility = 'hidden';
+            }
         }
     }
 }
@@ -153,7 +168,7 @@ function editDrawing() {
     setCurrentlyDrawing(selectElement);
 
     // Retrieve the molecule data from the associated text field
-    let textField = selectElement.parentNode.querySelector('input[type="text"]');
+    let textField = getIdentifierInput(selectElement);
     let molFile = decodeURIComponent(textField.value);
     // Send the molecule data to the ChemDoodle sketcher
     let iframe = document.getElementById('chemdoodleIframe');

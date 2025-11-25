@@ -40,14 +40,371 @@
     margin-right: 10px;
 }
 .inputs-group {
-    display: flex;
-    margin-top: 5px;
-    width: 100%;
-    height: 4.5vh;
-    flex-direction: row;
-    justify-content: flex-start;
-    gap: 2%;
+    display: grid;
+    grid-template-columns:
+        minmax(26px, 36px)
+        minmax(48px, 110px)
+        minmax(120px, 2.3fr)
+        minmax(85px, 0.9fr)
+        minmax(100px, 1.1fr)
+        minmax(120px, 1.6fr);
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e4e7ec;
 }
+
+.reactant-rows .inputs-group:last-child {
+    border-bottom: none;
+}
+
+.reactants-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid #dce1e7;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #f9fbff, #eef5ff);
+}
+
+.reactants-toolbar .toolbar-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.ghost-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: rgba(255, 255, 255, 0.8) !important;
+    color: #4b5b75 !important;
+    border: 1px solid #d9e3f0 !important;
+    box-shadow: none !important;
+}
+
+.ghost-button i {
+    font-size: 0.95em;
+}
+
+.direction-dropdown.compact {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #dde3eb;
+    border-radius: 10px;
+    background: #fff;
+}
+
+.direction-dropdown.compact label {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #344054;
+}
+
+.reactant-section {
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+    background: #fff;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, 0.06);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.section-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.75rem;
+    color: #94a3b8;
+    margin: 0 0 0.25rem 0;
+}
+
+.section-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #0f172a;
+}
+
+.section-actions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.apply-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    border: 1px dashed #94a3b8;
+    border-radius: 999px;
+    padding: 0.35rem 0.85rem;
+    background: transparent;
+    color: #475467;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.apply-toggle i {
+    transition: transform 0.25s ease;
+}
+
+.apply-toggle i.rotated {
+    transform: rotate(180deg);
+}
+
+.add-row-btn {
+    display: inline-flex !important;
+    align-items: center;
+    gap: 0.35rem;
+    font-weight: 600 !important;
+}
+
+.apply-all-panel {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5f5;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.apply-field label {
+    font-weight: 600;
+    color: #475467;
+    display: block;
+    margin-bottom: 0.35rem;
+}
+
+.apply-controls {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.apply-controls select {
+    flex: 1 1 140px;
+    min-width: 140px;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.45rem 0.5rem;
+    background: #fff;
+    font-size: 0.95rem;
+}
+
+.apply-controls button {
+    flex: 0 0 auto;
+    align-items: center;
+    background-color: #ffeeb5;
+    border: 1px solid #ffd580;
+    border-radius: 11px;
+    box-sizing: border-box;
+    color: #8a4f0f;
+    cursor: pointer;
+    display: inline-flex;
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1;
+    padding: 0.5rem 0.85rem;
+    text-align: center;
+    transition: border 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.2s ease-in-out;
+    white-space: nowrap;
+}
+
+.apply-controls button:hover {
+    background-color: #ffe5cc;
+    border-color: #ffab66;
+}
+
+.apply-controls button:active {
+    background-color: #ffb347;
+    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
+    color: #fff;
+}
+
+.reactant-table {
+    margin-top: 1.25rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+}
+
+.reactant-grid {
+    width: 100%;
+    min-width: 0;
+}
+
+.reactant-grid-head {
+    display: grid;
+    grid-template-columns:
+        minmax(26px, 36px)
+        minmax(48px, 110px)
+        minmax(120px, 2.3fr)
+        minmax(85px, 0.9fr)
+        minmax(100px, 1.1fr)
+        minmax(120px, 1.6fr);
+    gap: 0.75rem;
+    align-items: center;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475467;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #e4e7ec;
+}
+
+.reactant-grid-head .col {
+    white-space: normal;
+    line-height: 1.2;
+}
+
+.reactant-grid .cell {
+    width: 100%;
+}
+
+.cell-stoich input,
+.cell-identifier input,
+.cell-compartment select,
+.cell-type select {
+    width: 100%;
+    min-width: 0;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    background: #fff;
+}
+
+.cell-remove .remove-field-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    padding: 0;
+}
+
+.cell-remove .remove-field-btn span {
+    line-height: 1;
+}
+
+.verify-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.verify-field .done-field-btn,
+.verify-field .substrates-name,
+.verify-field .products-name {
+    width: 100%;
+}
+
+.verify-field .substrates-name,
+.verify-field .products-name {
+    display: none;
+}
+
+.verify-field .status-dot {
+    position: relative;
+    align-self: flex-start;
+    margin: 0;
+}
+
+.section-foot {
+    margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.section-foot .done-field-btn-all {
+    border: 1px solid #d0d5dd;
+    background: #f9fafb;
+    color: #475467;
+}
+
+.reaction-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.meta-field label {
+    font-weight: 600;
+    color: #1d2939;
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.meta-input {
+    position: relative;
+}
+
+.meta-input input[type="text"],
+.tags-input-container {
+    width: 100%;
+}
+
+@media (max-width: 1200px) {
+    .reactant-grid-head,
+    .inputs-group {
+        grid-template-columns:
+            minmax(24px, 30px)
+            minmax(40px, 90px)
+            minmax(100px, 1.7fr)
+            minmax(70px, 0.75fr)
+            minmax(80px, 0.95fr)
+            minmax(100px, 1.3fr);
+    }
+}
+
+@media (max-width: 720px) {
+    .reactant-grid-head {
+        display: none;
+    }
+
+    .inputs-group {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        border-bottom: 1px solid #e4e7ec;
+    }
+
+    .cell-remove,
+    .cell-stoich,
+    .cell-identifier,
+    .cell-compartment,
+    .cell-type,
+    .cell-verify {
+        grid-column: span 2;
+    }
+
+    .section-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+}
+
 #confidenceScoreInput {
     width: 100%;
     padding: 10px;
@@ -56,255 +413,28 @@
     font-size: 1em;
     text-align: center;
 }
-.remove-field-btn{
-    display: flex;
-    box-sizing: border-box;
-    justify-content: center;
-    align-items: center;
-    font-weight: bold;
-    font-size: large;
-    width: 2%;
-}
-
-#prod_sch, #subs_sch {
-    display: flex;
-    width: 7%;
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    text-align: center;
-    font-size: medium;
-}
-
-#compartment{
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    font-size: 1.3em;
-}
-
-#subsystemField {
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    margin-right: 20px;
-    margin-left: 10px;
-    font-size: 1.3em;
-    font-weight: bold;
-}
-#substrates_type, #products_type, #compartment{
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    text-align: center;
-    font-weight: 1.3em;
-}
-#compartment {
-    width: 7%;
-}
-#substrates_type, #products_type {
-    width: 15%;
-}
-
-#substrates, #products,.start-drawing-btn, .edit-drawing-btn {
-    border: 2px solid #ccc;
-    border-radius: 5px;
-    width: 25%;
-    display: flex;
-    flex-direction: column; /* Stack children vertically */
-    align-items: center; /* Center children horizontally */
-    padding: 10px; /* Optional: Add padding for better spacing */
-}
-
-#subsystemField 
-{
-    margin-left: 10px;
-    height: 40px;
-    width: 25%;
-    font-weight: bold;
-}
-
-.subsystem-input {
-    margin-top: 10px;
-}
-
-
-#toggleApplyAllsubs, #toggleApplyAllprods {
-    border: none;
-    background-color: white;
-    cursor: pointer;
-    margin-right: 50px;
-}
-
-#toggleApplyAllsubs img, #toggleApplyAllprods img {
-    width: 24px;
-    height: 24px;
-}
-
-#substratelabel, #productslabel {
-    font-weight: bold;
-    font-size: medium;
-    margin-left: 5px;
-}
-
-#substratesDiv, #productsDiv {
-    border: none;
-    margin-right: 25px;
-    width: 90%;
-    margin-left: 55px;
-}
-
-.button-container {
-    display: inline-block; /* Aligns button within the form layout */
-    margin: 0 10px; /* Adds some spacing around the button */
-    position: relative; /* Positions button relative to its container */
-  }
-  
-  .button_plus {
-    display: inline-block; /* Allows button to be aligned inline */
-    width: 35px;
-    height: 35px;
-    background: #fff;
-    cursor: pointer;
-    border: 2px solid #095776;
-    position: relative; /* Change to relative to work within container */
-    top: 0; /* Reset to avoid unnecessary offsets */
-    left: 0; /* Reset to avoid unnecessary offsets */
-  }
-  
-  .button_plus:after {
-    content: '';
-    position: absolute;
-    transform: translate(-50%, -50%);
-    height: 4px;
-    width: 50%;
-    background: #095776;
-    top: 50%;
-    left: 50%;
-  }
-  
-  .button_plus:before {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: #095776;
-    height: 50%;
-    width: 4px;
-  }
-  
-  .button_plus:hover:before,
-  .button_plus:hover:after {
-    background: #fff;
-    transition: 0.2s;
-  }
-  
-  .button_plus:hover {
-    background-color: #095776;
-    transition: 0.2s;
-  }
-
-  #addSubstrate, #addProduct {
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    margin-left: 160%;
-}
-
-
-#applyAllSubsType, #applyAllProdsType, #applyAllSubsComps, #applyAllProdsComps {
-    align-items: center;
-    background-color: #FFEEB5; /* Slightly lighter orange background */
-    border: 1px solid #FFD580; /* Lighter border color */
-    border-radius: 11px; /* Consistent rounded corners */
-    box-sizing: border-box;
-    color: #8A4F0F; /* Darker text for better contrast */
-    cursor: pointer;
-    display: flex;
-    font-size: 1rem;
-    font-weight: 700;
-    line-height: 33px; /* Adjusted line height */
-    padding: 2px 6px; /* Consistent padding */
-    text-align: left;
-    text-decoration: none;
-    text-shadow: none;
-    text-underline-offset: 1px;
-    transition: border .2s ease-in-out, box-shadow .2s ease-in-out;
-    user-select: none;
-    -webkit-user-select: none;
-    touch-action: manipulation;
-    white-space: nowrap;
-    word-break: break-word;
-  }
-  
-  #applyAllSubsType:active, #applyAllProdsType:active, #applyAllSubsComps:active, #applyAllProdsComps:active,
-  #applyAllSubsType:hover, #applyAllProdsType:hover, #applyAllSubsComps:hover, #applyAllProdsComps:hover,
-  #applyAllSubsType:focus, #applyAllProdsType:focus, #applyAllSubsComps:focus, #applyAllProdsComps:focus {
-    outline: 0;
-  }
-  
-  #applyAllSubsType:active, #applyAllProdsType:active, #applyAllSubsComps:active, #applyAllProdsComps:active {
-    background-color: #FFB347; /* Darker orange for active state */
-    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
-    color: #FFFFFF; /* White text on active state */
-  }
-  
-  #applyAllSubsType:hover, #applyAllProdsType:hover, #applyAllSubsComps:hover, #applyAllProdsComps:hover {
-    background-color: #FFE5CC; /* Slightly lighter background on hover */
-    border-color: #FFAB66; /* Slightly darker border on hover */
-  }
-  
-  #applyAllSubsType:active:hover, #applyAllProdsType:active:hover, #applyAllSubsComps:active:hover, #applyAllProdsComps:active:hover,
-  #applyAllSubsType:focus:hover, #applyAllProdsType:focus:hover, #applyAllSubsComps:focus:hover, #applyAllProdsComps:focus:hover {
-    background-color: #FFB347; /* Darker orange for hover-active/focus state */
-    box-shadow: rgba(0, 0, 0, 0.12) 0 1px 3px 0 inset;
-    color: #FFFFFF;
-  }
-
-
-#applyAllOptionsSubs, #applyAllOptionsProds {
-    display: flex;
-    justify-content: center;
-    height: 15px;
-    margin-top: 40px;
-    margin-bottom: 40px ;
-    margin-left: -90px;
-    gap: 10px;
-}
-
-#subsTypeApplyAllSelect, #prodsTypeApplyAllSelect ,#subsCompsApplyAllSelect,#prodsCompsApplyAllSelect {
-    border: 1px solid #ccc; /* Reduced border width for a slimmer look */
-    border-radius: 4px; /* Slightly smaller radius for a subtle curve */ /* Slightly reduced margin for better spacing */
-    height: 40px; /* Reduced height for a slimmer appearance */
-    width: 100px; /* Slightly reduced width for a more compact design */
-    text-align: center;
-    box-sizing: border-box; /* Ensures padding and border are included in the width and height */
-    font-size: 14px; /* Adjusted font size for better readability */
-    font-family: "Inter var", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"; /* Modern font stack */
-    transition: border-color 0.2s ease; /* Smooth transition for hover effect */
-}
-
-#subsTypeApplyAllSelect:hover, #prodsTypeApplyAllSelect:hover, #subsCompsApplyAllSelect:hover, #prodsCompsApplyAllSelect:hover {
-    border-color: #999; /* Slightly darker border color on hover for visual feedback */
-}
 
 
 .direction-dropdown {
-    margin-left: 45px;
-    font-weight: bold;
-    margin-top: 25px;
-    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    margin: 0;
 }
 
 #reactionDirection {
     height: 40px;
-    width: 80px;
-    margin-left: 10px;
-    border: 2px solid #ccc;
-    border-radius: 5px;
+    width: 90px;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 8px;
     text-align: center;
 }
 
 .reactionDirectionlabel {
-    font-size: 1.1em;
-    margin-left: 25px;
+    font-size: 0.95rem;
+    margin: 0;
+    color: #475467;
 }
 
 .subsystem-input {
@@ -406,20 +536,20 @@
     flex-direction: column;
 }
 
-.apply-all-options{
-    display: flex;
-    justify-content: center;
-    align-items: center;     
+.content-div[name='reactants-div'] {
+    flex: 0 0 var(--panel-default-width);
+    width: var(--panel-default-width);
+    min-width: 340px;
+    max-width: 100%;
 }
 
 
 .status-dot {
-    width: 12px;
-    height: 12px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    transition: transform 0.3s ease;
-    background-color: grey; /* Default color */
-    margin-top: 2.5%;
+    transition: transform 0.25s ease;
+    background-color: #cbd5f5;
 }
 
 
@@ -433,17 +563,16 @@
 }
 
 .status-dot:hover {
-    transform: translateY(100%);
-    transform: scale(1.2); /* Slightly enlarge on hover */
+    transform: scale(1.15);
 }
 /* Tooltip styling */
 .status-dot::after {
     content: attr(data-tooltip);
     position: absolute;
     white-space: nowrap;
-    bottom: 100%;
+    bottom: calc(100% + 8px);
     left: 50%;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateX(-50%);
     background-color: #333;
     color: #fff;
     padding: 5px 10px;
@@ -457,28 +586,20 @@
 .status-dot:hover::after {
     content: attr(data-tooltip);
     display: block;
-    width: 200px; /* Adjust the width as needed */
-    background-color: #333; /* Background color for tooltip */
-    color: #fff; /* Text color */
+    max-width: 240px;
     text-align: center;
-    padding: 5px;
-    border-radius: 5px;
-    position: absolute;
-    bottom: 100%; /* Position above the dot */
-    left: 50%;
-    transform: translateX(-50%) translateY(-15px);
-    white-space: pre-line; /* Preserve newline characters */
+    white-space: pre-line;
     z-index: 10;
     opacity: 1;
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 .status-dot::before {
     content: '';
     position: absolute;
-    top: -5px;
+    top: -6px;
     left: 50%;
-    transform: translateX(-50%) translateY(-10px);
+    transform: translateX(-50%);
     border-width: 5px;
     border-style: solid;
     border-color: transparent transparent #333 transparent;
@@ -491,7 +612,7 @@
     opacity: 1;
 }
 .substrates-name, .products-name {
-    width: 25%;
+    width: 100%;
 }
 
 .substrates-name:disabled , .products-name:disabled {
@@ -540,31 +661,41 @@
 }
 
 .subsystem-input {
-    position: relative; /* Make the parent relative to allow absolute positioning of the dropdown */
+    position: relative;
 }
 
-.dropdown-content, .dropdown-content-templates {
-    display: none; /* Hide the dropdown by default */
-    position: absolute; /* Position it just below the input field */
-    background-color: #f6f6f6; /* Light background for the dropdown */
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #fff;
     min-width: 160px;
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
-    z-index: 1; /* Ensure it stacks above other content */
-    max-height: 200px; /* Set a maximum height */
-    overflow-y: auto; /* Enable vertical scrolling */
-    position: absolute; /* To ensure the dropdown overlays content below */
-    background-color: #fff; /* Background color for the dropdown */
-    border: 1px solid #ddd; /* Add a light border */
-    border-top: none; /* Remove the top border to blend with the input field */
-    width: 26%;
-    margin-left: 17.5%;
-    top: 100%; /* Position it just below the input field */
-    left: 0; /* Align to the left of the parent */
-
-}
-.dropdown-content-templates{
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 10;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ec;
+    border-top: none;
     width: 100%;
-    margin-left: 0%;
+    top: calc(100% + 4px);
+    left: 0;
+    border-radius: 0 0 12px 12px;
+}
+
+.dropdown-content-templates{
+    display: none;
+    position: absolute;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 10;
+    max-height: 240px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ec;
+    border-top: none;
+    width: 100%;
+    top: calc(100% + 4px);
+    left: 0;
+    border-radius: 0 0 12px 12px;
 }
 .dropdown-content div, .dropdown-content-templates div {
     padding: 12px 16px;
@@ -630,6 +761,7 @@
     width: 100%;
 }
 
+
 .organ-input-wrapper {
     display: flex;
     align-items: center;
@@ -655,30 +787,28 @@
     align-items: center;
     padding: 5px;
     border: 1px solid #ccc;
-    border-radius: 4px;
-    min-height: 40px;
-    width: 44%;
+    border-radius: 8px;
+    min-height: 48px;
+    width: 100%;
     box-sizing: border-box;
     cursor: text;
-    margin-left: 10px; /* Space between label and input field */
 }
 
 .organ-dropdown-content {
     position: absolute;
-    display: none; /* Hide the dropdown by default */
-    width: 24%; /* Similar width as the .dropdown-content */
-    margin-left: 57.5%; /* Adjust based on your layout */
-    top: 100%; /* Position it just below the input field */
-    left: 0; /* Align to the left of the parent */
-    background-color: #fff; /* Background color for the dropdown */
-    min-width: 160px; /* Ensure a minimum width */
-    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); /* Add some shadow for depth */
-    z-index: 1000; /* Ensure it stacks above other content */
-    max-height: 200px; /* Set a maximum height */
-    overflow-y: auto; /* Enable vertical scrolling */
-    border: 1px solid #ddd; /* Add a light border */
-    border-top: none; /* Remove the top border to blend with the input field */
-    border-radius: 4px; /* Retain the border radius */
+    display: none;
+    width: 100%;
+    top: calc(100% + 4px);
+    left: 0;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ec;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
 }
 
 .organ-dropdown-content div {

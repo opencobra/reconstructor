@@ -115,208 +115,300 @@
 					<div class="content-div workspace-panel" name="reactants-div" style="display: block">
 						<div class="div-header">Reactants</div>
 						<div id="reactionFormContainer" class="container">
-							<div class="getbuttoncontainer">
-								<button class="ui violet button" id="getrxnfromvmhrhea">Get Reaction From Rhea and VMH</button>
-								<button class="ui violet button" id="getrxnfromtemplateBtn">Reaction Templates</button>
-							</div>
-							<!-- Form for inputting reaction data -->
-							<form method="post" id="reactionForm">
-								{% csrf_token %}
-								<!-- Substrates input field -->
-								<div class="field-container" id="substratesDiv">
-									<div class="header-container">
-										<label id="substratelabel">Substrates:</label>
-										<button type="button" id="toggleApplyAllsubs" title="Apply options to all substrates">
-											<img src="{% static 'reactions/imgs/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px" />
-										</button>
-									</div>
-									<div class="apply-all-options" id="applyAllOptionsSubs" style="display: none">
-										<select id="subsCompsApplyAllSelect">
-											<option value="c">c</option>
-											<option value="e">e</option>
-											<option value="g">g</option>
-											<option value="m">m</option>
-											<option value="l">l</option>
-											<option value="n">n</option>
-											<option value="r">r</option>
-											<option value="x">x</option>
-											<option value="-">-</option>
-										</select>
-										<button type="button" id="applyAllSubsComps">Apply All</button>
-										<select id="subsTypeApplyAllSelect">
-											<option value="VMH">VMH</option>
-											<option value="ChEBI ID">ChEBI ID</option>
-											<option value="ChEBI Name">ChEBI Name</option>
-											<option value="SwissLipids">SwissLipids</option>
-											<option value="PubChem ID">PubChem ID</option>
-											<option value="MDL Mol file">MDL Mol file</option>
-											<option value="Draw">Draw</option>
-											<option value="Saved">My Metabolites</option>
-										</select>
-										<button type="button" id="applyAllSubsType">Apply All</button>
-									</div>
-									<div class="inputs-header">
-										<label class="input-label-stich">Stoichiometry</label>
-										<div class="infocomp">
-											<span
-												class="info-symbol"
-												data-tooltip-content="
-                                            <p>c → Cytosol</p>
-                                            <p>e → Extracellular</p>
-                                            <p>g → Golgi Apparatus</p>
-                                            <p>m → Mitochondria</p>
-                                            <p>l → Lysosome</p>
-                                            <p>n → Nucleus</p>
-                                            <p>r → Endoplasmatic Reticulum</p>
-                                            <p>x → Peroxisome</p>"
-												>&#9432;</span
-											>
-											<label class="input-label-comp">Compartment</label>
-										</div>
-										<label class="input-label-type">Type</label>
-										<button type="button" class="done-field-btn-all">Verify All</button>
-									</div>
-									<div class="inputs-group">
-										<button class="ui inverted red button remove-field-btn" type="button">X</button>
-										<input type="number" id="subs_sch" name="subs_sch" min="1" value="1" />
-										<input type="text" id="substrates" name="substrates" required />
-										<select id="compartment" name="subs_comps">
-											<option value="c">c</option>
-											<option value="e">e</option>
-											<option value="g">g</option>
-											<option value="m">m</option>
-											<option value="l">l</option>
-											<option value="n">n</option>
-											<option value="r">r</option>
-											<option value="x">x</option>
-											<option value="-">-</option>
-										</select>
-										<select id="substrates_type" name="substrates_type">
-											<option value="VMH">VMH</option>
-											<option value="ChEBI ID">ChEBI ID</option>
-											<option value="ChEBI Name">ChEBI Name</option>
-											<option value="SwissLipids">SwissLipids</option>
-											<option value="PubChem ID">PubChem ID</option>
-											<option value="MDL Mol file">MDL Mol file</option>
-											<option value="Draw">Draw</option>
-											<option value="Saved">My Metabolites</option>
-										</select>
-										<span class="status-dot" style="display: none"></span>
-										<button type="button" class="done-field-btn">Verify</button>
-										<input type="text" class="substrates-name" style="display: none" name="substrates_name" />
-									</div>
+							<div class="reactants-toolbar">
+								<div class="toolbar-group">
+									<button class="ui violet button ghost-button" id="getrxnfromvmhrhea">
+										<i class="fas fa-exchange-alt"></i>
+										<span>Load from Rhea / VMH</span>
+									</button>
+									<button class="ui violet button ghost-button" id="getrxnfromtemplateBtn">
+										<i class="fas fa-layer-group"></i>
+										<span>Reaction Templates</span>
+									</button>
 								</div>
-								<div class="button-container">
-									<div class="button_plus" id="addSubstrate"></div>
-								</div>
-								<div class="direction-dropdown">
-									<label class="reactionDirectionlabel" for="reactionDirection">Direction:</label>
+								<div class="direction-dropdown compact">
+									<label class="reactionDirectionlabel" for="reactionDirection">Direction</label>
 									<select class="ui simple dropdown item" name="direction" id="reactionDirection">
 										<option value="forward">-&gt;</option>
 										<option value="bidirectional">&lt;=&gt;</option>
 									</select>
 								</div>
-								<!-- Products input field -->
-								<div class="field-container" id="productsDiv">
-									<div class="header-container">
-										<label id="productslabel">Products:</label>
-										<button type="button" id="toggleApplyAllprods" title="Apply options to all products">
-											<img src="{% static 'reactions/imgs/apply_icon.svg' %}" alt="Apply All" style="width: 24px; height: 24px" />
-										</button>
-									</div>
-									<div class="apply-all-options" id="applyAllOptionsProds" style="display: none">
-										<select id="prodsCompsApplyAllSelect">
-											<option value="c">c</option>
-											<option value="e">e</option>
-											<option value="g">g</option>
-											<option value="m">m</option>
-											<option value="l">l</option>
-											<option value="n">n</option>
-											<option value="r">r</option>
-											<option value="x">x</option>
-											<option value="-">-</option>
-										</select>
-										<button type="button" id="applyAllProdsComps">Apply All</button>
-										<select id="prodsTypeApplyAllSelect">
-											<option value="VMH">VMH</option>
-											<option value="ChEBI ID">ChEBI ID</option>
-											<option value="ChEBI Name">ChEBI Name</option>
-											<option value="SwissLipids">SwissLipids</option>
-											<option value="PubChem ID">PubChem ID</option>
-											<option value="MDL Mol file">MDL Mol file</option>
-											<option value="Draw">Draw</option>
-											<option value="Saved">My Metabolites</option>
-										</select>
-										<button type="button" id="applyAllProdsType">Apply All</button>
-									</div>
-									<div class="inputs-header">
-										<label class="input-label-stich">Stoichiometry</label>
-										<div class="infocomp">
-											<span
-												class="info-symbol"
-												data-tooltip-content="
-                                            <p>c → Cytosol</p>
-                                            <p>e → Extracellular</p>
-                                            <p>g → Golgi Apparatus</p>
-                                            <p>m → Mitochondria</p>
-                                            <p>l → Lysosome</p>
-                                            <p>n → Nucleus</p>
-                                            <p>r → Endoplasmatic Reticulum</p>
-                                            <p>x → Peroxisome</p>"
-												>&#9432;</span
-											>
-											<label class="input-label-comp">Compartment</label>
+							</div>
+							<!-- Form for inputting reaction data -->
+							<form method="post" id="reactionForm">
+								{% csrf_token %}
+								<section class="reactant-section" aria-labelledby="substrates-heading">
+									<div class="section-header">
+										<div>
+											<p class="section-eyebrow">Left-hand side</p>
+											<h3 id="substrates-heading">Substrates</h3>
 										</div>
-										<label class="input-label-type">Type</label>
-										<button type="button" class="done-field-btn-all">Verify All</button>
+										<div class="section-actions">
+											<button type="button" class="apply-toggle" id="toggleApplyAllsubs" title="Apply options to all substrates">
+												<i class="fas fa-sliders-h"></i>
+												<span>Bulk apply</span>
+											</button>
+											<button type="button" class="ui button add-row-btn" id="addSubstrate">
+												<i class="plus icon"></i>
+												<span>Add substrate</span>
+											</button>
+										</div>
 									</div>
-									<div class="inputs-group">
-										<button class="ui inverted red button remove-field-btn" type="button">X</button>
-										<input type="number" id="prod_sch" name="prod_sch" min="1" value="1" />
-										<input type="text" id="products" name="products" required />
-										<select id="compartment" name="prod_comps">
-											<option value="c">c</option>
-											<option value="e">e</option>
-											<option value="g">g</option>
-											<option value="m">m</option>
-											<option value="l">l</option>
-											<option value="n">n</option>
-											<option value="r">r</option>
-											<option value="x">x</option>
-											<option value="-">-</option>
-										</select>
-										<select id="products_type" name="products_type">
-											<option value="VMH">VMH</option>
-											<option value="ChEBI ID">ChEBI ID</option>
-											<option value="ChEBI Name">ChEBI Name</option>
-											<option value="SwissLipids">SwissLipids</option>
-											<option value="PubChem ID">PubChem ID</option>
-											<option value="MDL Mol file">MDL Mol file</option>
-											<option value="Draw">Draw</option>
-											<option value="Saved">My Metabolites</option>
-										</select>
-										<span class="status-dot" style="display: none"></span>
-										<button type="button" class="done-field-btn">Verify</button>
-										<input type="text" class="products-name" style="display: none" name="products_name" />
+									<div class="apply-all-panel" id="applyAllOptionsSubs" style="display: none">
+										<div class="apply-field">
+											<label for="subsCompsApplyAllSelect">Compartment</label>
+											<div class="apply-controls">
+												<select id="subsCompsApplyAllSelect">
+													<option value="c">c</option>
+													<option value="e">e</option>
+													<option value="g">g</option>
+													<option value="m">m</option>
+													<option value="l">l</option>
+													<option value="n">n</option>
+													<option value="r">r</option>
+													<option value="x">x</option>
+													<option value="-">-</option>
+												</select>
+												<button type="button" id="applyAllSubsComps">Apply All</button>
+											</div>
+										</div>
+										<div class="apply-field">
+											<label for="subsTypeApplyAllSelect">Input type</label>
+											<div class="apply-controls">
+												<select id="subsTypeApplyAllSelect">
+													<option value="VMH">VMH</option>
+													<option value="ChEBI ID">ChEBI ID</option>
+													<option value="ChEBI Name">ChEBI Name</option>
+													<option value="SwissLipids">SwissLipids</option>
+													<option value="PubChem ID">PubChem ID</option>
+													<option value="MDL Mol file">MDL Mol file</option>
+													<option value="Draw">Draw</option>
+													<option value="Saved">My Metabolites</option>
+												</select>
+												<button type="button" id="applyAllSubsType">Apply All</button>
+											</div>
+										</div>
+									</div>
+									<div class="reactant-table">
+										<div class="reactant-grid reactant-grid-head">
+											<span class="col col-remove" aria-hidden="true"></span>
+											<span class="col col-stoich">Stoichiometry</span>
+											<span class="col col-identifier">Metabolite identifier</span>
+											<span class="col col-compartment">
+												<span>Compartment</span>
+												<span
+													class="info-symbol"
+													data-tooltip-content="
+	                                            <p>c → Cytosol</p>
+	                                            <p>e → Extracellular</p>
+	                                            <p>g → Golgi Apparatus</p>
+	                                            <p>m → Mitochondria</p>
+	                                            <p>l → Lysosome</p>
+	                                            <p>n → Nucleus</p>
+	                                            <p>r → Endoplasmatic Reticulum</p>
+	                                            <p>x → Peroxisome</p>"
+													>&#9432;</span
+												>
+											</span>
+											<span class="col col-type">Input type</span>
+											<span class="col col-verify">Verify &amp; resolved name</span>
+										</div>
+										<div class="reactant-rows" id="substratesDiv">
+											<div class="inputs-group reactant-grid">
+												<div class="cell cell-remove">
+													<button class="ui inverted red button remove-field-btn" type="button" aria-label="Remove substrate">
+														<span aria-hidden="true">×</span>
+													</button>
+												</div>
+												<div class="cell cell-stoich">
+													<input type="number" id="subs_sch" name="subs_sch" min="1" value="1" />
+												</div>
+												<div class="cell cell-identifier">
+													<input type="text" id="substrates" name="substrates" required />
+												</div>
+												<div class="cell cell-compartment">
+													<select id="compartment" name="subs_comps">
+														<option value="c">c</option>
+														<option value="e">e</option>
+														<option value="g">g</option>
+														<option value="m">m</option>
+														<option value="l">l</option>
+														<option value="n">n</option>
+														<option value="r">r</option>
+														<option value="x">x</option>
+														<option value="-">-</option>
+													</select>
+												</div>
+												<div class="cell cell-type">
+													<select id="substrates_type" name="substrates_type">
+														<option value="VMH">VMH</option>
+														<option value="ChEBI ID">ChEBI ID</option>
+														<option value="ChEBI Name">ChEBI Name</option>
+														<option value="SwissLipids">SwissLipids</option>
+														<option value="PubChem ID">PubChem ID</option>
+														<option value="MDL Mol file">MDL Mol file</option>
+														<option value="Draw">Draw</option>
+														<option value="Saved">My Metabolites</option>
+													</select>
+												</div>
+												<div class="cell cell-verify">
+													<div class="verify-field">
+														<span class="status-dot" style="display: none"></span>
+														<button type="button" class="done-field-btn">Verify</button>
+														<input type="text" class="substrates-name" style="display: none" name="substrates_name" />
+													</div>
+												</div>
+											</div>
+										</div>
+										<div class="section-foot">
+											<button type="button" class="done-field-btn-all subtle">Verify all substrates</button>
+										</div>
+									</div>
+								</section>
+								<section class="reactant-section" aria-labelledby="products-heading">
+									<div class="section-header">
+										<div>
+											<p class="section-eyebrow">Right-hand side</p>
+											<h3 id="products-heading">Products</h3>
+										</div>
+										<div class="section-actions">
+											<button type="button" class="apply-toggle" id="toggleApplyAllprods" title="Apply options to all products">
+												<i class="fas fa-sliders-h"></i>
+												<span>Bulk apply</span>
+											</button>
+											<button type="button" class="ui button add-row-btn" id="addProduct">
+												<i class="plus icon"></i>
+												<span>Add product</span>
+											</button>
+										</div>
+									</div>
+									<div class="apply-all-panel" id="applyAllOptionsProds" style="display: none">
+										<div class="apply-field">
+											<label for="prodsCompsApplyAllSelect">Compartment</label>
+											<div class="apply-controls">
+												<select id="prodsCompsApplyAllSelect">
+													<option value="c">c</option>
+													<option value="e">e</option>
+													<option value="g">g</option>
+													<option value="m">m</option>
+													<option value="l">l</option>
+													<option value="n">n</option>
+													<option value="r">r</option>
+													<option value="x">x</option>
+													<option value="-">-</option>
+												</select>
+												<button type="button" id="applyAllProdsComps">Apply All</button>
+											</div>
+										</div>
+										<div class="apply-field">
+											<label for="prodsTypeApplyAllSelect">Input type</label>
+											<div class="apply-controls">
+												<select id="prodsTypeApplyAllSelect">
+													<option value="VMH">VMH</option>
+													<option value="ChEBI ID">ChEBI ID</option>
+													<option value="ChEBI Name">ChEBI Name</option>
+													<option value="SwissLipids">SwissLipids</option>
+													<option value="PubChem ID">PubChem ID</option>
+													<option value="MDL Mol file">MDL Mol file</option>
+													<option value="Draw">Draw</option>
+													<option value="Saved">My Metabolites</option>
+												</select>
+												<button type="button" id="applyAllProdsType">Apply All</button>
+											</div>
+										</div>
+									</div>
+									<div class="reactant-table">
+										<div class="reactant-grid reactant-grid-head">
+											<span class="col col-remove" aria-hidden="true"></span>
+											<span class="col col-stoich">Stoichiometry</span>
+											<span class="col col-identifier">Metabolite identifier</span>
+											<span class="col col-compartment">
+												<span>Compartment</span>
+												<span
+													class="info-symbol"
+													data-tooltip-content="
+	                                            <p>c → Cytosol</p>
+	                                            <p>e → Extracellular</p>
+	                                            <p>g → Golgi Apparatus</p>
+	                                            <p>m → Mitochondria</p>
+	                                            <p>l → Lysosome</p>
+	                                            <p>n → Nucleus</p>
+	                                            <p>r → Endoplasmatic Reticulum</p>
+	                                            <p>x → Peroxisome</p>"
+													>&#9432;</span
+												>
+											</span>
+											<span class="col col-type">Input type</span>
+											<span class="col col-verify">Verify &amp; resolved name</span>
+										</div>
+										<div class="reactant-rows" id="productsDiv">
+											<div class="inputs-group reactant-grid">
+												<div class="cell cell-remove">
+													<button class="ui inverted red button remove-field-btn" type="button" aria-label="Remove product">
+														<span aria-hidden="true">×</span>
+													</button>
+												</div>
+												<div class="cell cell-stoich">
+													<input type="number" id="prod_sch" name="prod_sch" min="1" value="1" />
+												</div>
+												<div class="cell cell-identifier">
+													<input type="text" id="products" name="products" required />
+												</div>
+												<div class="cell cell-compartment">
+													<select id="compartment" name="prod_comps">
+														<option value="c">c</option>
+														<option value="e">e</option>
+														<option value="g">g</option>
+														<option value="m">m</option>
+														<option value="l">l</option>
+														<option value="n">n</option>
+														<option value="r">r</option>
+														<option value="x">x</option>
+														<option value="-">-</option>
+													</select>
+												</div>
+												<div class="cell cell-type">
+													<select id="products_type" name="products_type">
+														<option value="VMH">VMH</option>
+														<option value="ChEBI ID">ChEBI ID</option>
+														<option value="ChEBI Name">ChEBI Name</option>
+														<option value="SwissLipids">SwissLipids</option>
+														<option value="PubChem ID">PubChem ID</option>
+														<option value="MDL Mol file">MDL Mol file</option>
+														<option value="Draw">Draw</option>
+														<option value="Saved">My Metabolites</option>
+													</select>
+												</div>
+												<div class="cell cell-verify">
+													<div class="verify-field">
+														<span class="status-dot" style="display: none"></span>
+														<button type="button" class="done-field-btn">Verify</button>
+														<input type="text" class="products-name" style="display: none" name="products_name" />
+													</div>
+												</div>
+											</div>
+										</div>
+										<div class="section-foot">
+											<button type="button" class="done-field-btn-all subtle">Verify all products</button>
+										</div>
+									</div>
+								</section>
+								<div class="reaction-meta">
+									<div class="meta-field">
+										<label for="subsystemField">Subsystem</label>
+										<div class="meta-input">
+											<input type="text" id="subsystemField" name="subsystem" autocomplete="off" />
+											<div id="subsystemDropdown" class="dropdown-content"></div>
+										</div>
+									</div>
+									<div class="meta-field">
+										<label for="organTags">Organ</label>
+										<div class="meta-input">
+											<div id="organTags" class="tags-input-container" contenteditable="true"></div>
+											<div id="organDropdown" class="organ-dropdown-content"></div>
+										</div>
 									</div>
 								</div>
-								<div class="button-container">
-									<div class="button_plus" id="addProduct"></div>
-								</div>
-								<div class="subsystem-input">
-									<label for="subsystemField" style="font-size: 1.2em; font-weight: bold">Subsystem:</label>
-									<input type="text" id="subsystemField" name="subsystem" autocomplete="off" />
-									<div id="subsystemDropdown" class="dropdown-content"></div>
-
-									<div class="organ-input-wrapper">
-										<label for="organTags" style="font-size: 1.2em; font-weight: bold">Organ:</label>
-										<div id="organTags" class="tags-input-container" contenteditable="true"></div>
-									</div>
-									<div id="organDropdown" class="organ-dropdown-content"></div>
-								</div>
-								{% comment %}
-								<div id="atomChargeComparison" class="atom-charge-comparison"></div>
-								{% endcomment %}
 							</form>
 						</div>
 					</div>

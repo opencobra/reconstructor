@@ -6,8 +6,8 @@ body {
 }
 
 :root {
-	--panel-gap: 24px;
-	--panel-default-width: calc(50% - var(--panel-gap));
+	--panel-gap: 20px;
+	--panel-default-width: calc(50% - (var(--panel-gap)));
 }
 
 .top-menu {
@@ -101,7 +101,7 @@ body {
 	flex-wrap: wrap;
 	justify-content: flex-start;
 	align-items: stretch;
-	gap: 20px;
+	gap: var(--panel-gap);
 	padding: 24px;
 	margin-left: 0;
 	box-sizing: border-box;
