@@ -83,7 +83,8 @@ function updateLocalStorageState() {
     for (const [buttonId, divName] of Object.entries(button_to_div)) {
         const div = document.getElementsByName(divName + '-div')[0];
         if (div) {
-            visibleState[divName] = (div.style.display === 'block');
+            const isVisible = div.classList.contains('is-visible') || div.style.display === 'block';
+            visibleState[divName] = isVisible;
         }
     }
     localStorage.setItem('visibleDivs', JSON.stringify(visibleState));
@@ -98,6 +99,7 @@ function restoreVisibleDivs() {
         const div = document.getElementsByName(divName + '-div')[0];
         if (div) {
             div.style.display = isVisible ? 'block' : 'none';
+            div.classList.toggle('is-visible', isVisible);
             // Find the corresponding button and update its active class
             const buttonId = Object.keys(button_to_div).find(key => button_to_div[key] === divName);
             if (buttonId) {

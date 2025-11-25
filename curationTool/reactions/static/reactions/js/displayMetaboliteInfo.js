@@ -1,16 +1,27 @@
 function loadMetaboliteInfoDiv(reactionData) {
-    const metaboliteInfoDiv = document.querySelector('.content-div[name="metaboliteinfo-div"]');
-    if (metaboliteInfoDiv) {
-        metaboliteInfoDiv.innerHTML = `
-        <div class="div-header">Metabolite Information</div>
-        `;
-        fillMetaboliteInfoTab(reactionData);
-    } else {
+    const metaboliteInfoDiv = document.getElementById('metaboliteinfo-div');
+    if (!metaboliteInfoDiv) {
         console.error('Metabolite info div not found.');
+        return;
     }
+
+    let contentContainer = metaboliteInfoDiv.querySelector('.metabolite-panel-content');
+    if (!contentContainer) {
+        contentContainer = document.createElement('div');
+        contentContainer.className = 'panel-content metabolite-panel-content';
+        metaboliteInfoDiv.appendChild(contentContainer);
+    }
+    contentContainer.innerHTML = '';
+    fillMetaboliteInfoTab(reactionData, contentContainer);
 }
-function fillMetaboliteInfoTab(data) {
-    const metaboliteInfoContainer = document.getElementById('metaboliteinfo-div');
+
+function fillMetaboliteInfoTab(data, targetContainer) {
+    const metaboliteInfoContainer =
+        targetContainer || document.querySelector('#metaboliteinfo-div .metabolite-panel-content') || document.getElementById('metaboliteinfo-div');
+    if (!metaboliteInfoContainer) {
+        return;
+    }
+    metaboliteInfoContainer.innerHTML = '';
 
     // Add the legend at the top
     const legend = document.createElement('div');

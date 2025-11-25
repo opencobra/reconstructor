@@ -60,14 +60,14 @@
 		<div class="main-container">
 			<div class="side-buttons">
 				<div class="ui secondary vertical pointing menu">
-					<div class="fluid ui button dynamic-button-side-button" id="reactants-button">Reactants</div>
-					<div class="fluid ui button dynamic-button-side-button" id="atommapping-button">Atom Mapping</div>
-					<div class="fluid ui button dynamic-button-side-button" id="cheminfo-button">Chem Info</div>
-					<div class="fluid ui button dynamic-button-side-button" id="metinfo-button">Metabolite Info</div>
-					<div class="fluid ui button dynamic-button-side-button" id="references-button">References</div>
-					<div class="fluid ui button dynamic-button-side-button" id="extlinks-button">External Links</div>
-					<div class="fluid ui button dynamic-button-side-button" id="geneinfo-button">Gene Info</div>
-					<div class="fluid ui button dynamic-button-side-button" id="comments-button">Comments</div>
+					<div class="fluid ui button dynamic-button-side-button" id="reactants-button" data-target="reactants-div">Reactants</div>
+					<div class="fluid ui button dynamic-button-side-button" id="atommapping-button" data-target="atommapping-div">Atom Mapping</div>
+					<div class="fluid ui button dynamic-button-side-button" id="cheminfo-button" data-target="cheminfo-div">Chem Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="metinfo-button" data-target="metaboliteinfo-div">Metabolite Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="references-button" data-target="references-div">References</div>
+					<div class="fluid ui button dynamic-button-side-button" id="extlinks-button" data-target="extlinks-div">External Links</div>
+					<div class="fluid ui button dynamic-button-side-button" id="geneinfo-button" data-target="gene_info-div">Gene Info</div>
+					<div class="fluid ui button dynamic-button-side-button" id="comments-button" data-target="comments-div">Comments</div>
 					<div class="bottom">
 						<div class="fluid ui button" id="view-leader-board">View Stats</div>
 						<div class="fluid ui button" id="item about-item">About</div>
@@ -105,8 +105,8 @@
 						Reset
 					</button>
 				</div>
-				<div class="divs-container">
-					<div class="content-div" name="reactants-div" style="display: block">
+				<div class="divs-container workspace-panels" id="workspacePanels">
+					<div class="content-div workspace-panel" name="reactants-div" style="display: block">
 						<div class="div-header">Reactants</div>
 						<div id="reactionFormContainer" class="container">
 							<div class="getbuttoncontainer">
@@ -458,11 +458,11 @@
 						</div>
 					</div>
 
-					<div class="content-div" name="atommapping-div" style="display: none">
+					<div class="content-div workspace-panel" name="atommapping-div" style="display: none">
 						<div class="div-header">Atom Mapping</div>
 						<img src="{{ MEDIA_URL }}images/placeholder_image.png" id="atomMappingImage" class="reaction-image" />
 					</div>
-					<div class="content-div" name="cheminfo-div" style="display: none">
+					<div class="content-div workspace-panel" name="cheminfo-div" style="display: none">
 						<div class="div-header">Chemical Information</div>
 
 						<div class="placeholder">
@@ -509,23 +509,24 @@
 						</div>
 					</div>
 
-					<div class="content-div" name="metaboliteinfo-div" id="metaboliteinfo-div" style="display: none">
+					<div class="content-div workspace-panel" name="metaboliteinfo-div" id="metaboliteinfo-div" style="display: none">
 						<div class="div-header">Metabolite Information</div>
+						<div class="panel-content metabolite-panel-content">
+							<!-- Example Metabolite Information Div -->
+							<div class="metabolite">
+								<div class="metabolite-header">
+									<h3>Metabolite Name</h3>
+									<!-- Metabolite name placeholder -->
+								</div>
+								<div class="message-container">
+									<p>Please create a reaction to view metabolite information.</p>
+								</div>
+							</div>
 
-						<!-- Example Metabolite Information Div -->
-						<div class="metabolite">
-							<div class="metabolite-header">
-								<h3>Metabolite Name</h3>
-								<!-- Metabolite name placeholder -->
-							</div>
-							<div class="message-container">
-								<p>Please create a reaction to view metabolite information.</p>
-							</div>
+							<!-- Add more metabolite divs as needed -->
 						</div>
-
-						<!-- Add more metabolite divs as needed -->
 					</div>
-					<div class="content-div" name="references-div" style="display: none">
+					<div class="content-div workspace-panel" name="references-div" style="display: none">
 						<div class="div-header">References</div>
 						<div class="input-container-ref">
 							<input type="text" id="infoTextInputref" placeholder="Select PMID or DOI from dropdown" />
@@ -545,7 +546,7 @@
 						<div class="tab-content-refs" id="refs-content"></div>
 					</div>
 
-					<div class="content-div" name="extlinks-div" style="display: none">
+					<div class="content-div workspace-panel" name="extlinks-div" style="display: none">
 						<div class="div-header">External Links</div>
 						<div class="input-container-ext">
 							<input type="text" id="infoTextInputext" placeholder="Select External link type from dropdown" />
@@ -572,7 +573,7 @@
 						<div class="tab-content-ext" id="ext-links-content"></div>
 					</div>
 
-					<div class="content-div" name="comments-div" style="display: none">
+					<div class="content-div workspace-panel" name="comments-div" style="display: none">
 						<div class="div-header">Comments</div>
 
 						<!-- Input field and button in one row -->
@@ -588,7 +589,7 @@
 						<div class="tab-content" id="comments-content"></div>
 					</div>
 
-					<div class="content-div" name="gene_info-div" style="display: none">
+					<div class="content-div workspace-panel" name="gene_info-div" style="display: none">
 						<div class="div-header">Gene Info</div>
 						<!-- Inserted function structure -->
 						<div id="geneInfoWrapper">
@@ -826,6 +827,7 @@
 		<script type="text/javascript">
 			var MEDIA_URL = '{{ MEDIA_URL }}';
 		</script>
+		<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
 		<script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
 		<script src="{% static 'reactions/js/login_modal.js' %}"></script>
 		<script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
