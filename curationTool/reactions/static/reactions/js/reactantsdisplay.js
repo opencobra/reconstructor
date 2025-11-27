@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     attachEventListenersToSelects();
     toggleStructure();
     updateAtomChargeCounters();
+    initResponsiveHeaders(); // Initialize responsive column headers
     const urlParams = new URLSearchParams(window.location.search);
     const reactionId = urlParams.get('reaction_id');
     const action = urlParams.get('action');
@@ -143,6 +144,56 @@ function setupdate(){
         document.getElementById('submitBtn-form').childNodes[2].nodeValue = 'Update Reaction';
     }
 
+}
+
+/**
+ * Responsive column header labels
+ * Shrinks font or switches to abbreviations when columns are narrow.
+ */
+function initResponsiveHeaders() {
+    const headers = document.querySelectorAll('.reactant-grid-head');
+    if (!headers.length) return;
+
+    const updateHeaders = () => {
+        headers.forEach(header => {
+            const cols = header.querySelectorAll('.col[data-full]');
+            cols.forEach(col => {
+                const full = col.dataset.full;
+                const mid = col.dataset.mid;
+                const short = col.dataset.short;
+                const colWidth = col.offsetWidth;
+
+                // Determine which label to show based on available width
+                let label = full;
+                if (colWidth < 90) {
+                    label = short;
+                } else if (colWidth < 130) {
+                    label = mid;
+                }
+
+                // For compartment column, update the inner .col-label span
+                const labelEl = col.querySelector('.col-label');
+                if (labelEl) {
+                    labelEl.textContent = label;
+                } else {
+                    // Simple text column
+                    col.textContent = label;
+                }
+            });
+        });
+    };
+
+    // Run once on load and on resize
+    updateHeaders();
+    window.addEventListener('resize', updateHeaders);
+    // Also update when panel is resized (MutationObserver fallback)
+    const container = document.getElementById('workspacePanels');
+    if (container && window.MutationObserver) {
+        const observer = new MutationObserver(() => {
+            requestAnimationFrame(updateHeaders);
+        });
+        observer.observe(container, { attributes: true, subtree: true, attributeFilter: ['style'] });
+    }
 }
 
 

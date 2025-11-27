@@ -192,32 +192,33 @@
 									<div class="reactant-table">
 										<div class="reactant-grid reactant-grid-head">
 											<span class="col col-remove" aria-hidden="true"></span>
-											<span class="col col-stoich">Stoichiometry</span>
-											<span class="col col-identifier">Metabolite identifier</span>
-											<span class="col col-compartment">
-												<span>Compartment</span>
+											<span class="col col-stoich" data-full="Stoichiometry" data-mid="Stoich" data-short="Stch">Stoichiometry</span>
+											<span class="col col-identifier" data-full="Metabolite identifier" data-mid="Metabolite id" data-short="Met">Metabolite identifier</span>
+											<span class="col col-compartment" data-full="Compartment" data-mid="Comp" data-short="Cmp">
+												<span class="col-label">Compartment</span>
 												<span
 													class="info-symbol"
-													data-tooltip-content="
-	                                            <p>c → Cytosol</p>
-	                                            <p>e → Extracellular</p>
-	                                            <p>g → Golgi Apparatus</p>
-	                                            <p>m → Mitochondria</p>
-	                                            <p>l → Lysosome</p>
-	                                            <p>n → Nucleus</p>
-	                                            <p>r → Endoplasmatic Reticulum</p>
-	                                            <p>x → Peroxisome</p>"
+													data-tooltip-content="c → Cytosol
+e → Extracellular
+g → Golgi Apparatus
+m → Mitochondria
+l → Lysosome
+n → Nucleus
+r → Endoplasmatic Reticulum
+x → Peroxisome"
 													>&#9432;</span
 												>
 											</span>
-											<span class="col col-type">Input type</span>
-											<span class="col col-verify">Verify &amp; resolved name</span>
+											<span class="col col-type" data-full="Input type" data-mid="Inp type" data-short="Type">Input type</span>
+											<span class="col col-verify"></span>
 										</div>
 										<div class="reactant-rows" id="substratesDiv">
 											<div class="inputs-group reactant-grid">
 												<div class="cell cell-remove">
-													<button class="ui inverted red button remove-field-btn" type="button" aria-label="Remove substrate">
-														<span aria-hidden="true">×</span>
+													<button class="remove-field-btn" type="button" aria-label="Remove substrate" title="Remove row">
+														<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+															<path d="M2 2l8 8M10 2l-8 8"/>
+														</svg>
 													</button>
 												</div>
 												<div class="cell cell-stoich">
@@ -320,32 +321,33 @@
 									<div class="reactant-table">
 										<div class="reactant-grid reactant-grid-head">
 											<span class="col col-remove" aria-hidden="true"></span>
-											<span class="col col-stoich">Stoichiometry</span>
-											<span class="col col-identifier">Metabolite identifier</span>
-											<span class="col col-compartment">
-												<span>Compartment</span>
+											<span class="col col-stoich" data-full="Stoichiometry" data-mid="Stoich" data-short="Stch">Stoichiometry</span>
+											<span class="col col-identifier" data-full="Metabolite identifier" data-mid="Metabolite id" data-short="Met">Metabolite identifier</span>
+											<span class="col col-compartment" data-full="Compartment" data-mid="Comp" data-short="Cmp">
+												<span class="col-label">Compartment</span>
 												<span
 													class="info-symbol"
-													data-tooltip-content="
-	                                            <p>c → Cytosol</p>
-	                                            <p>e → Extracellular</p>
-	                                            <p>g → Golgi Apparatus</p>
-	                                            <p>m → Mitochondria</p>
-	                                            <p>l → Lysosome</p>
-	                                            <p>n → Nucleus</p>
-	                                            <p>r → Endoplasmatic Reticulum</p>
-	                                            <p>x → Peroxisome</p>"
+													data-tooltip-content="c → Cytosol
+e → Extracellular
+g → Golgi Apparatus
+m → Mitochondria
+l → Lysosome
+n → Nucleus
+r → Endoplasmatic Reticulum
+x → Peroxisome"
 													>&#9432;</span
 												>
 											</span>
-											<span class="col col-type">Input type</span>
-											<span class="col col-verify">Verify &amp; resolved name</span>
+											<span class="col col-type" data-full="Input type" data-mid="Inp type" data-short="Type">Input type</span>
+											<span class="col col-verify"></span>
 										</div>
 										<div class="reactant-rows" id="productsDiv">
 											<div class="inputs-group reactant-grid">
 												<div class="cell cell-remove">
-													<button class="ui inverted red button remove-field-btn" type="button" aria-label="Remove product">
-														<span aria-hidden="true">×</span>
+													<button class="remove-field-btn" type="button" aria-label="Remove product" title="Remove row">
+														<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+															<path d="M2 2l8 8M10 2l-8 8"/>
+														</svg>
 													</button>
 												</div>
 												<div class="cell cell-stoich">
@@ -397,7 +399,7 @@
 									<div class="meta-field">
 										<label for="subsystemField">Subsystem</label>
 										<div class="meta-input">
-											<input type="text" id="subsystemField" name="subsystem" autocomplete="off" />
+											<input type="text" id="subsystemField" name="subsystem" autocomplete="off" placeholder="Type or select a subsystem..." />
 											<div id="subsystemDropdown" class="dropdown-content"></div>
 										</div>
 									</div>

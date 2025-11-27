@@ -42,12 +42,12 @@
 .inputs-group {
     display: grid;
     grid-template-columns:
-        minmax(26px, 36px)
-        minmax(48px, 110px)
-        minmax(120px, 2.3fr)
-        minmax(85px, 0.9fr)
-        minmax(100px, 1.1fr)
-        minmax(120px, 1.6fr);
+        minmax(20px, 36px) /* remove button */
+        minmax(45px, 48px) /* stoichiometry input */
+        minmax(100px, 2fr) /* metabolite identifier */
+        minmax(65px, 0.6fr) /* compartment dropdown */
+        minmax(100px, 1.1fr) /* input type dropdown */
+        minmax(80px, 0.6fr); /* verify/resolved column */
     gap: 0.75rem;
     align-items: center;
     padding: 0.75rem 0;
@@ -254,12 +254,12 @@
 .reactant-grid-head {
     display: grid;
     grid-template-columns:
-        minmax(26px, 36px)
-        minmax(48px, 110px)
-        minmax(120px, 2.3fr)
-        minmax(85px, 0.9fr)
-        minmax(100px, 1.1fr)
-        minmax(120px, 1.6fr);
+        minmax(20px, 36px) /* remove button */
+        minmax(45px, 48px) /* stoichiometry input */
+        minmax(100px, 2fr) /* metabolite identifier */
+        minmax(65px, 0.6fr) /* compartment dropdown */
+        minmax(100px, 1.1fr) /* input type dropdown */
+        minmax(80px, 0.6fr); /* verify/resolved column */
     gap: 0.75rem;
     align-items: center;
     font-size: 0.85rem;
@@ -272,8 +272,29 @@
 }
 
 .reactant-grid-head .col {
-    white-space: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     line-height: 1.2;
+    font-size: clamp(0.65rem, 1.2vw, 0.85rem);
+    min-width: 0;
+}
+
+/* For compartment column with info symbol */
+.reactant-grid-head .col-compartment {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.reactant-grid-head .col-compartment .col-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Hide verify column header text by default (empty) */
+.reactant-grid-head .col-verify {
+    visibility: hidden;
 }
 
 .reactant-grid .cell {
@@ -293,16 +314,43 @@
     background: #fff;
 }
 
-.cell-remove .remove-field-btn {
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    font-size: 1.2rem;
+
+
+.remove-field-btn {
+    width: 22px;
+    height: 22px;
+    min-width: 20px;
+    max-width: 32px;
+    border-radius: 6px;
+    border: none;
+    background: #fee2e2;
+    color: #dc2626;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 0;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.cell-remove .remove-field-btn span {
-    line-height: 1;
+.remove-field-btn:hover {
+    background: #fca5a5;
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);
+}
+
+.remove-field-btn:active {
+    background: #f87171;
+    transform: scale(0.98);
+}
+
+.remove-field-btn:focus-visible {
+    outline: 2px solid #f87171;
+    outline-offset: 1px;
 }
 
 .verify-field {
@@ -367,16 +415,79 @@
     width: 100%;
 }
 
+/* Subsystem field styling to match organ tags container */
+#subsystemField {
+    display: flex;
+    align-items: center;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    min-height: 48px;
+    width: 100%;
+    box-sizing: border-box;
+    font-size: 14px;
+    background-color: #fff;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#subsystemField:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+    outline: none;
+}
+
+#subsystemField::placeholder {
+    color: #9ca3af;
+}
+
+/* Subsystem dropdown to match organ dropdown */
+#subsystemDropdown {
+    position: absolute;
+    display: none;
+    width: 100%;
+    top: calc(100% + 4px);
+    left: 0;
+    background-color: #fff;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+    z-index: 1000;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid #e4e7ec;
+    border-top: none;
+    border-radius: 0 0 12px 12px;
+}
+
+#subsystemDropdown div {
+    padding: 12px 16px;
+    cursor: pointer;
+    text-decoration: none;
+    display: block;
+    text-align: center;
+}
+
+#subsystemDropdown div:hover {
+    background-color: #ddd;
+}
+
+#subsystemDropdown div:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+#subsystemDropdown div:nth-child(even) {
+    background-color: #ececec;
+}
+
 @media (max-width: 1200px) {
     .reactant-grid-head,
     .inputs-group {
         grid-template-columns:
-            minmax(24px, 30px)
-            minmax(40px, 90px)
-            minmax(100px, 1.7fr)
-            minmax(70px, 0.75fr)
-            minmax(80px, 0.95fr)
-            minmax(100px, 1.3fr);
+            minmax(24px, 30px) /* remove */
+            minmax(40px, 90px) /* stoichiometry */
+            minmax(100px, 1.7fr) /* identifier */
+            minmax(70px, 0.75fr) /* compartment */
+            minmax(80px, 0.95fr) /* input type */
+            minmax(100px, 1.3fr); /* verify/resolved */
     }
 }
 
@@ -628,36 +739,62 @@
 
 
 
-.ui.inverted.red.button.remove-field-btn {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 20px;
-}
-
-
 .info-symbol {
     position: relative;
-    display: inline-block; /* Make sure it doesn't occupy the full width */
-    cursor: pointer; /* Changes the cursor to indicate it's interactive */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+    color: #666;
+    margin-left: 2px;
 }
 
-/* Tooltip styles */
-.tooltip {
+/* Tooltip using ::after pseudo-element */
+.info-symbol::after {
+    content: attr(data-tooltip-content);
     position: absolute;
-    z-index: 10; /* Ensure it overlaps other content */
-    background-color: #f9f9f9;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    padding: 5px;
-    margin-top: 5px; /* Adjusted to position below the symbol */
-    display: none;
-    box-shadow: 0 1px 3px rgba(0,0,0,.1);
-    white-space: nowrap;
+    z-index: 1000;
+    top: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    line-height: 1.5;
+    white-space: pre-line;
+    width: max-content;
+    max-width: 200px;
+    text-align: left;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
 }
 
-.info-symbol:hover .tooltip {
-    display: block; /* Show the tooltip on hover */
+/* Arrow for tooltip */
+.info-symbol::before {
+    content: '';
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 2px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: #333;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+    pointer-events: none;
+}
+
+.info-symbol:hover::after,
+.info-symbol:hover::before {
+    opacity: 1;
+    visibility: visible;
 }
 
 .subsystem-input {
@@ -722,9 +859,118 @@
 .dropdown-content div:hover, .dropdown-content-templates div:hover {
     background-color: #ddd;} /* Hover effect for dropdown items */
 
-.start-drawing-btn:hover, .edit-drawing-btn {
-    background: orange;
-    border: 1px solid rgb(209, 213, 219);
+/* ============================================
+   Alternative Input Types - Consistent Sizing
+   (Draw buttons, File input, My Metabolites autocomplete)
+   ============================================ */
+
+/* Base styling for Draw buttons */
+.start-drawing-btn,
+.edit-drawing-btn {
+    width: 100%;
+    min-width: 0;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+    box-sizing: border-box;
+}
+
+.start-drawing-btn:hover,
+.edit-drawing-btn:hover {
+    background: #fff7ed;
+    border-color: #f97316;
+}
+
+.edit-drawing-btn {
+    background: #fff7ed;
+    border-color: #fdba74;
+}
+
+/* File input styling */
+.cell-identifier input[type="file"] {
+    width: 100%;
+    min-width: 0;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.85rem;
+    background: #fff;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.cell-identifier input[type="file"]::file-selector-button {
+    border: none;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    margin-right: 0.5rem;
+}
+
+.cell-identifier input[type="file"]::file-selector-button:hover {
+    background: #e5e7eb;
+}
+
+/* Autocomplete container (My Metabolites) */
+.autocomplete-container {
+    position: relative;
+    width: 100%;
+}
+
+.autocomplete-container .autocomplete-input {
+    width: 100%;
+    min-width: 0;
+    border: 1.5px solid #d0d5dd;
+    border-radius: 10px;
+    padding: 0.55rem 0.75rem;
+    font-size: 0.95rem;
+    background: #fff;
+    box-sizing: border-box;
+}
+
+.autocomplete-container .autocomplete-input:focus {
+    border-color: #4f46e5;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.1);
+}
+
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d0d5dd;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-dropdown:empty {
+    display: none;
+}
+
+.autocomplete-dropdown div {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.autocomplete-dropdown div:hover {
+    background: #f3f4f6;
+}
+
+.autocomplete-dropdown div:last-child {
+    border-radius: 0 0 10px 10px;
 }
 
 

@@ -143,13 +143,19 @@ var button_to_div = {
         },
 
         addResizeHandle(panel) {
-            if (panel.querySelector('.panel-resize-handle')) {
+            const header = panel.querySelector('.div-header');
+            if (!header) return;
+            const actions = this.ensureHeaderActions(panel, header);
+            if (!actions || actions.querySelector('.panel-resize-handle')) {
                 return;
             }
-            const handle = document.createElement('span');
-            handle.className = 'panel-resize-handle';
-            handle.innerHTML = '<i class="fas fa-expand-alt"></i>';
-            panel.appendChild(handle);
+            const handle = document.createElement('button');
+            handle.type = 'button';
+            handle.className = 'panel-control panel-resize-handle';
+            handle.title = 'Resize panel';
+            handle.setAttribute('aria-label', 'Resize panel');
+            handle.innerHTML = '<i class="fas fa-expand-alt" aria-hidden="true"></i>';
+            actions.appendChild(handle);
 
             let startWidth = 0;
             let startHeight = 0;

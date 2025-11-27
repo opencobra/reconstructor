@@ -207,9 +207,10 @@ function buildReactantRow(containerId, inputName, numberName) {
 	removeCell.className = 'cell cell-remove';
 	const removeBtn = document.createElement('button');
 	removeBtn.type = 'button';
-	removeBtn.className = 'ui inverted red button remove-field-btn';
+	removeBtn.className = 'remove-field-btn';
 	removeBtn.setAttribute('aria-label', containerId === 'substratesDiv' ? 'Remove substrate' : 'Remove product');
-	removeBtn.innerHTML = '<span aria-hidden="true">×</span>';
+	removeBtn.setAttribute('title', 'Remove row');
+	removeBtn.innerHTML = '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M2 2l8 8M10 2l-8 8"/></svg>';
 	removeBtn.onclick = function () {
 		removeField(this);
 	};
