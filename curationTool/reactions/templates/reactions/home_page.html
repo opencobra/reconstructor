@@ -33,6 +33,176 @@
 					<div id="error-message">Default error message</div>
 				</div>
 			</div>
+
+			<div id="loadingIndicator" class="loadingIndicator">
+				<div class="content">
+					<div class="loading-overlay">
+						<div class="spinner"></div>
+						<p>Creating reaction ... please wait</p>
+					</div>
+				</div>
+			</div>
+			<div id="savedMetabolitesModal" class="ui modal">
+				<div class="header">
+					<h2>Manage Saved Metabolites</h2>
+					<div id="savedMetabolitesSearchContainer" class="search-bar" style="margin-top: 10px">
+						<input type="text" id="metaboliteSearchInput" placeholder="Search by name or abbreviation..." class="ui input" style="width: 100%" />
+					</div>
+				</div>
+				<div class="scrolling content">
+					<button id="shareSelectedBtn" class="ui button">Share Selected Metabolites</button>
+
+					<!-- Existing metabolites list -->
+					<div class="ui divided items" id="metabolitesList"></div>
+				</div>
+			</div>
+			<div id="identicalReactionModal" class="ui modal identicalReactionModal">
+				<i class="close icon"></i>
+				<div class="header">Identical Reaction Found</div>
+				<div class="content">
+					<p id="identicalReactionMessage"></p>
+				</div>
+				<div class="actions">
+					<button id="createReactionButton" class="ui button">Create</button>
+				</div>
+			</div>
+			<div class="ui modal getrxnfromvmhrhea">
+				<i class="close icon"></i>
+				<div class="header">Reaction Input</div>
+				<div class="content">
+					<form class="ui form" id="vmhInputContainer">
+						<div class="field">
+							<label for="reactionSelect">Reaction Source</label>
+							<select id="reactionSelect" class="ui dropdown">
+								<option value="" selected>Choose a reaction source</option>
+								<option value="VMH">VMH</option>
+								<option value="RHEA">RHEA</option>
+							</select>
+						</div>
+						<div class="field">
+							<label for="reactionAbbreviation">Reaction ID</label>
+							<input type="text" id="reactionAbbreviation" placeholder="Enter reaction abbreviation" disabled />
+						</div>
+					</form>
+				</div>
+				<div class="actions">
+					<button type="submit" id="submitButton" class="ui button" style="display: none">Submit</button>
+				</div>
+			</div>
+			<div class="ui modal getrxntemplate" id="getrxnfromtemplateModal">
+				<i class="close icon"></i>
+				<div class="header">
+					Select Reaction Template
+					<div class="ui buttons" style="float: right; gap: 4px">
+						<button class="ui button" id="manageTemplateBtn">Manage Templates</button>
+						<button class="ui button" id="createTemplateBtn">Create New Template</button>
+					</div>
+				</div>
+				<div class="content">
+					<div class="ui form">
+						<div class="field">
+							<label for="reactionField" style="font-size: 1.2em; font-weight: bold">Reaction Template:</label>
+							<input type="text" id="reactionField" name="reactionField" autocomplete="off" placeholder="Select a template" />
+							<div id="reactionDropdown" class="dropdown-content-templates"></div>
+						</div>
+					</div>
+				</div>
+				<div class="actions">
+					<button class="ui button" id="applyTemplate">Apply</button>
+				</div>
+			</div>
+			<div class="ui modal manageTemplates" id="manageTemplatesModal">
+				<i class="close icon"></i>
+				<div class="header">Manage Templates</div>
+				<div class="content">
+					<div class="ui buttons template-buttons">
+						<!-- Button to open the Share Templates Modal -->
+						<button class="ui button" id="shareTemplateBtn">Share Templates</button>
+
+						<!-- Button for Edit Templates functionality -->
+						<button class="ui button" id="editTemplateBtn">Edit Templates</button>
+					</div>
+				</div>
+			</div>
+			<!-- Edit Templates Modal -->
+			<div class="ui modal editTemplate" id="editTemplateModal">
+				<i class="close icon"></i>
+				<div class="header">Edit Template</div>
+				<div class="content">
+					<div class="ui form">
+						<div class="field">
+							<label>Select a Template:</label>
+							<div id="editTemplatesContainer" class="ui cards" style="margin-top: 10px">
+								<!-- Template cards will be added here -->
+							</div>
+						</div>
+						<div class="ui divider"></div>
+						<div class="field">
+							<label>Template Details</label>
+							<div class="two fields">
+								<div class="field">
+									<input type="text" id="editTemplateName" placeholder="Template name" />
+								</div>
+								<div class="field">
+									<textarea id="editTemplateDescription" placeholder="Template description" rows="2"></textarea>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="actions">
+					<div class="ui red button" id="deleteTemplateBtn">Delete</div>
+					<div class="ui primary button" id="submitTemplateChanges">Save Changes</div>
+				</div>
+			</div>
+			<div class="ui modal shareTemplate" id="shareTemplateModal">
+				<i class="close icon"></i>
+				<div class="header">Share Templates</div>
+				<div class="content">
+					<div class="ui form">
+						<div class="field">
+							<label for="shareTemplates">Select Templates to share:</label>
+							<!-- Custom multi-select container -->
+							<div id="shareTemplatesContainer" class="template-selection-container">
+								<!-- Templates will be dynamically added here as clickable buttons -->
+							</div>
+						</div>
+						<div class="field">
+							<label for="shareWithUser">Username of the user to share with:</label>
+							<input type="text" id="shareWithUser" placeholder="Enter username" />
+						</div>
+					</div>
+				</div>
+				<div class="actions">
+					<button class="ui button" id="confirmShare">Share</button>
+				</div>
+			</div>
+			<div id="savedReactionsModal" class="saved-reactions-modal">
+				<!-- Modal content -->
+				<div class="saved-reactions-modal-content">
+					<span class="close-saved-reactions">&times;</span>
+					<div id="savedReactionsModalBody">
+						<!-- Content will be loaded here -->
+					</div>
+				</div>
+			</div>
+
+			<!-- Error modal -->
+
+			<div id="error-modal" class="modal">
+				<div class="modal-content">
+					<p id="error-message"></p>
+				</div>
+			</div>
+			<div class="ui modal error-modal" id="error-modal">
+				<div class="header">Error</div>
+				<div class="content">
+					<div id="error-message"></div>
+				</div>
+				<div class="actions">
+					<button class="ui button" id="close-button">Close</button>
+				</div>
+			</div>
 		</div>
 		<div class="top-menu">
 			<div class="image-icon item">
@@ -112,7 +282,7 @@
 					</div>
 				</div>
 				<div class="divs-container workspace-panels" id="workspacePanels">
-					<div class="content-div workspace-panel" name="reactants-div" style="display: block">
+					<div class="content-div workspace-panel is-visible" name="reactants-div" style="display: flex">
 						<div class="div-header">Reactants</div>
 						<div id="reactionFormContainer" class="container">
 							<div class="reactants-toolbar">
@@ -199,13 +369,13 @@
 												<span
 													class="info-symbol"
 													data-tooltip-content="c → Cytosol
-e → Extracellular
-g → Golgi Apparatus
-m → Mitochondria
-l → Lysosome
-n → Nucleus
-r → Endoplasmatic Reticulum
-x → Peroxisome"
+																		e → Extracellular
+																		g → Golgi Apparatus
+																		m → Mitochondria
+																		l → Lysosome
+																		n → Nucleus
+																		r → Endoplasmatic Reticulum
+																		x → Peroxisome"
 													>&#9432;</span
 												>
 											</span>
@@ -328,13 +498,13 @@ x → Peroxisome"
 												<span
 													class="info-symbol"
 													data-tooltip-content="c → Cytosol
-e → Extracellular
-g → Golgi Apparatus
-m → Mitochondria
-l → Lysosome
-n → Nucleus
-r → Endoplasmatic Reticulum
-x → Peroxisome"
+																		e → Extracellular
+																		g → Golgi Apparatus
+																		m → Mitochondria
+																		l → Lysosome
+																		n → Nucleus
+																		r → Endoplasmatic Reticulum
+																		x → Peroxisome"
 													>&#9432;</span
 												>
 											</span>
@@ -414,150 +584,6 @@ x → Peroxisome"
 							</form>
 						</div>
 					</div>
-					<div id="loadingIndicator" class="loadingIndicator">
-						<div class="content">
-							<div class="loading-overlay">
-								<div class="spinner"></div>
-								<p>Creating reaction ... please wait</p>
-							</div>
-						</div>
-					</div>
-					<div id="savedMetabolitesModal" class="ui modal">
-						<div class="header">
-							<h2>Manage Saved Metabolites</h2>
-							<div id="savedMetabolitesSearchContainer" class="search-bar" style="margin-top: 10px">
-								<input type="text" id="metaboliteSearchInput" placeholder="Search by name or abbreviation..." class="ui input" style="width: 100%" />
-							</div>
-						</div>
-						<div class="scrolling content">
-							<button id="shareSelectedBtn" class="ui button">Share Selected Metabolites</button>
-
-							<!-- Existing metabolites list -->
-							<div class="ui divided items" id="metabolitesList"></div>
-						</div>
-					</div>
-					<div id="identicalReactionModal" class="ui modal identicalReactionModal">
-						<i class="close icon"></i>
-						<div class="header">Identical Reaction Found</div>
-						<div class="content">
-							<p id="identicalReactionMessage"></p>
-						</div>
-						<div class="actions">
-							<button id="createReactionButton" class="ui button">Create</button>
-						</div>
-					</div>
-					<div class="ui modal getrxnfromvmhrhea">
-						<i class="close icon"></i>
-						<div class="header">Reaction Input</div>
-						<div class="content">
-							<form class="ui form" id="vmhInputContainer">
-								<div class="field">
-									<label for="reactionSelect">Reaction Source</label>
-									<select id="reactionSelect" class="ui dropdown">
-										<option value="" selected>Choose a reaction source</option>
-										<option value="VMH">VMH</option>
-										<option value="RHEA">RHEA</option>
-									</select>
-								</div>
-								<div class="field">
-									<label for="reactionAbbreviation">Reaction ID</label>
-									<input type="text" id="reactionAbbreviation" placeholder="Enter reaction abbreviation" disabled />
-								</div>
-							</form>
-						</div>
-						<div class="actions">
-							<button type="submit" id="submitButton" class="ui button" style="display: none">Submit</button>
-						</div>
-					</div>
-					<div class="ui modal getrxntemplate" id="getrxnfromtemplateModal">
-						<i class="close icon"></i>
-						<div class="header">
-							Select Reaction Template
-							<div class="ui buttons" style="float: right; gap: 4px">
-								<button class="ui button" id="manageTemplateBtn">Manage Templates</button>
-								<button class="ui button" id="createTemplateBtn">Create New Template</button>
-							</div>
-						</div>
-						<div class="content">
-							<div class="ui form">
-								<div class="field">
-									<label for="reactionField" style="font-size: 1.2em; font-weight: bold">Reaction Template:</label>
-									<input type="text" id="reactionField" name="reactionField" autocomplete="off" placeholder="Select a template" />
-									<div id="reactionDropdown" class="dropdown-content-templates"></div>
-								</div>
-							</div>
-						</div>
-						<div class="actions">
-							<button class="ui button" id="applyTemplate">Apply</button>
-						</div>
-					</div>
-					<div class="ui modal manageTemplates" id="manageTemplatesModal">
-						<i class="close icon"></i>
-						<div class="header">Manage Templates</div>
-						<div class="content">
-							<div class="ui buttons template-buttons">
-								<!-- Button to open the Share Templates Modal -->
-								<button class="ui button" id="shareTemplateBtn">Share Templates</button>
-
-								<!-- Button for Edit Templates functionality -->
-								<button class="ui button" id="editTemplateBtn">Edit Templates</button>
-							</div>
-						</div>
-					</div>
-					<!-- Edit Templates Modal -->
-					<div class="ui modal editTemplate" id="editTemplateModal">
-						<i class="close icon"></i>
-						<div class="header">Edit Template</div>
-						<div class="content">
-							<div class="ui form">
-								<div class="field">
-									<label>Select a Template:</label>
-									<div id="editTemplatesContainer" class="ui cards" style="margin-top: 10px">
-										<!-- Template cards will be added here -->
-									</div>
-								</div>
-								<div class="ui divider"></div>
-								<div class="field">
-									<label>Template Details</label>
-									<div class="two fields">
-										<div class="field">
-											<input type="text" id="editTemplateName" placeholder="Template name" />
-										</div>
-										<div class="field">
-											<textarea id="editTemplateDescription" placeholder="Template description" rows="2"></textarea>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
-						<div class="actions">
-							<div class="ui red button" id="deleteTemplateBtn">Delete</div>
-							<div class="ui primary button" id="submitTemplateChanges">Save Changes</div>
-						</div>
-					</div>
-					<div class="ui modal shareTemplate" id="shareTemplateModal">
-						<i class="close icon"></i>
-						<div class="header">Share Templates</div>
-						<div class="content">
-							<div class="ui form">
-								<div class="field">
-									<label for="shareTemplates">Select Templates to share:</label>
-									<!-- Custom multi-select container -->
-									<div id="shareTemplatesContainer" class="template-selection-container">
-										<!-- Templates will be dynamically added here as clickable buttons -->
-									</div>
-								</div>
-								<div class="field">
-									<label for="shareWithUser">Username of the user to share with:</label>
-									<input type="text" id="shareWithUser" placeholder="Enter username" />
-								</div>
-							</div>
-						</div>
-						<div class="actions">
-							<button class="ui button" id="confirmShare">Share</button>
-						</div>
-					</div>
-
 					<div class="content-div workspace-panel" name="atommapping-div" style="display: none">
 						<div class="div-header">Atom Mapping</div>
 						<img src="{{ MEDIA_URL }}images/placeholder_image.png" id="atomMappingImage" class="reaction-image" />
@@ -703,32 +729,6 @@ x → Peroxisome"
 						<div class="tab-content-gene" id="gene-info-content"></div>
 					</div>
 
-					<div id="savedReactionsModal" class="saved-reactions-modal">
-						<!-- Modal content -->
-						<div class="saved-reactions-modal-content">
-							<span class="close-saved-reactions">&times;</span>
-							<div id="savedReactionsModalBody">
-								<!-- Content will be loaded here -->
-							</div>
-						</div>
-					</div>
-
-					<!-- Error modal -->
-
-					<div id="error-modal" class="modal">
-						<div class="modal-content">
-							<p id="error-message"></p>
-						</div>
-					</div>
-					<div class="ui modal error-modal" id="error-modal">
-						<div class="header">Error</div>
-						<div class="content">
-							<div id="error-message"></div>
-						</div>
-						<div class="actions">
-							<button class="ui button" id="close-button">Close</button>
-						</div>
-					</div>
 				</div>
 			</div>
 			<!-- Login Modal -->
