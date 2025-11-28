@@ -133,7 +133,7 @@ var button_to_div = {
             resetBtn.className = 'panel-control panel-reset-button';
             resetBtn.title = 'Reset panel size';
             resetBtn.setAttribute('aria-label', 'Reset panel size');
-            resetBtn.innerHTML = '<i class="fas fa-compress-alt" aria-hidden="true"></i>';
+            resetBtn.innerHTML = '<i class="fas fa-redo-alt" aria-hidden="true"></i>';
             resetBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 event.stopPropagation();
@@ -143,19 +143,16 @@ var button_to_div = {
         },
 
         addResizeHandle(panel) {
-            const header = panel.querySelector('.div-header');
-            if (!header) return;
-            const actions = this.ensureHeaderActions(panel, header);
-            if (!actions || actions.querySelector('.panel-resize-handle')) {
+            if (!panel || panel.querySelector('.panel-resize-handle')) {
                 return;
             }
             const handle = document.createElement('button');
             handle.type = 'button';
-            handle.className = 'panel-control panel-resize-handle';
+            handle.className = 'panel-resize-handle';
             handle.title = 'Resize panel';
             handle.setAttribute('aria-label', 'Resize panel');
             handle.innerHTML = '<i class="fas fa-expand-alt" aria-hidden="true"></i>';
-            actions.appendChild(handle);
+            panel.appendChild(handle);
 
             let startWidth = 0;
             let startHeight = 0;

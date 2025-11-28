@@ -269,12 +269,38 @@ body {
 }
 
 .panel-resize-handle {
+	position: absolute;
+	bottom: 14px;
+	right: 14px;
+	width: 32px;
+	height: 32px;
+	border-radius: 12px;
+	border: 1px solid rgba(148, 163, 184, 0.45);
+	background: rgba(248, 250, 252, 0.95);
+	color: #2563eb;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
 	cursor: nwse-resize;
+	box-shadow: 0 6px 18px rgba(15, 23, 42, 0.2);
+	opacity: 0;
+	transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+	z-index: 5;
+}
+
+.panel-resize-handle i {
+	pointer-events: none;
+}
+
+.content-div:hover .panel-resize-handle,
+.content-div.is-resizing .panel-resize-handle {
+	opacity: 1;
 }
 
 .panel-resize-handle:hover {
 	background: #1d4ed8;
 	color: #fff;
+	transform: translate(-2px, -2px);
 }
 
 .content-div.is-resizing {
@@ -864,10 +890,6 @@ footer {
 #organTags {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 8px; /* Adjust the spacing between tags */
-	border: 1px solid #000; /* Add border to the container */
-	padding: 8px; /* Add padding inside the container */
-	border-radius: 5px; /* Add rounded corners to the container */
 }
 
 #organTags:empty:before {
