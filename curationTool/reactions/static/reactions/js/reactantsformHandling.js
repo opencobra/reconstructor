@@ -414,16 +414,62 @@ function confirmAll() {
 
 
 function setupTooltips() {
-    document.querySelectorAll('.info-symbol').forEach(item => {
+    const OFFSET = -20;
+
+    const positionTooltip = (trigger, tooltip) => {
+        if (!tooltip) return;
+        const rect = trigger.getBoundingClientRect();
+        const tooltipRect = tooltip.getBoundingClientRect();
+
+        let top = rect.top - tooltipRect.height - OFFSET;
+        let left = rect.right + OFFSET;
+
+        const maxLeft = Math.max(0, window.innerWidth - tooltipRect.width - 12);
+        const minTop = 8;
+
+        if (left > maxLeft) {
+            left = maxLeft;
+        }
+        if (top < minTop) {
+            top = minTop;
+        }
+
+        tooltip.style.top = `${top}px`;
+        tooltip.style.left = `${left}px`;
+    };
+
+    document.querySelectorAll('.info-symbol').forEach((item) => {
+        let activeTooltip = null;
+
+        const removeTooltip = () => {
+            if (activeTooltip && activeTooltip.parentNode) {
+                activeTooltip.parentNode.removeChild(activeTooltip);
+            }
+            activeTooltip = null;
+        };
+
         item.addEventListener('mouseenter', function () {
             const tooltipContent = this.getAttribute('data-tooltip-content');
+            if (!tooltipContent) return;
+
             const tooltip = document.createElement('div');
-            tooltip.className = 'tooltip';
-            tooltip.innerHTML = tooltipContent;
-            this.appendChild(tooltip);
+            tooltip.className = 'info-tooltip';
+            tooltip.innerHTML = tooltipContent.replace(/\n/g, '<br />');
+            document.body.appendChild(tooltip);
+            activeTooltip = tooltip;
+            positionTooltip(this, tooltip);
         });
-        item.addEventListener('mouseleave', function () {
-            this.removeChild(this.querySelector('.tooltip'));
+
+        item.addEventListener('mousemove', function () {
+            if (activeTooltip) {
+                positionTooltip(this, activeTooltip);
+            }
         });
+
+        item.addEventListener('mouseleave', () => {
+            removeTooltip();
+        });
+
+        item.addEventListener('blur', removeTooltip);
     });
 }

@@ -285,6 +285,8 @@
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    position: relative;
+    overflow: visible;
 }
 
 .reactant-grid-head .col-compartment .col-label {
@@ -745,56 +747,48 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 12px;
-    color: #666;
-    margin-left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #c7d2fe;
+    font-size: 10px;
+    font-weight: 600;
+    color: #1d4ed8;
+    background: #eef2ff;
+    margin-left: 4px;
+    flex-shrink: 0;
 }
 
-/* Tooltip using ::after pseudo-element */
-.info-symbol::after {
-    content: attr(data-tooltip-content);
-    position: absolute;
-    z-index: 1000;
-    top: calc(100% + 6px);
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: #fff;
-    padding: 8px 10px;
-    border-radius: 6px;
-    font-size: 11px;
-    line-height: 1.5;
+.info-tooltip {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: none;
+    z-index: 9999;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #0f172a;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.2);
+    font-size: 0.82rem;
+    line-height: 1.4;
     white-space: pre-line;
-    width: max-content;
-    max-width: 200px;
     text-align: left;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    width: max-content;
+    max-width: 240px;
     pointer-events: none;
 }
 
-/* Arrow for tooltip */
-.info-symbol::before {
+.info-tooltip::after {
     content: '';
     position: absolute;
-    z-index: 1000;
-    top: calc(100% + 2px);
-    left: 50%;
-    transform: translateX(-50%);
-    border: 5px solid transparent;
-    border-bottom-color: #333;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
-    pointer-events: none;
-}
-
-.info-symbol:hover::after,
-.info-symbol:hover::before {
-    opacity: 1;
-    visibility: visible;
+    bottom: -10px;
+    left: 18px;
+    border-width: 10px 10px 0 10px;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+    filter: drop-shadow(0 3px 4px rgba(15, 23, 42, 0.15));
 }
 
 .subsystem-input {
