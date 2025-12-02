@@ -205,25 +205,42 @@
 			</div>
 		</div>
 		<div class="top-menu">
-			<div class="image-icon item">
-				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="Website Icon" />
+			<div class="header-left">
+				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="Website Icon" class="header-logo" />
+				<nav class="header-nav">
+					<a href="#" id="view-leader-board-nav" class="nav-link">
+						<i class="fas fa-chart-bar"></i>
+						<span>Stats</span>
+					</a>
+					<a href="#" id="about-nav" class="nav-link">
+						<i class="fas fa-info-circle"></i>
+						<span>About</span>
+					</a>
+				</nav>
 			</div>
 			<div class="statusAndMessage">
 				<div class="status-item" id="statusTitle"></div>
 				<div id="reactionFoundMessage"></div>
 			</div>
-			<div class="user-info item">
-				<div class="ui dropdown" id="userDropdown">
-					<button class="ui button" id="userDisplay">
-						<i class="icon user"></i>
-						User : None
+			<div class="header-right">
+				<div class="user-dropdown" id="userDropdown">
+					<button class="user-dropdown-trigger" id="userDisplay">
+						<i class="fas fa-user"></i>
+						<span>User : None</span>
+						<i class="fas fa-chevron-down dropdown-arrow"></i>
 					</button>
-					<div class="menu">
-						<div class="item" id="dropdown-saved-reactions">Saved Reactions</div>
-						<div class="item" id="dropdown-saved-metabolites">Saved Metabolites</div>
+					<div class="user-dropdown-menu">
+						<div class="dropdown-item" id="dropdown-saved-reactions">
+							<i class="fas fa-flask"></i>
+							<span>Saved Reactions</span>
+						</div>
+						<div class="dropdown-item" id="dropdown-saved-metabolites">
+							<i class="fas fa-atom"></i>
+							<span>Saved Metabolites</span>
+						</div>
 					</div>
 				</div>
-				<button class="ui blue button" id="loginButton">Log In</button>
+				<button class="header-login-btn" id="loginButton">Log In</button>
 			</div>
 		</div>
 

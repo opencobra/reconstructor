@@ -1,28 +1,76 @@
 document.addEventListener('DOMContentLoaded', async function () {
     $('#savedMetabolitesModal').modal();
 
-    $('#userDropdown').dropdown({
-        action: 'hide',
-        onChange: function(value, text, $selectedItem) {
-            if ($selectedItem.attr('id') === 'dropdown-saved-reactions') {
-                userId = sessionStorage.getItem('userID');
-                if (userId) {
-                    window.location.href = '/saved_reactions';
-                }
-                else{
-                    var errorMessage = 'Please login to view saved reactions.';
-                    showErrorModal(errorMessage);
-                }
-            } else if ($selectedItem.attr('id') === 'dropdown-saved-metabolites') {
-                loadSavedMetabolites();
-                $('#savedMetabolitesModal').modal('show');
+    // Check if we should open the saved metabolites modal (from redirect)
+    if (sessionStorage.getItem('openSavedMetabolites') === 'true') {
+        sessionStorage.removeItem('openSavedMetabolites');
+        // Small delay to ensure everything is loaded
+        setTimeout(() => {
+            loadSavedMetabolites();
+            $('#savedMetabolitesModal').modal('show');
+        }, 500);
+    }
+
+    // Custom dropdown functionality
+    const userDropdown = document.getElementById('userDropdown');
+    const userDropdownTrigger = document.getElementById('userDisplay');
+    
+    if (userDropdownTrigger && userDropdown) {
+        userDropdownTrigger.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userDropdown.classList.toggle('active');
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!userDropdown.contains(e.target)) {
+                userDropdown.classList.remove('active');
             }
-        }
-    });
+        });
+        
+        // Handle dropdown item clicks
+        document.getElementById('dropdown-saved-reactions').addEventListener('click', function() {
+            const userId = sessionStorage.getItem('userID');
+            if (userId) {
+                window.location.href = '/saved_reactions';
+            } else {
+                var errorMessage = 'Please login to view saved reactions.';
+                showErrorModal(errorMessage);
+            }
+            userDropdown.classList.remove('active');
+        });
+        
+        document.getElementById('dropdown-saved-metabolites').addEventListener('click', function() {
+            loadSavedMetabolites();
+            $('#savedMetabolitesModal').modal('show');
+            userDropdown.classList.remove('active');
+        });
+    }
+
+    // Add event listeners for nav links
+    const statsNav = document.getElementById('view-leader-board-nav');
+    if (statsNav) {
+        statsNav.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = '/leader_board';
+        });
+    }
+    
+    const aboutNav = document.getElementById('about-nav');
+    if (aboutNav) {
+        aboutNav.addEventListener('click', function(e) {
+            e.preventDefault();
+            window.location.href = aboutUrl;
+        });
+    }
+
     if (sessionStorage.getItem('userID') !== null) {
         username = sessionStorage.getItem('userName');
         userID = sessionStorage.getItem('userID');
-        document.getElementById('userDisplay').innerHTML = `<i class="icon user"></i> User: ${username}`;
+        const userDisplayEl = document.getElementById('userDisplay');
+        if (userDisplayEl) {
+            userDisplayEl.innerHTML = `<i class="fas fa-user"></i><span>User: ${username}</span><i class="fas fa-chevron-down dropdown-arrow"></i>`;
+        }
         document.getElementById('loginButton').textContent = 'Log out';
         setLoggedInStatusBasedOnUrl('');
         fetch(setSessionUser, {
