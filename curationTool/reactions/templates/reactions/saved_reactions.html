@@ -16,10 +16,18 @@
 	</head>
 	<body>
 		<div class="top-menu-saved-reactions">
-			<div class="icon">
-				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="icon" />
-				<button id="backToHome" class="ui blue button back-btn">Home Page</button>
-				<button id="toWorkspace" class="ui blue button back-btn">VMH Workspace</button>
+			<div class="header-left">
+				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="icon" class="header-logo" />
+				<nav class="header-nav">
+					<a href="#" id="backToHome" class="nav-link">
+						<i class="fas fa-home"></i>
+						<span>Home</span>
+					</a>
+					<a href="#" id="toWorkspace" class="nav-link">
+						<i class="fas fa-flask"></i>
+						<span>VMH Workspace</span>
+					</a>
+				</nav>
 			</div>
 			<div class="search-bar">
 				<i class="fas fa-search search-icon"></i>
@@ -34,11 +42,24 @@
 					</div>
 				</div>
 			</div>
-			<div class="saved-reaction-user-info saved-reaction-item">
-				<button class="ui button saved-reaction-user-display" id="userDisplay">
-					<i class="icon user"></i>
-					User : {{user_name}}
-				</button>
+			<div class="header-right">
+				<div class="user-dropdown" id="userDropdown">
+					<button class="user-dropdown-trigger" id="userDisplayBtn">
+						<i class="fas fa-user"></i>
+						<span>User: {{user_name}}</span>
+						<i class="fas fa-chevron-down dropdown-arrow"></i>
+					</button>
+					<div class="user-dropdown-menu">
+						<div class="dropdown-item" id="dropdown-home">
+							<i class="fas fa-home"></i>
+							<span>Home Page</span>
+						</div>
+						<div class="dropdown-item" id="dropdown-saved-metabolites">
+							<i class="fas fa-atom"></i>
+							<span>Saved Metabolites</span>
+						</div>
+					</div>
+				</div>
 			</div>
 		</div>
 		<div class="top-bar">
@@ -147,34 +168,52 @@
 					</div>
 				</div>
 			</div>
-			<div class="header">
-				<button id="sendToWorkspace" class="ui blue button add-to-vmh-btn">
-					<img src="{% static 'reactions/imgs/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
-					Add Reaction(s) to VMH Workspace
-				</button>
-				<button id="addFlag" class="ui blue button add-flag-btn">Flag Reaction(s)</button>
-				<!-- Mass Edit Confidence Score -->
-				<div class="mass-edit-container">
-					<label for="massEditConfidence">Set Confidence Score:</label>
-					<select id="massEditConfidence">
-						<option value="">-</option>
-						<option value="1">1</option>
-						<option value="2">2</option>
-						<option value="3">3</option>
-						<option value="4">4</option>
-					</select>
-					<button id="applyMassConfidence" class="ui blue button">Apply</button>
+			<div class="toolbar">
+				<!-- Primary Action -->
+				<div class="toolbar-section toolbar-primary">
+					<button id="sendToWorkspace" class="ui button primary-action-btn">
+						<img src="{% static 'reactions/imgs/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
+						<span>Add to VMH Workspace</span>
+					</button>
 				</div>
 
-				<div class="sort-controls">
-					<label for="sortBy">Sort by:</label>
-					<select id="sortBy" class="ui dropdown">
-						<option value="">Date</option>
-						<option value="flag">Flag</option>
-						<option value="subsystem">Subsystem</option>
-						<option value="substrates">Substrates</option>
-						<option value="products">Products</option>
-					</select>
+				<!-- Bulk Operations Group -->
+				<div class="toolbar-section toolbar-bulk-ops">
+					<span class="toolbar-section-label">Bulk Actions</span>
+					<div class="toolbar-section-content">
+						<button id="addFlag" class="ui button toolbar-btn">
+							<i class="fas fa-flag"></i>
+							<span>Flag Selected</span>
+						</button>
+						<div class="confidence-control">
+							<label for="massEditConfidence">Confidence:</label>
+							<select id="massEditConfidence" class="toolbar-select">
+								<option value="">-</option>
+								<option value="1">1</option>
+								<option value="2">2</option>
+								<option value="3">3</option>
+								<option value="4">4</option>
+							</select>
+							<button id="applyMassConfidence" class="ui button toolbar-btn-sm">Apply</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- View Controls -->
+				<div class="toolbar-section toolbar-view">
+					<span class="toolbar-section-label">View</span>
+					<div class="toolbar-section-content">
+						<div class="sort-control">
+							<i class="fas fa-sort-amount-down"></i>
+							<select id="sortBy" class="toolbar-select">
+								<option value="">Date Added</option>
+								<option value="flag">Flag</option>
+								<option value="subsystem">Subsystem</option>
+								<option value="substrates">Substrates</option>
+								<option value="products">Products</option>
+							</select>
+						</div>
+					</div>
 				</div>
 			</div>
 

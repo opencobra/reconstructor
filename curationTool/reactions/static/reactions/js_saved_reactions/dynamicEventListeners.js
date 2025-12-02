@@ -31,6 +31,44 @@ function attachDynamicEventListeners() {
 }
 $(document).ready(function () {
 	$('.view-description-btn').popup();
+	
+	// Initialize user dropdown
+	const userDropdown = document.getElementById('userDropdown');
+	const userDropdownTrigger = document.getElementById('userDisplayBtn');
+	
+	if (userDropdownTrigger && userDropdown) {
+		userDropdownTrigger.addEventListener('click', function(e) {
+			e.stopPropagation();
+			userDropdown.classList.toggle('active');
+		});
+		
+		// Close dropdown when clicking outside
+		document.addEventListener('click', function(e) {
+			if (!userDropdown.contains(e.target)) {
+				userDropdown.classList.remove('active');
+			}
+		});
+		
+		// Handle dropdown item clicks
+		const dropdownHome = document.getElementById('dropdown-home');
+		if (dropdownHome) {
+			dropdownHome.addEventListener('click', function() {
+				window.location.href = '/';
+				userDropdown.classList.remove('active');
+			});
+		}
+		
+		const dropdownSavedMetabolites = document.getElementById('dropdown-saved-metabolites');
+		if (dropdownSavedMetabolites) {
+			dropdownSavedMetabolites.addEventListener('click', function() {
+				// Redirect to home page and trigger saved metabolites modal
+				// Store flag in session storage to open modal after redirect
+				sessionStorage.setItem('openSavedMetabolites', 'true');
+				window.location.href = '/';
+				userDropdown.classList.remove('active');
+			});
+		}
+	}
 });
 
 document.addEventListener('DOMContentLoaded', function () {
