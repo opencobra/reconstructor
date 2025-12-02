@@ -23,11 +23,52 @@ function setupTooltips() {
 function validateInputs() {
 	// Check for any empty non-VMH input fields
 	let allInputsValid = true;
+	
+	// Clear previous validation states
+	document.querySelectorAll('.ws-input-error').forEach(el => {
+		el.classList.remove('ws-input-error');
+	});
+	
+	// Check substrate and product name inputs
 	document.querySelectorAll('.sub-name-input, .prod-name-input').forEach((input) => {
 		if (input.value.trim() === '') {
 			allInputsValid = false;
+			input.classList.add('ws-input-error');
 		}
 	});
+
+	// Also check inputs in workspace detail panel
+	const detailPanel = document.getElementById('wsAvailableReactionDetails');
+	if (detailPanel) {
+		// Check name inputs that aren't readonly (new metabolites need names)
+		detailPanel.querySelectorAll('input[name="subsNameInput"]:not([readonly]), input[name="prodsNameInput"]:not([readonly])').forEach((input) => {
+			if (input.value.trim() === '') {
+				allInputsValid = false;
+				input.classList.add('ws-input-error');
+				// Highlight the row
+				const row = input.closest('tr');
+				if (row) row.classList.add('ws-row-error');
+			}
+		});
+		
+		// Check abbreviation inputs that aren't readonly
+		detailPanel.querySelectorAll('input[name="subsAbbrInput"]:not([readonly]), input[name="prodsAbbrInput"]:not([readonly])').forEach((input) => {
+			if (input.value.trim() === '') {
+				allInputsValid = false;
+				input.classList.add('ws-input-error');
+				// Highlight the row
+				const row = input.closest('tr');
+				if (row) row.classList.add('ws-row-error');
+			}
+		});
+		
+		// Check reaction abbreviation
+		const reactionAbbrInput = detailPanel.querySelector('.reaction-abbreviation-input');
+		if (reactionAbbrInput && reactionAbbrInput.value.trim() === '') {
+			allInputsValid = false;
+			reactionAbbrInput.classList.add('ws-input-error');
+		}
+	}
 
 	return allInputsValid;
 }
