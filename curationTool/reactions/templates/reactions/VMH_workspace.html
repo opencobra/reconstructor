@@ -39,6 +39,24 @@
 				</div>
 			</div>
 
+			<!-- Professional VMH Submission Modal -->
+			<div id="vmhSubmissionModal" class="vmh-submission-modal">
+				<div class="vmh-submission-overlay"></div>
+				<div class="vmh-submission-content">
+					<div class="vmh-submission-header">
+						<h2 id="vmhSubmissionTitle">Adding to VMH</h2>
+					</div>
+					<div class="vmh-submission-body">
+						<div id="vmhSubmissionStatus" class="vmh-status-container">
+							<!-- Status content will be injected here -->
+						</div>
+					</div>
+					<div class="vmh-submission-footer" id="vmhSubmissionFooter" style="display: none;">
+						<button class="vmh-modal-btn vmh-modal-btn-secondary" id="vmhModalClose">Close</button>
+					</div>
+				</div>
+			</div>
+
 			<div id="reactionModal" class="modal">
 				<div class="modal-content">
 					<span class="close">&times;</span>
@@ -71,7 +89,22 @@
 						<!-- LEFT column – list of reaction abbreviations -->
 						<div class="ws-rxn-layout">
 							<div class="ws-rxn-list">
-								<h4 class="ui header">Name</h4>
+								<div class="ws-list-header">
+									<h4 class="ui header">Reactions</h4>
+									<div class="ws-batch-actions" id="wsBatchActions" style="display: none;">
+										<span class="ws-selected-count" id="wsSelectedCount">0 selected</span>
+										<button class="ws-batch-add-btn" id="wsBatchAddBtn" title="Add selected reactions to VMH">
+											<i class="fas fa-plus-circle"></i> Add to VMH
+										</button>
+									</div>
+								</div>
+								<div class="ws-select-all-row">
+									<label class="ws-checkbox-container">
+										<input type="checkbox" id="wsSelectAll">
+										<span class="ws-checkmark"></span>
+									</label>
+									<span class="ws-select-all-label">Select All</span>
+								</div>
 								<ul id="wsAvailableReactionList" class="ui middle aligned selection list"></ul>
 							</div>
 
@@ -79,7 +112,17 @@
 							<div class="ws-rxn-details">
 								<!-- populated dynamically when a list item is clicked -->
 								<div id="wsAvailableReactionDetails" class="ui segment placeholder">
-									<p>Select a reaction on the left …</p>
+									<div class="ws-empty-state">
+										<div class="ws-empty-icon">
+											<i class="fas fa-flask"></i>
+										</div>
+										<h3>Select a Reaction</h3>
+										<p>Click on a reaction from the list to view and edit its details before adding to VMH.</p>
+										<div class="ws-empty-tips">
+											<div class="ws-tip"><i class="fas fa-check-square"></i> Use checkboxes to select multiple reactions</div>
+											<div class="ws-tip"><i class="fas fa-plus-circle"></i> Click "Add to VMH" to submit reactions</div>
+										</div>
+									</div>
 								</div>
 							</div>
 						</div>
