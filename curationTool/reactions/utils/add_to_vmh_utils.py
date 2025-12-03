@@ -40,116 +40,6 @@ def save_json(data, filepath):
     with open(filepath, 'w') as f:
         json.dump(data, f)
 
-def parse_gene_info(info):
-    if " AND " in info:
-        info = info.replace(" AND ", " and ")
-    if not info.startswith("GPR: "):
-        return info
-    gpr = info[5:]  # Remove "GPR: " prefix
-    return gpr
-
-def merge_gene_infos(gene_infos):
-    """
-    if more than 1 gene info for a reaction, merge them into a single GPR string (add "or" between them)
-    """
-    infos = [g['info'] for g in gene_infos]
-    gprs = [parse_gene_info(info) for info in infos]
-    if len(gprs) == 1:
-        return gprs[0]
-    if len(gprs) == 0:
-        return ""
-    merged_gpr = " or ".join(gprs)
-    return merged_gpr
-
-def create_gprs(gene_infos):
-    print(gene_infos)
-    print(gene_infos[0][0].keys())
-    gprs = [merge_gene_infos(gene_info) for gene_info in gene_infos]
-    print(gprs)
-    raise
-    return gprs
-def rxn_prepare_json_paths_and_variables(
-        reaction_identifiers,
-        reaction_names,
-        reaction_formulas,
-        reaction_directions,
-        reaction_subsystems,
-        reaction_references,
-        reaction_external_links,
-        reaction_gene_info,
-        reaction_comments,
-        reaction_confidence_scores):
-    """
-    Prepares JSON paths and variables for MATLAB execution, saving them to temporary files.
-    """
-    rand_float = random.uniform(0, 10000000)
-    json_paths = [
-        f'reactionIds.json{rand_float}',
-        f'reactionNames.json{rand_float}',
-        f'reactionFormulas.json{rand_float}',
-        f'reactionDirections.json{rand_float}',
-        f'reactionSubsystems.json{rand_float}',
-        f'reactionReferences.json{rand_float}',
-        f'reactionExternalLinks.json{rand_float}',
-        f'reactionGeneInfo.json{rand_float}',
-        f'reactionComments.json{rand_float}',
-        f'reactionConfidenceScores.json{rand_float}']
-    variables = [
-        reaction_identifiers,
-        reaction_names,
-        reaction_formulas,
-        reaction_directions,
-        reaction_subsystems,
-        reaction_references,
-        reaction_external_links,
-        reaction_gene_info,
-        reaction_comments,
-        reaction_confidence_scores]
-    gprs = create_gprs(reaction_gene_info)
-    for idx, (path, variable) in enumerate(zip(json_paths, variables)):
-        path = os.path.join(os.getcwd(), path)
-        json_paths[idx] = path
-        save_json(variable, path)
-    return json_paths
-
-
-def met_prepare_json_paths_and_variables(
-        met_abbrs,
-        met_names,
-        met_formulas,
-        met_charges,
-        met_inchikeys,
-        met_smiles,
-        met_external_links,
-        met_weights):
-    """
-    Prepares JSON paths and variables for MATLAB execution, saving them to temporary files.
-    """
-    rand_float = random.uniform(0, 10000000)
-    json_paths = [
-        f'metAbbrs.json{rand_float}',
-        f'metNames.json{rand_float}',
-        f'metFormulas.json{rand_float}',
-        f'metInchikeys.json{rand_float}',
-        f'metSmiles.json{rand_float}',
-        f'metCharges.json{rand_float}',
-        f'metExternalLinks.json{rand_float}',
-        f'metWeights.json{rand_float}']
-    variables = [
-        met_abbrs,
-        met_names,
-        met_formulas,
-        met_inchikeys,
-        met_smiles,
-        met_charges,
-        met_external_links,
-        met_weights]
-    for idx, (path, variable) in enumerate(zip(json_paths, variables)):
-        path = os.path.join(os.getcwd(), path)
-        json_paths[idx] = path
-        save_json(variable, path)
-    return json_paths
-
 def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False, dry_run=False):
     """
     Execute the unified MATLAB function updateVMHFromConstructor to add/update 
@@ -215,6 +105,26 @@ def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False,
             'updatedRxns': []
         }
 
+def parse_gene_info(info):
+    if " AND " in info:
+        info = info.replace(" AND ", " and ")
+    if not info.startswith("GPR: "):
+        return info
+    gpr = info[5:]  # Remove "GPR: " prefix
+    return gpr
+
+def merge_gene_infos(gene_infos):
+    """
+    if more than 1 gene info for a reaction, merge them into a single GPR string (add "or" between them)
+    """
+    infos = [g['info'] for g in gene_infos]
+    gprs = [parse_gene_info(info) for info in infos]
+    if len(gprs) == 1:
+        return gprs[0]
+    if len(gprs) == 0:
+        return ""
+    merged_gpr = " or ".join(gprs)
+    return merged_gpr
 
 def prepare_vmh_update_json_files(
         reaction_identifiers,
@@ -260,11 +170,12 @@ def prepare_vmh_update_json_files(
     processed_gene_info = []
     for gene_info in reaction_gene_info:
         if gene_info:
-            merged_gpr = merge_gene_infos(gene_info) if isinstance(gene_info, list) else gene_info
+            merged_gpr = merge_gene_infos(gene_info) 
             processed_gene_info.append({'info': merged_gpr} if merged_gpr else {})
         else:
             processed_gene_info.append({})
-    
+    print(processed_gene_info)
+    raise
     # Map of filename to data
     files_data = {
         'reactionIds.json': reaction_identifiers,
