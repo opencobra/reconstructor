@@ -507,7 +507,7 @@ def validate_reaction_fields(reactions):
     for name in names_list:
         if names_list.count(name) > 1:
             return JsonResponse({'status': 'error',
-                                 'message': f'Reaction with name `{name}` is repeated in the list.'})
+                                 'message': f'Reaction with description `{name}` is repeated in the list.'})
     
     abbr_list = [reaction['abbreviation'] for reaction in reactions]
     for abbr in abbr_list:
