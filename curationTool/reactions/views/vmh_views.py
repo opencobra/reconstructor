@@ -40,7 +40,6 @@ from reactions.models import (
 )
 from reactions.reaction_info import construct_vmh_formula
 from reactions.utils.search_vmh import search_metabolites_vmh, is_name_in_vmh
-from reactions.utils.to_smiles import any_to_smiles
 from reactions.utils.utils import capitalize_first_letter
 from reactions.utils.gen_vmh_abbrs import gen_metabolite_abbr
 from reactions.utils.search_vmh import get_from_vmh
@@ -51,13 +50,9 @@ from reactions.utils.add_to_vmh_utils import (
     validate_reaction_objects,
     check_reaction_vmh,
     gather_reaction_details,
-    rxn_prepare_json_paths_and_variables,
-    met_prepare_json_paths_and_variables,
-    add_reaction_matlab,
-    add_metabolites_matlab,
-    smiles_to_inchikeys,
-    smiles_to_charged_formula,
-    get_nonfound_metabolites
+    prepare_vmh_update_json_files,
+    cleanup_vmh_update_json_files,
+    update_vmh_from_constructor,
 )
 # Use HTTP-based MATLAB client
 try:
@@ -66,7 +61,7 @@ except Exception as e:
     print(f"Warning: Could not import MatlabSessionManager: {e}")
     MatlabSessionManager = None
 
-from reactions.utils.utils import get_external_ids, get_mol_weights, reactions_to_json
+from reactions.utils.utils import reactions_to_json
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):
     """
@@ -545,66 +540,19 @@ def add_to_vmh(request):
     if error_response:
         return error_response
 
-    all_vmh = all(
-        all(element == 'VMH' for element in json.loads(reaction.substrates_types)) and
-        all(element == 'VMH' for element in json.loads(reaction.products_types))
-        for reaction in reaction_objs
-    )
-
     reaction_identifiers, reaction_names = [
         reaction['abbreviation'] for reaction in reactions], [
         reaction.description for reaction in reaction_objs]
-    matlab_session = None  if all_vmh  else  MatlabSessionManager() 
-    if not all_vmh:
-        unique_abbrs, unique_mols, unique_types, unique_names = get_nonfound_metabolites(
-            reaction_objs, subs_abbr, prods_abbr, search_func=search_metabolites_vmh)
-        if unique_abbrs and unique_mols and unique_types:
-            abbrs = unique_abbrs
-            smiles, errors = any_to_smiles(
-                unique_mols, unique_types, None, side=None)
-            smiles = ['' if v is not None else smiles[i]
-                      for i, v in enumerate(errors)]
-            inchikeys = smiles_to_inchikeys(smiles)
-            names = unique_names
-            formulas, charges = smiles_to_charged_formula(smiles)
-            external_ids_list = get_external_ids(unique_mols, unique_types)
-            mol_weights = get_mol_weights(unique_mols, unique_types)
-            json_paths = met_prepare_json_paths_and_variables(
-                abbrs, names, formulas, charges, inchikeys, smiles, external_ids_list, mol_weights)
-            matlab_result = add_metabolites_matlab(json_paths, matlab_session)
-            for path in json_paths:
-                os.remove(path)
-            if matlab_result['status'] == 'success':
-                met_ids = matlab_result['met_ids']
-                met_added_info = {
-                    abbr: [
-                        met_id,
-                        formula,
-                        inchikey] for abbr,
-                    met_id,
-                    formula,
-                    inchikey in zip(
-                        abbrs,
-                        met_ids,
-                        formulas,
-                        inchikeys)}
-                for abbr, info in met_added_info.items():
-                    MetabolitesAddedVMH.objects.create(
-                        user=user,
-                        user_name=user_name,
-                        metabolite_id=info[0],
-                        metabolite_formula=info[1],
-                        metabolite_abbr=abbr,
-                    )
-            else:
-                return JsonResponse(
-                    {'status': 'error', 'message': matlab_result['message']})
+    
+    # Construct VMH formulas for all reactions
     reaction_formulas = [
         construct_vmh_formula(
             reaction_objs[idx],
             subs_abbr[idx],
             prods_abbr[idx]) for idx in range(
             len(reaction_objs))]
+    
+    # Gather additional reaction details
     (
         reaction_directions,
         reaction_subsystems,
@@ -615,7 +563,8 @@ def add_to_vmh(request):
         reaction_confidence_scores
     ) = gather_reaction_details(reaction_objs)
 
-    json_paths = rxn_prepare_json_paths_and_variables(
+    # Prepare all JSON files in a dedicated directory for updateVMHFromConstructor
+    json_dir = prepare_vmh_update_json_files(
         reaction_identifiers,
         reaction_names,
         reaction_formulas,
@@ -626,39 +575,61 @@ def add_to_vmh(request):
         reaction_gene_info,
         reaction_comments,
         reaction_confidence_scores)
-    matlab_session = MatlabSessionManager() if not matlab_session else matlab_session
-    matlab_result = add_reaction_matlab(json_paths, matlab_session)
+    
+    # Call the unified MATLAB function that handles both metabolites and reactions
+    matlab_session = MatlabSessionManager()
+    matlab_result = update_vmh_from_constructor(json_dir, matlab_session, update_existing=False, dry_run=False)
+    
     # Cleanup temporary JSON files
-    for path in json_paths:
-        os.remove(path)
+    cleanup_vmh_update_json_files(json_dir)
 
     if matlab_result['status'] == 'success':
-        rxn_added_info = {
-            abbr: [
-                rxn_id,
-                reaction_formula] for abbr,
-            rxn_id,
-            reaction_formula in zip(
-                reaction_identifiers,
-                matlab_result['rxn_ids'],
-                reaction_formulas)}
-        for idx, (abbr, info) in enumerate(rxn_added_info.items()):
-            ReactionsAddedVMH.objects.create(
+        added_mets = matlab_result.get('addedMets', [])
+        added_rxns = matlab_result.get('addedRxns', [])
+        
+        # Build met_added_info from MATLAB result
+        met_added_info = {abbr: abbr for abbr in added_mets}
+        
+        # Log metabolites added to VMH
+        for abbr in added_mets:
+            MetabolitesAddedVMH.objects.create(
                 user=user,
                 user_name=user_name,
-                reaction_id=info[0],         # VMH ID
-                reaction_formula=info[1],
-                reaction_abbr=abbr,
+                metabolite_id='',  # ID assigned by MATLAB/VMH
+                metabolite_formula='',  # Formula handled by MATLAB
+                metabolite_abbr=abbr,
             )
-
-            workspace = Workspace.objects.get(user=user)
-            reaction_obj = reaction_objs[idx]  
-            reaction_obj.vmh_found = True
-            reaction_obj.save(update_fields=['vmh_found'])
-            workspace.reactions.remove(reaction_obj)
-        return JsonResponse({'status': 'success',
-                             'rxn_added_info': rxn_added_info,
-                             'met_added_info': met_added_info})
+        
+        # Build rxn_added_info from MATLAB result
+        rxn_added_info = {
+            abbr: ['', reaction_formulas[idx]] 
+            for idx, abbr in enumerate(reaction_identifiers) 
+            if abbr in added_rxns
+        }
+        
+        # Log reactions added to VMH and update workspace
+        workspace = Workspace.objects.get(user=user)
+        for idx, reaction_obj in enumerate(reaction_objs):
+            abbr = reaction_identifiers[idx]
+            if abbr in added_rxns:
+                ReactionsAddedVMH.objects.create(
+                    user=user,
+                    user_name=user_name,
+                    reaction_id='',  # ID assigned by MATLAB/VMH
+                    reaction_formula=reaction_formulas[idx],
+                    reaction_abbr=abbr,
+                )
+                reaction_obj.vmh_found = True
+                reaction_obj.save(update_fields=['vmh_found'])
+                workspace.reactions.remove(reaction_obj)
+        
+        return JsonResponse({
+            'status': 'success',
+            'rxn_added_info': rxn_added_info,
+            'met_added_info': met_added_info,
+            'added_rxns': added_rxns,
+            'added_mets': added_mets
+        })
 
     return JsonResponse(
         {'status': 'error', 'message': matlab_result['message']})

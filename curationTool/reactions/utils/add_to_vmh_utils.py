@@ -40,7 +40,34 @@ def save_json(data, filepath):
     with open(filepath, 'w') as f:
         json.dump(data, f)
 
+def parse_gene_info(info):
+    if " AND " in info:
+        info = info.replace(" AND ", " and ")
+    if not info.startswith("GPR: "):
+        return info
+    gpr = info[5:]  # Remove "GPR: " prefix
+    return gpr
 
+def merge_gene_infos(gene_infos):
+    """
+    if more than 1 gene info for a reaction, merge them into a single GPR string (add "or" between them)
+    """
+    infos = [g['info'] for g in gene_infos]
+    gprs = [parse_gene_info(info) for info in infos]
+    if len(gprs) == 1:
+        return gprs[0]
+    if len(gprs) == 0:
+        return ""
+    merged_gpr = " or ".join(gprs)
+    return merged_gpr
+
+def create_gprs(gene_infos):
+    print(gene_infos)
+    print(gene_infos[0][0].keys())
+    gprs = [merge_gene_infos(gene_info) for gene_info in gene_infos]
+    print(gprs)
+    raise
+    return gprs
 def rxn_prepare_json_paths_and_variables(
         reaction_identifiers,
         reaction_names,
@@ -78,6 +105,7 @@ def rxn_prepare_json_paths_and_variables(
         reaction_gene_info,
         reaction_comments,
         reaction_confidence_scores]
+    gprs = create_gprs(reaction_gene_info)
     for idx, (path, variable) in enumerate(zip(json_paths, variables)):
         path = os.path.join(os.getcwd(), path)
         json_paths[idx] = path
@@ -122,23 +150,152 @@ def met_prepare_json_paths_and_variables(
         save_json(variable, path)
     return json_paths
 
+def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False, dry_run=False):
+    """
+    Execute the unified MATLAB function updateVMHFromConstructor to add/update 
+    reactions and metabolites in VMH.
+    
+    This replaces the need to call both add_rxn_python and add_metab_python separately.
+    The MATLAB function:
+    - Checks which metabolites in the formulas are new (not in VMH)
+    - Adds new metabolites to metabolites table + compartment associations
+    - For each reaction:
+        - If new: Adds to reactions, recon, and reconws_SMatrix tables
+        - If exists and update_existing=True: Updates existing entries
+        - If exists and update_existing=False: Skips (default behavior)
+    
+    Args:
+        json_dir: Directory containing the 10 required JSON files:
+            - reactionIds.json
+            - reactionNames.json
+            - reactionFormulas.json
+            - reactionDirections.json
+            - reactionSubsystems.json
+            - reactionReferences.json
+            - reactionExternalLinks.json
+            - reactionGeneInfo.json
+            - reactionComments.json
+            - reactionConfidenceScores.json
+        matlab_session: MatlabHTTPClient instance
+        update_existing: Whether to update reactions that already exist in VMH (default False)
+        dry_run: Preview changes without committing to DB (default False)
+        
+    Returns:
+        Dict with:
+            - 'status': 'success' or 'error'
+            - 'addedMets': List of abbreviations of newly added metabolites
+            - 'addedRxns': List of abbreviations of newly added reactions
+            - 'updatedRxns': List of abbreviations of updated reactions
+            - 'message': Error message if status is 'error'
+    """
+    # Build options struct for MATLAB
+    options = {
+        'updateExisting': update_existing,
+        'dryRun': dry_run,
+        'verbose': True,
+        'model_id': 8564  # RECON4IMD
+    }
+    
+    result = matlab_session.execute('updateVMHFromConstructor', json_dir, options)
+    
+    if result.get('status') == 'success':
+        matlab_result = result.get('result', {})
+        return {
+            'status': 'success',
+            'addedMets': matlab_result.get('addedMets', []),
+            'addedRxns': matlab_result.get('addedRxns', []),
+            'updatedRxns': matlab_result.get('updatedRxns', [])
+        }
+    else:
+        return {
+            'status': 'error',
+            'message': result.get('message', 'Unknown error from MATLAB'),
+            'addedMets': [],
+            'addedRxns': [],
+            'updatedRxns': []
+        }
 
-def add_reaction_matlab(json_paths, matlab_session):
+
+def prepare_vmh_update_json_files(
+        reaction_identifiers,
+        reaction_names,
+        reaction_formulas,
+        reaction_directions,
+        reaction_subsystems,
+        reaction_references,
+        reaction_external_links,
+        reaction_gene_info,
+        reaction_comments,
+        reaction_confidence_scores,
+        output_dir=None):
     """
-    Executes MATLAB operations to add reactions to VMH, using the provided JSON paths.
+    Prepares all 10 JSON files required by updateVMHFromConstructor in a dedicated directory.
+    
+    Args:
+        reaction_identifiers: List of reaction abbreviations
+        reaction_names: List of reaction names/descriptions
+        reaction_formulas: List of reaction formulas (e.g., "glc_D[e] => glc_D[c]")
+        reaction_directions: List of directions ("forward", "bidirectional", "reverse")
+        reaction_subsystems: List of subsystem assignments
+        reaction_references: List of reference structs [{info, ref_type}, ...]
+        reaction_external_links: List of external link structs [{ext_link_type, info}, ...]
+        reaction_gene_info: List of GPR rule structs [{info}, ...]
+        reaction_comments: List of comment structs [{info}, ...]
+        reaction_confidence_scores: List of confidence scores
+        output_dir: Optional directory path. If None, creates a temp directory.
+        
+    Returns:
+        str: Path to the directory containing all JSON files
     """
-    result = matlab_session.execute('add_rxn_python', *json_paths)
-    result['rxn_ids'] = result['result'] if result['status'] == 'success' else []
-    return result
+    import tempfile
+    import uuid
+    
+    if output_dir is None:
+        # Create a unique temp directory
+        output_dir = os.path.join(tempfile.gettempdir(), f'vmh_update_{uuid.uuid4().hex}')
+    
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Process gene info to merge GPRs
+    processed_gene_info = []
+    for gene_info in reaction_gene_info:
+        if gene_info:
+            merged_gpr = merge_gene_infos(gene_info) if isinstance(gene_info, list) else gene_info
+            processed_gene_info.append({'info': merged_gpr} if merged_gpr else {})
+        else:
+            processed_gene_info.append({})
+    
+    # Map of filename to data
+    files_data = {
+        'reactionIds.json': reaction_identifiers,
+        'reactionNames.json': reaction_names,
+        'reactionFormulas.json': reaction_formulas,
+        'reactionDirections.json': reaction_directions,
+        'reactionSubsystems.json': reaction_subsystems,
+        'reactionReferences.json': reaction_references,
+        'reactionExternalLinks.json': reaction_external_links,
+        'reactionGeneInfo.json': processed_gene_info,
+        'reactionComments.json': reaction_comments,
+        'reactionConfidenceScores.json': reaction_confidence_scores
+    }
+    
+    for filename, data in files_data.items():
+        filepath = os.path.join(output_dir, filename)
+        save_json(data, filepath)
+    
+    return output_dir
 
 
-def add_metabolites_matlab(json_paths, matlab_session):
+def cleanup_vmh_update_json_files(json_dir):
     """
-    Executes MATLAB operations to add metabolites to VMH, using the provided JSON paths.
+    Remove the temporary directory and all JSON files created for VMH update.
+    
+    Args:
+        json_dir: Path to the directory containing the JSON files
     """
-    result = matlab_session.execute('add_metab_python', *json_paths)
-    result['met_ids'] = result['result'] if result['status'] == 'success' else []
-    return result
+    import shutil
+    if os.path.exists(json_dir):
+        shutil.rmtree(json_dir)
 
 
 def smiles_to_inchikeys(smiles_list):
@@ -391,18 +548,31 @@ def validate_reaction_fields(reactions):
     """
     missing_names = [reaction['description'] == '' for reaction in reactions]
     if True in missing_names:
+        # Use abbreviation or pk to identify reactions with missing names
+        missing_reactions = [
+            reaction.get('abbreviation') or f"Reaction #{reaction.get('pk', 'unknown')}"
+            for reaction, missing in zip(reactions, missing_names) if missing
+        ]
         return JsonResponse({'status': 'error',
-                             'message': 'Please enter a description for reaction'})
+                             'message': f'Missing description for: {", ".join(missing_reactions)}'})
     
     missing_abbrs = [reaction['abbreviation'] == '' for reaction in reactions]
     if True in missing_abbrs:
+        missing_reactions = [
+            reaction['description'] or f"Reaction #{reaction.get('pk', 'unknown')}"
+            for reaction, missing in zip(reactions, missing_abbrs) if missing
+        ]
         return JsonResponse({'status': 'error',
-                             'message': 'Please enter an abbreviation'})
+                             'message': f'Missing abbreviation for: {", ".join(missing_reactions)}'})
     
     missing_conf_scores = [reaction['confidence_score'] == '" "' for reaction in reactions]
     if True in missing_conf_scores:
+        missing_reactions = [
+            reaction.get('abbreviation') or reaction.get('description') or f"Reaction #{reaction.get('pk', 'unknown')}"
+            for reaction, missing in zip(reactions, missing_conf_scores) if missing
+        ]
         return JsonResponse({'status': 'error',
-                             'message': 'Please enter a confidence score for reaction'})
+                             'message': f'Missing confidence score for: {", ".join(missing_reactions)}'})
     
     names_list = [reaction['description'] for reaction in reactions]
     for name in names_list:
