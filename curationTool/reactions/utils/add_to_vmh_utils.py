@@ -106,12 +106,31 @@ def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False,
         }
 
 def parse_gene_info(info):
-    if " AND " in info:
-        info = info.replace(" AND ", " and ")
-    if not info.startswith("GPR: "):
-        return info
-    gpr = info[5:]  # Remove "GPR: " prefix
-    return gpr
+    """
+    Parse a gene info string to extract just the clean GPR rule.
+    
+    The input may contain additional metadata like:
+    "GPR: ABL1 AND AOC1; ORGAN(Adipocytes_), SUBCELLULAR([e], [c])"
+    
+    We want to extract just: "ABL1 and AOC1"
+    """
+    if not info:
+        return ""
+    
+    # First, take only the part before the semicolon (removes ORGAN, SUBCELLULAR metadata)
+    first_part = info.split(';')[0].strip()
+    
+    # Remove "GPR: " prefix if present
+    if first_part.startswith("GPR: "):
+        first_part = first_part[5:]  # Remove "GPR: " prefix
+    
+    # Normalize AND/OR to lowercase for MATLAB compatibility
+    if " AND " in first_part:
+        first_part = first_part.replace(" AND ", " and ")
+    if " OR " in first_part:
+        first_part = first_part.replace(" OR ", " or ")
+    
+    return first_part
 
 def merge_gene_infos(gene_infos):
     """
@@ -174,8 +193,7 @@ def prepare_vmh_update_json_files(
             processed_gene_info.append({'info': merged_gpr} if merged_gpr else {})
         else:
             processed_gene_info.append({})
-    print(processed_gene_info)
-    raise
+
     # Map of filename to data
     files_data = {
         'reactionIds.json': reaction_identifiers,
