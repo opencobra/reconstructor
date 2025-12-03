@@ -457,7 +457,11 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 
 		// Build GPR summary string
 		const gprItems = gene_info.filter(item => item.info && item.info.trim() !== '').map(item => item.info);
-		const gprSummary = gprItems.length > 0 ? `${gprItems.join(' OR ')}` : '';
+		const gprSummary = gprItems.length > 0 
+			? (gprItems.length > 1 
+				? gprItems.map(item => `(${item})`).join(' OR ') 
+				: gprItems[0]) 
+			: '';
 
 		listItem.innerHTML += createSectionHTML('References', 'reference', references, reaction.pk, false, true);
 		listItem.innerHTML += createSectionHTML('External Links', 'ext-link', ext_links, reaction.pk, true, false);
@@ -568,7 +572,10 @@ function updateGPRSummary() {
 	});
 	
 	if (gprItems.length > 0) {
-		const gprText = gprItems.join(' OR ');
+		// Add brackets around each item when joining with OR (only if multiple items)
+		const gprText = gprItems.length > 1 
+			? gprItems.map(item => `(${item})`).join(' OR ')
+			: gprItems[0];
 		if (gprSummaryEl) {
 			gprSummaryEl.innerHTML = `<span class="gpr-label">GPR:</span> <code class="gpr-formula">${gprText}</code>`;
 			gprSummaryEl.style.display = '';
