@@ -553,8 +553,13 @@ function addToVMH() {
 					metabolites: metabolites
 				});
 
-				// Remove added reactions from DOM and data
+				// Remove added reactions from DOM and data, and invalidate cache
 				reactions.forEach(([abbr, [id]]) => {
+					// Invalidate cache for this reaction
+					if (window.vmhPrepCache) {
+						window.vmhPrepCache.invalidate(id);
+					}
+					
 					// Remove from DOM
 					const reactionItem = document.querySelector(`.item[data-pk="${id}"]`);
 					if (reactionItem) {

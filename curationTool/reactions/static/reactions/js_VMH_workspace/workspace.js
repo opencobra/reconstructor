@@ -32,6 +32,199 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
           displayValidationMessage, validateInputs, setButtonState,
           createExtLinkSelect, createRefSelect, createGeneSectionHTML */
 
+/**
+ * VMH Preparation Cache Manager
+ * 
+ * Handles caching of reaction preparation data to avoid redundant API calls.
+ * Provides methods for storing, retrieving, and invalidating cached data.
+ */
+class VMHPrepCache {
+	constructor(options = {}) {
+		this.cache = new Map();
+		this.maxAge = options.maxAge || 180 * 60 * 1000; // Default: 180 minutes
+		this.maxSize = options.maxSize || 500; // Maximum number of cached items
+		this.storageKey = 'vmh_prep_cache';
+		this.useSessionStorage = options.useSessionStorage !== false;
+		
+		// Try to restore cache from sessionStorage on initialization
+		this._restoreFromStorage();
+	}
+
+	/**
+	 * Generate a cache key for a reaction
+	 * @param {number} reactionPk - The reaction primary key
+	 * @returns {string} Cache key
+	 */
+	_getCacheKey(reactionPk) {
+		return `reaction_${reactionPk}`;
+	}
+
+	/**
+	 * Check if a cached entry is still valid (not expired)
+	 * @param {Object} entry - Cache entry with timestamp
+	 * @returns {boolean} True if valid, false if expired
+	 */
+	_isValid(entry) {
+		if (!entry || !entry.timestamp) return false;
+		return (Date.now() - entry.timestamp) < this.maxAge;
+	}
+
+	/**
+	 * Store data in the cache
+	 * @param {number} reactionPk - The reaction primary key
+	 * @param {Object} data - The data to cache
+	 */
+	set(reactionPk, data) {
+		const key = this._getCacheKey(reactionPk);
+		
+		// Enforce max size by removing oldest entries
+		if (this.cache.size >= this.maxSize) {
+			const oldestKey = this.cache.keys().next().value;
+			this.cache.delete(oldestKey);
+		}
+
+		const entry = {
+			data: data,
+			timestamp: Date.now()
+		};
+		
+		this.cache.set(key, entry);
+		this._persistToStorage();
+		
+		console.debug(`[VMHPrepCache] Cached data for reaction ${reactionPk}`);
+	}
+
+	/**
+	 * Retrieve data from the cache
+	 * @param {number} reactionPk - The reaction primary key
+	 * @returns {Object|null} Cached data or null if not found/expired
+	 */
+	get(reactionPk) {
+		const key = this._getCacheKey(reactionPk);
+		const entry = this.cache.get(key);
+
+		if (!entry) {
+			console.debug(`[VMHPrepCache] Cache miss for reaction ${reactionPk}`);
+			return null;
+		}
+
+		if (!this._isValid(entry)) {
+			console.debug(`[VMHPrepCache] Cache expired for reaction ${reactionPk}`);
+			this.cache.delete(key);
+			this._persistToStorage();
+			return null;
+		}
+
+		console.debug(`[VMHPrepCache] Cache hit for reaction ${reactionPk}`);
+		return entry.data;
+	}
+
+	/**
+	 * Check if valid cached data exists for a reaction
+	 * @param {number} reactionPk - The reaction primary key
+	 * @returns {boolean} True if valid cache exists
+	 */
+	has(reactionPk) {
+		const key = this._getCacheKey(reactionPk);
+		const entry = this.cache.get(key);
+		return entry && this._isValid(entry);
+	}
+
+	/**
+	 * Invalidate (remove) cached data for a specific reaction
+	 * @param {number} reactionPk - The reaction primary key
+	 */
+	invalidate(reactionPk) {
+		const key = this._getCacheKey(reactionPk);
+		this.cache.delete(key);
+		this._persistToStorage();
+		console.debug(`[VMHPrepCache] Invalidated cache for reaction ${reactionPk}`);
+	}
+
+	/**
+	 * Invalidate all cached data
+	 */
+	invalidateAll() {
+		this.cache.clear();
+		this._persistToStorage();
+		console.debug('[VMHPrepCache] Invalidated all cache entries');
+	}
+
+	/**
+	 * Persist cache to sessionStorage for page refreshes
+	 * @private
+	 */
+	_persistToStorage() {
+		if (!this.useSessionStorage) return;
+		
+		try {
+			const serializable = {};
+			this.cache.forEach((value, key) => {
+				serializable[key] = value;
+			});
+			sessionStorage.setItem(this.storageKey, JSON.stringify(serializable));
+		} catch (e) {
+			console.warn('[VMHPrepCache] Failed to persist cache to sessionStorage:', e);
+		}
+	}
+
+	/**
+	 * Restore cache from sessionStorage
+	 * @private
+	 */
+	_restoreFromStorage() {
+		if (!this.useSessionStorage) return;
+		
+		try {
+			const stored = sessionStorage.getItem(this.storageKey);
+			if (stored) {
+				const parsed = JSON.parse(stored);
+				Object.entries(parsed).forEach(([key, entry]) => {
+					// Only restore valid (non-expired) entries
+					if (this._isValid(entry)) {
+						this.cache.set(key, entry);
+					}
+				});
+				console.debug(`[VMHPrepCache] Restored ${this.cache.size} entries from sessionStorage`);
+			}
+		} catch (e) {
+			console.warn('[VMHPrepCache] Failed to restore cache from sessionStorage:', e);
+		}
+	}
+
+	/**
+	 * Get cache statistics
+	 * @returns {Object} Cache stats
+	 */
+	getStats() {
+		let validCount = 0;
+		let expiredCount = 0;
+		
+		this.cache.forEach((entry) => {
+			if (this._isValid(entry)) {
+				validCount++;
+			} else {
+				expiredCount++;
+			}
+		});
+
+		return {
+			total: this.cache.size,
+			valid: validCount,
+			expired: expiredCount,
+			maxSize: this.maxSize,
+			maxAgeMs: this.maxAge
+		};
+	}
+}
+
+// Create global cache instance
+window.vmhPrepCache = new VMHPrepCache({
+	maxAge: 10 * 60 * 1000, // 10 minutes
+	maxSize: 50,
+	useSessionStorage: true
+});
+
 (function () {
 	// 1 – draw the list of abbreviations
 	const availableListEl = document.getElementById('wsAvailableReactionList');
@@ -144,6 +337,10 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 				listItem.remove();
 				// Clear the details panel
 				availableDetailEl.innerHTML = '<p>Select a reaction to view details</p>';
+				// Invalidate cache for this reaction
+				if (window.vmhPrepCache) {
+					window.vmhPrepCache.invalidate(pk);
+				}
 				// Remove from selected set
 				window.wsSelectedReactions.delete(String(pk));
 				updateBatchActionsUI();
@@ -194,34 +391,56 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 	// 3 – helper that re-uses modal-builders
 	async function buildEditableCard(reaction) {
 		let vmhResponse;
+		let fromCache = false;
 
 		const reactionIndex = reaction.pk;
 		const reactionId = reaction.pk;
 
-		document.getElementById('loadingIndicator').style.display = 'flex';
-		document.getElementById('loadingText').textContent = 'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
+		// Check cache first
+		const cachedData = window.vmhPrepCache.get(reaction.pk);
+		
+		if (cachedData) {
+			// Use cached data - no need to show loading indicator
+			vmhResponse = cachedData;
+			fromCache = true;
+			console.debug(`[Workspace] Using cached data for reaction ${reaction.pk}`);
+		} else {
+			// No cache - fetch from server
+			document.getElementById('loadingIndicator').style.display = 'flex';
+			document.getElementById('loadingText').textContent = 'Gathering Data and (if needed) Generating Abbreviations for Selected Reactions';
 
-		try {
-			vmhResponse = await callPrepareAddToVMH([reaction.pk]);
-		} catch (error) {
-			console.error('Error fetching VMH preparation data: ', error);
-			document.getElementById('loadingIndicator').style.display = 'none';
-			// Show inline error instead of modal
-			const errorCard = document.createElement('div');
-			errorCard.className = 'ws-error-card';
-			errorCard.innerHTML = `
-				<div class="ws-error-icon"><i class="fas fa-exclamation-triangle"></i></div>
-				<h3>Error Loading Reaction</h3>
-				<p>An error occurred while fetching data from VMH. Please try again later.</p>
-				<button class="ws-error-retry-btn" onclick="location.reload()">
-					<i class="fas fa-redo"></i> Retry
-				</button>
-			`;
-			return errorCard;
+			try {
+				vmhResponse = await callPrepareAddToVMH([reaction.pk]);
+				
+				// Cache successful responses (not errors)
+				if (vmhResponse && vmhResponse.status === 'success') {
+					window.vmhPrepCache.set(reaction.pk, vmhResponse);
+				}
+			} catch (error) {
+				console.error('Error fetching VMH preparation data: ', error);
+				document.getElementById('loadingIndicator').style.display = 'none';
+				// Show inline error instead of modal
+				const errorCard = document.createElement('div');
+				errorCard.className = 'ws-error-card';
+				errorCard.innerHTML = `
+					<div class="ws-error-icon"><i class="fas fa-exclamation-triangle"></i></div>
+					<h3>Error Loading Reaction</h3>
+					<p>An error occurred while fetching data from VMH. Please try again later.</p>
+					<button class="ws-error-retry-btn" onclick="location.reload()">
+						<i class="fas fa-redo"></i> Retry
+					</button>
+				`;
+				return errorCard;
+			}
 		}
 
 		if (vmhResponse.status === 'error') {
-			document.getElementById('loadingIndicator').style.display = 'none';
+			if (!fromCache) {
+				document.getElementById('loadingIndicator').style.display = 'none';
+			}
+			
+			// Invalidate cache for this reaction since it has an error status
+			window.vmhPrepCache.invalidate(reaction.pk);
 			
 			// Check if it's an "already in VMH" error
 			const isAlreadyInVMH = vmhResponse.message && vmhResponse.message.includes('already in VMH');
@@ -270,8 +489,11 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 			}
 		}
 
-		document.getElementById('loadingIndicator').style.display = 'none';
-		document.getElementById('loadingText').textContent = '';
+		// Hide loading indicator only if we showed it (not from cache)
+		if (!fromCache) {
+			document.getElementById('loadingIndicator').style.display = 'none';
+			document.getElementById('loadingText').textContent = '';
+		}
 
 		subsInVMH = vmhResponse.subs_in_vmh;
 		prodsInVMH = vmhResponse.prods_in_vmh;
