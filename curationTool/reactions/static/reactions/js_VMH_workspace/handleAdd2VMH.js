@@ -436,8 +436,8 @@ function addToVMH() {
 				reactionAbbr = abbrInputField.value.trim();
 			}
 			
-			// Gather Substrates and Products Details
-			const detailRows = document.querySelectorAll(`tr.detail-item[data-reaction-id="${reactionId}"]`);
+			// Gather Substrates and Products Details (support both old and new class names)
+			const detailRows = document.querySelectorAll(`tr.ws-met-row[data-reaction-id="${reactionId}"], tr.detail-item[data-reaction-id="${reactionId}"]`);
 			detailRows.forEach((row) => {
 				const nameInput = row.querySelector('input[type="text"][name*="NameInput"]');
 				const abbrInput = row.querySelector('input[type="text"][name*="AbbrInput"]');
@@ -474,7 +474,9 @@ function addToVMH() {
 				info: input.value.trim(),
 			}));
 
-			const confidenceDropdown = document.querySelector(`.confidencedropdown[data-reaction-id="${reactionId}"]`);
+			// Support both old and new class names for confidence dropdown
+			const confidenceDropdown = document.querySelector(`.ws-confidence-select[data-reaction-id="${reactionId}"]`) 
+				|| document.querySelector(`.confidencedropdown[data-reaction-id="${reactionId}"]`);
 			if (confidenceDropdown) {
 				selectedValue = confidenceDropdown.value;
 			}

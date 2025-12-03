@@ -301,141 +301,141 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 		let confidenceScore = reaction.fields.confidence_score || ' ';
 
 		const listItem = document.createElement('div');
-		listItem.className = 'modal-reaction-entry';
+		listItem.className = 'ws-reaction-card';
 
 		listItem.innerHTML = `
-                <div class="reaction-header">
+			<div class="ws-card-header">
+				<div class="ws-card-title-row">
+					<h3 class="ws-card-title">${reaction.fields.short_name}</h3>
+					<div class="ws-confidence-badge" data-score="${confidenceScore}">
+						<select class="ws-confidence-select" id="confidencedropdown-${reaction.pk}" data-reaction-id="${reaction.pk}">
+							<option value=" " ${confidenceScore === ' ' ? 'selected' : ''}>–</option>
+							<option value="1" ${confidenceScore === '1' ? 'selected' : ''}>1</option>
+							<option value="2" ${confidenceScore === '2' ? 'selected' : ''}>2</option>
+							<option value="3" ${confidenceScore === '3' ? 'selected' : ''}>3</option>
+							<option value="4" ${confidenceScore === '4' ? 'selected' : ''}>4</option>
+						</select>
+						<button class="ws-cs-info-btn" onclick="toggleInfo()" title="What is confidence score?">
+							<i class="fas fa-info-circle"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			
+			<div class="ws-card-body">
+				<div class="ws-form-section">
+					<div class="ws-form-row">
+						<div class="ws-form-group ws-form-group-lg">
+							<label class="ws-form-label">Description</label>
+							<input type="text" class="ws-form-input reaction-name-input" 
+								placeholder="Enter reaction description" 
+								value="${reaction.fields.description}" 
+								data-reaction-id="${reaction.pk}">
+						</div>
+						<div class="ws-form-group">
+							<label class="ws-form-label">Abbreviation</label>
+							<input type="text" class="ws-form-input reaction-abbreviation-input" 
+								placeholder="e.g., RXN001" 
+								value="${reaction.fields.short_name}" 
+								data-reaction-id="${reaction.pk}">
+						</div>
+					</div>
+				</div>
 
-                    <div class="reaction-field">
-                        <label>Description:</label>
-                        <input type="text" class="reaction-name-input" placeholder="Reaction Name in VMH"
-                            value="${reaction.fields.description}" data-reaction-id="${reaction.pk}">
-                    </div>
+				<div class="ws-metabolites-section">
+					<div class="ws-metabolites-panel">
+						<div class="ws-panel-header">
+							<span class="ws-panel-title">Substrates</span>
+						</div>
+						<div class="ws-metabolites-table-wrapper">
+							<table class="ws-metabolites-table">
+								<thead>
+									<tr>
+										<th class="ws-col-stoich">Stoich</th>
+										<th class="ws-col-comp">Comp</th>
+										<th class="ws-col-name">Name</th>
+										<th class="ws-col-abbr">Abbreviation</th>
+									</tr>
+								</thead>
+								<tbody>
+									${substrates_names.map((name, index) => `
+										<tr class="ws-met-row ${subsInVMHForReaction[index] ? 'ws-met-vmh' : 'ws-met-new'}" 
+											data-reaction-id="${reaction.pk}" 
+											data-tooltip-content="${formatTooltipContent(substrates[index], substrates_types[index], subs_comps[index])}">
+											<td class="ws-col-stoich"><span class="ws-stoich-value">${subs_stoich[index]}</span></td>
+											<td class="ws-col-comp"><span class="ws-comp-badge">${subs_comps[index]}</span></td>
+											<td class="ws-col-name">
+												<div class="ws-name-cell">
+													<input type="text" name="subsNameInput" class="ws-met-input ${subsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
+														placeholder="Name" value="${name}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
+													${subsNeedNewNamesForReaction[index] ? `
+														<span class="ws-warning-icon" title="Name already in VMH">
+															<i class="fas fa-exclamation-triangle"></i>
+														</span>
+													` : ''}
+													${subsInVMHForReaction[index] ? '<span class="ws-vmh-tag">VMH</span>' : ''}
+												</div>
+											</td>
+											<td class="ws-col-abbr">
+												<input type="text" name="subsAbbrInput" class="ws-met-input ${subsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
+													placeholder="Abbr" value="${subsAbbrForReaction[index]}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
+											</td>
+										</tr>
+									`).join('')}
+								</tbody>
+							</table>
+						</div>
+					</div>
 
-                    <div class="reaction-field">
-                        <label>Reaction Abbreviation:</label>
-                        <input type="text" class="reaction-abbreviation-input" placeholder="Enter reaction abbreviation"
-                            value="${reaction.fields.short_name}" data-reaction-id="${reaction.pk}">
-                    </div>
+					<div class="ws-reaction-arrow">
+						<i class="fas fa-long-arrow-alt-right"></i>
+					</div>
 
-                    <div class="reaction-field">
-                        <label for="confidencedropdown-${reactionId}">Confidence Score:</label>
-                        <select class="confidencedropdown" id="confidencedropdown-${reaction.pk}" data-reaction-id="${reaction.pk}">
-                            <option value=" " ${confidenceScore === ' ' ? 'selected' : ''}>-</option>
-                            <option value="1" ${confidenceScore === '1' ? 'selected' : ''}>1</option>
-                            <option value="2" ${confidenceScore === '2' ? 'selected' : ''}>2</option>
-                            <option value="3" ${confidenceScore === '3' ? 'selected' : ''}>3</option>
-                            <option value="4" ${confidenceScore === '4' ? 'selected' : ''}>4</option>
-                        </select>
-                    </div>
-
-                    <div class="cs-info">
-                        <button class="cs-info-button" onclick="toggleInfo()">i</button>
-                    </div>
-                </div>
-
-
-                <div class="reaction-details">
-                    <p>Substrates:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Stoichiometry</th>
-                                <th>Comp</th>
-                                <th>Name</th>
-                                <th>Abbreviation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${substrates_names
-															.map(
-																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
-																	substrates[index],
-																	substrates_types[index],
-																	subs_comps[index]
-																)}">
-                                    <td>
-                                        <text>${subs_stoich[index]}</text>
-                                    </td>
-                                    <td>
-                                        <text>${subs_comps[index]}</text>
-                                    </td>
-                                    <td>
-                                        <input type="text" name=subsNameInput placeholder="Name" value="${name}" ${
-																	subsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                        ${
-																					subsNeedNewNamesForReaction[index]
-																						? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' +
-																						  name +
-																						  ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>'
-																						: ''
-																				}
-                                    </td>
-                                    <td>
-                                        <input type="text" name=subsAbbrInput placeholder="Abbreviation" value="${subsAbbrForReaction[index]}" ${
-																	subsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                    </td>
-                                </tr>
-                            `
-															)
-															.join('')}
-                        </tbody>
-                    </table>
-                </div>
-                <div class="reaction-details">
-                    <p>Products:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Stoichiometry</th>
-                                <th>Comp</th>
-                                <th>Name</th>
-                                <th>Abbreviation</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${products_names
-															.map(
-																(name, index) => `
-                                <tr class="detail-item" data-reaction-id="${reaction.pk}" data-tooltip-content="${formatTooltipContent(
-																	products[index],
-																	products_types[index],
-																	prods_comps[index]
-																)}">
-                                    <td>
-                                        <text>${prods_stoich[index]}</text>
-                                    </td>
-                                    <td>
-                                        <text>${prods_comps[index]}</text>
-                                    </td>
-                                    <td>
-                                        <input type="text" name=prodsNameInput placeholder="Name" value="${name}" ${
-																	prodsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                        ${
-																					prodsNeedNewNamesForReaction[index]
-																						? '<span class="info-icon">&#63;</span><div class="tooltip-content">The name ' +
-																						  name +
-																						  ' is already assigned in VMH, assign another for this metabolite. Please also check that the metabolite you are adding is not already in VMH.</div>'
-																						: ''
-																				}
-                                    </td>
-                                    <td>
-                                        <input type="text" name=prodsAbbrInput placeholder="Abbreviation" value="${prodsAbbrForReaction[index]}" ${
-																	prodsInVMHForReaction[index] ? 'readonly' : ''
-																}>
-                                    </td>
-                                </tr>
-                            `
-															)
-															.join('')}
-                        </tbody>
-                    </table>
-                </div>
-                `;
+					<div class="ws-metabolites-panel">
+						<div class="ws-panel-header">
+							<span class="ws-panel-title">Products</span>
+						</div>
+						<div class="ws-metabolites-table-wrapper">
+							<table class="ws-metabolites-table">
+								<thead>
+									<tr>
+										<th class="ws-col-stoich">Stoich</th>
+										<th class="ws-col-comp">Comp</th>
+										<th class="ws-col-name">Name</th>
+										<th class="ws-col-abbr">Abbreviation</th>
+									</tr>
+								</thead>
+								<tbody>
+									${products_names.map((name, index) => `
+										<tr class="ws-met-row ${prodsInVMHForReaction[index] ? 'ws-met-vmh' : 'ws-met-new'}" 
+											data-reaction-id="${reaction.pk}" 
+											data-tooltip-content="${formatTooltipContent(products[index], products_types[index], prods_comps[index])}">
+											<td class="ws-col-stoich"><span class="ws-stoich-value">${prods_stoich[index]}</span></td>
+											<td class="ws-col-comp"><span class="ws-comp-badge">${prods_comps[index]}</span></td>
+											<td class="ws-col-name">
+												<div class="ws-name-cell">
+													<input type="text" name="prodsNameInput" class="ws-met-input ${prodsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
+														placeholder="Name" value="${name}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
+													${prodsNeedNewNamesForReaction[index] ? `
+														<span class="ws-warning-icon" title="Name already in VMH">
+															<i class="fas fa-exclamation-triangle"></i>
+														</span>
+													` : ''}
+													${prodsInVMHForReaction[index] ? '<span class="ws-vmh-tag">VMH</span>' : ''}
+												</div>
+											</td>
+											<td class="ws-col-abbr">
+												<input type="text" name="prodsAbbrInput" class="ws-met-input ${prodsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
+													placeholder="Abbr" value="${prodsAbbrForReaction[index]}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
+											</td>
+										</tr>
+									`).join('')}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+		`;
 		// Add extra sections
 		let references = reaction.fields.references || [];
 		let ext_links = reaction.fields.ext_links || [];
@@ -463,21 +463,102 @@ document.querySelectorAll('.subtabs').forEach((bar) => {
 				: gprItems[0]) 
 			: '';
 
-		listItem.innerHTML += createSectionHTML('References', 'reference', references, reaction.pk, false, true);
-		listItem.innerHTML += createSectionHTML('External Links', 'ext-link', ext_links, reaction.pk, true, false);
-		listItem.innerHTML += createSectionHTML('Comments', 'comment', comments, reaction.pk);
-		listItem.innerHTML += createSectionHTML('Gene Info', 'gene-info', gene_info, reaction.pk, false, false, true);
-		
-		// Add GPR summary after Gene Info section
-		if (gprSummary) {
-			listItem.innerHTML += `<div class="gpr-summary"><span class="gpr-label">GPR:</span> <code class="gpr-formula">${gprSummary}</code></div>`;
-		}
+		// Build annotation cards as a single string
+		const annotationCards = 
+			createSectionHTMLNew('References', 'reference', references, reaction.pk, false, true) +
+			createSectionHTMLNew('External Links', 'ext-link', ext_links, reaction.pk, true, false) +
+			createSectionHTMLNew('Comments', 'comment', comments, reaction.pk);
 
-		listItem.innerHTML += `<div class="ws-rxn-actions">
-        <button class="ui primary button" id="submitVMHBtn" data-pk="${reaction.pk}">Add to VMH</button>
-    </div>`;
+		// Build the entire annotations section as ONE complete string to avoid browser auto-closing unclosed tags
+		listItem.innerHTML += `
+				<div class="ws-annotations-section">
+					<div class="ws-section-header">
+						<h4 class="ws-section-title"><i class="fas fa-tags"></i> Annotations & Metadata</h4>
+					</div>
+					<div class="ws-annotations-grid">
+						${annotationCards}
+					</div>
+				</div>
+		`;
+		
+		// Gene Info section with GPR summary
+		listItem.innerHTML += `
+				<div class="ws-gene-section">
+					<div class="ws-section-header">
+						<h4 class="ws-section-title"><i class="fas fa-dna"></i> Gene Association</h4>
+					</div>
+					${gprSummary ? `
+						<div class="ws-gpr-display">
+							<span class="ws-gpr-label">GPR Rule:</span>
+							<code class="ws-gpr-code">${gprSummary}</code>
+						</div>
+					` : `
+						<div class="ws-gpr-empty">
+							<i class="fas fa-info-circle"></i>
+							<span>No gene associations defined</span>
+						</div>
+					`}
+					<div class="ws-gene-items">
+						${gene_info.map((item, index) => `
+							<div class="gene-info-item ws-gene-chip" data-reaction-id="${reaction.pk}" data-index="${index}">
+								<input type="text" class="gene-info-input" value="${item.info}" 
+									data-reaction-id="${reaction.pk}" data-index="${index}" readonly>
+								<button class="ws-chip-remove remove-gene-info" data-reaction-id="${reaction.pk}" data-index="${index}">
+									<i class="fas fa-times"></i>
+								</button>
+							</div>
+						`).join('')}
+					</div>
+				</div>
+			</div>
+
+			<div class="ws-card-footer">
+				<button class="ws-submit-btn" id="submitVMHBtn" data-pk="${reaction.pk}">
+					<i class="fas fa-cloud-upload-alt"></i>
+					<span>Add to VMH</span>
+				</button>
+			</div>
+		`;
 
 		return listItem;
+	}
+
+	// New section HTML generator for the redesigned layout
+	function createSectionHTMLNew(sectionTitle, className, items, reactionId, isExtLink = false, isRef = false) {
+		const iconMap = {
+			'References': 'fa-book',
+			'External Links': 'fa-external-link-alt',
+			'Comments': 'fa-comment-alt'
+		};
+		const icon = iconMap[sectionTitle] || 'fa-tag';
+		
+		return `
+			<div class="ws-annotation-card ${className}-section">
+				<div class="ws-annotation-header">
+					<span class="ws-annotation-icon"><i class="fas ${icon}"></i></span>
+					<span class="ws-annotation-title">${sectionTitle}</span>
+				</div>
+				<div class="ws-annotation-body">
+					${items.map((item, index) => `
+						<div class="${className}-item ws-annotation-item" data-reaction-id="${reactionId}" data-index="${index}">
+							${isExtLink ? createExtLinkSelect(item, reactionId, index) : ''}
+							${isRef ? createRefSelect(item, reactionId, index) : ''}
+							<input type="text" class="${className}-input ws-annotation-input" 
+								placeholder="Enter ${sectionTitle.toLowerCase().slice(0, -1)}" 
+								value="${item.info}" 
+								data-reaction-id="${reactionId}" data-index="${index}">
+							<button class="ws-annotation-remove remove-${className}" data-reaction-id="${reactionId}" data-index="${index}">
+								<i class="fas fa-trash-alt"></i>
+							</button>
+						</div>
+					`).join('')}
+					<button class="ws-annotation-add add-${className}" data-reaction-id="${reactionId}">
+						<i class="fas fa-plus"></i>
+						<span>Add ${sectionTitle.slice(0, -1)}</span>
+					</button>
+				</div>
+			</div>
+		`;
 	}
 
 	// 4 – Save & Submit stubs
@@ -527,29 +608,46 @@ const modalList = document.getElementById('wsAvailableReactionDetails');
 
 modalList.addEventListener('click', function (e) {
 	// Handle the "Add" button clicks using event delegation
-	if (e.target && e.target.matches('.add-reference, .add-ext-link, .add-comment')) {
-		const type = e.target.classList.contains('add-reference') ? 'reference' : e.target.classList.contains('add-ext-link') ? 'ext-link' : 'comment';
-		const parentSection = e.target.parentNode;
-		const reactionId = e.target.getAttribute('data-reaction-id');
+	// Check both the target and its parent (for clicks on icon/span inside button)
+	const addBtn = e.target.closest('.add-reference, .add-ext-link, .add-comment, .ws-annotation-add');
+	if (addBtn) {
+		const type = addBtn.classList.contains('add-reference') ? 'reference' : 
+					 addBtn.classList.contains('add-ext-link') ? 'ext-link' : 'comment';
+		const parentSection = addBtn.parentNode;
+		const reactionId = addBtn.getAttribute('data-reaction-id');
 		const newItem = document.createElement('div');
-		newItem.className = `${type}-item`;
+		newItem.className = `${type}-item ws-annotation-item`;
 		const items = parentSection.querySelectorAll(`.${type}-item`);
 		const newIndex = items.length; // Calculate new index based on existing items
 		newItem.setAttribute('data-reaction-id', reactionId);
 		newItem.setAttribute('data-index', newIndex);
-		newItem.innerHTML = type === 'ext-link' ? createExtLinkSelect({}, reactionId, newIndex) : '';
-		newItem.innerHTML += type === 'reference' ? createRefSelect({}, reactionId, newIndex) : '';
-		newItem.innerHTML += `
-            <input type="text" class="${type}-input" placeholder="Enter ${type}" value="" data-reaction-id="${reactionId}" data-index="${newIndex}">
-            <button class="remove-${type}" data-reaction-id="${reactionId}" data-index="${newIndex}">Remove</button>
-        `;
-		parentSection.insertBefore(newItem, e.target);
+		
+		// Build the inner HTML with new styling
+		let innerHTML = '';
+		if (type === 'ext-link') {
+			innerHTML += createExtLinkSelect({}, reactionId, newIndex);
+		}
+		if (type === 'reference') {
+			innerHTML += createRefSelect({}, reactionId, newIndex);
+		}
+		innerHTML += `
+			<input type="text" class="${type}-input ws-annotation-input" 
+				placeholder="Enter ${type === 'ext-link' ? 'external link' : type}" 
+				value="" data-reaction-id="${reactionId}" data-index="${newIndex}">
+			<button class="ws-annotation-remove remove-${type}" data-reaction-id="${reactionId}" data-index="${newIndex}">
+				<i class="fas fa-trash-alt"></i>
+			</button>
+		`;
+		newItem.innerHTML = innerHTML;
+		parentSection.insertBefore(newItem, addBtn);
 	}
 
 	// Handle the "Remove" button clicks using event delegation
-	if (e.target && e.target.matches('.remove-reference, .remove-ext-link, .remove-comment,.remove-gene-info')) {
-		const isGeneInfo = e.target.matches('.remove-gene-info');
-		e.target.parentElement.remove();
+	// Check both the target and its parent (for clicks on icon inside button)
+	const removeBtn = e.target.closest('.remove-reference, .remove-ext-link, .remove-comment, .remove-gene-info, .ws-annotation-remove');
+	if (removeBtn) {
+		const isGeneInfo = removeBtn.classList.contains('remove-gene-info');
+		removeBtn.closest('.ws-annotation-item, [class$="-item"]').remove();
 		
 		// Update GPR summary if a gene info was removed
 		if (isGeneInfo) {
@@ -560,7 +658,8 @@ modalList.addEventListener('click', function (e) {
 
 // Function to update GPR summary based on current gene-info inputs
 function updateGPRSummary() {
-	const gprSummaryEl = document.querySelector('.gpr-summary');
+	const gprDisplayEl = document.querySelector('.ws-gpr-display');
+	const gprEmptyEl = document.querySelector('.ws-gpr-empty');
 	const geneInfoInputs = document.querySelectorAll('.gene-info-input');
 	
 	const gprItems = [];
@@ -576,13 +675,30 @@ function updateGPRSummary() {
 		const gprText = gprItems.length > 1 
 			? gprItems.map(item => `(${item})`).join(' OR ')
 			: gprItems[0];
-		if (gprSummaryEl) {
-			gprSummaryEl.innerHTML = `<span class="gpr-label">GPR:</span> <code class="gpr-formula">${gprText}</code>`;
-			gprSummaryEl.style.display = '';
+		
+		if (gprEmptyEl) {
+			gprEmptyEl.style.display = 'none';
+		}
+		
+		if (gprDisplayEl) {
+			gprDisplayEl.innerHTML = `<span class="ws-gpr-label">GPR Rule:</span><code class="ws-gpr-code">${gprText}</code>`;
+			gprDisplayEl.style.display = '';
+		} else {
+			// Create new display element if it doesn't exist
+			const geneSection = document.querySelector('.ws-gene-section');
+			if (geneSection && gprEmptyEl) {
+				const newDisplay = document.createElement('div');
+				newDisplay.className = 'ws-gpr-display';
+				newDisplay.innerHTML = `<span class="ws-gpr-label">GPR Rule:</span><code class="ws-gpr-code">${gprText}</code>`;
+				geneSection.insertBefore(newDisplay, gprEmptyEl);
+			}
 		}
 	} else {
-		if (gprSummaryEl) {
-			gprSummaryEl.style.display = 'none';
+		if (gprDisplayEl) {
+			gprDisplayEl.style.display = 'none';
+		}
+		if (gprEmptyEl) {
+			gprEmptyEl.style.display = '';
 		}
 	}
 }
@@ -700,8 +816,6 @@ function restoreWorkspaceState() {
 				}, 100);
 			}
 		}
-
-		showWorkspaceToast('Workspace state restored', 'info');
 	} catch (e) {
 		console.error('Error restoring workspace state:', e);
 	}
