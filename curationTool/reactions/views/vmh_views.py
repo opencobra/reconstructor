@@ -332,6 +332,151 @@ def prepare_add_to_vmh(request):
                             status=500)
 
 
+@csrf_exempt
+def save_reaction_draft(request):
+    """
+    Save draft changes to a reaction in the local database.
+
+    This allows users to save their edits (description, abbreviation, 
+    references, external links, comments, gene info) without submitting 
+    to VMH.
+
+    Parameters:
+        request (HttpRequest): 
+            The HTTP request containing reaction data.
+
+    Returns:
+        JsonResponse:
+            - Success: Confirmation of saved draft.
+            - Error: If reaction not found or validation fails.
+    """
+    if request.method != 'POST':
+        return JsonResponse(
+            {'status': 'error', 'message': 'Invalid request method. Use POST.'},
+            status=400
+        )
+
+    try:
+        data = json.loads(request.body)
+        reaction_id = data.get('reactionId')
+        
+        if not reaction_id:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Missing reactionId.'},
+                status=400
+            )
+
+        # Get the reaction object
+        try:
+            reaction = Reaction.objects.get(pk=reaction_id)
+        except Reaction.DoesNotExist:
+            return JsonResponse(
+                {'status': 'error', 'message': 'Reaction not found.'},
+                status=404
+            )
+
+        # Update basic fields
+        if 'description' in data:
+            reaction.description = data['description']
+        
+        if 'abbreviation' in data:
+            reaction.short_name = data['abbreviation']
+        
+        if 'confidence_score' in data:
+            reaction.confidence_score = data['confidence_score']
+
+        # Update substrate names if provided
+        if 'substrates_info' in data:
+            subs_info = data['substrates_info']
+            if isinstance(subs_info, list) and len(subs_info) > 0:
+                new_subs_names = [
+                    capitalize_first_letter(sub.get('name', '')) 
+                    for sub in subs_info
+                ]
+                reaction.substrates_names = json.dumps(new_subs_names)
+
+        # Update product names if provided
+        if 'products_info' in data:
+            prods_info = data['products_info']
+            if isinstance(prods_info, list) and len(prods_info) > 0:
+                new_prods_names = [
+                    capitalize_first_letter(prod.get('name', '')) 
+                    for prod in prods_info
+                ]
+                reaction.products_names = json.dumps(new_prods_names)
+
+        # Update references
+        if 'references' in data:
+            references = data['references']
+            if isinstance(references, list):
+                # Ensure proper format
+                formatted_refs = []
+                for ref in references:
+                    if ref.get('info'):
+                        formatted_refs.append({
+                            'ref_type': ref.get('ref_type', 'DOI'),
+                            'info': ref.get('info', '')
+                        })
+                reaction.references = formatted_refs if formatted_refs else None
+
+        # Update external links
+        if 'ext_links' in data:
+            ext_links = data['ext_links']
+            if isinstance(ext_links, list):
+                formatted_links = []
+                for link in ext_links:
+                    if link.get('info'):
+                        formatted_links.append({
+                            'ext_link_type': link.get('ext_link_type', 'KEGG reaction'),
+                            'info': link.get('info', '')
+                        })
+                reaction.ext_links = formatted_links if formatted_links else None
+
+        # Update comments
+        if 'comments' in data:
+            comments = data['comments']
+            if isinstance(comments, list):
+                formatted_comments = []
+                for comment in comments:
+                    if comment.get('info'):
+                        formatted_comments.append({
+                            'info': comment.get('info', '')
+                        })
+                reaction.comments = formatted_comments if formatted_comments else None
+
+        # Update gene info
+        if 'gene_info' in data:
+            gene_info = data['gene_info']
+            if isinstance(gene_info, list):
+                formatted_gene_info = []
+                for gene in gene_info:
+                    if gene.get('info'):
+                        formatted_gene_info.append({
+                            'info': gene.get('info', '')
+                        })
+                reaction.gene_info = formatted_gene_info if formatted_gene_info else None
+
+        # Save the reaction
+        reaction.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Draft saved successfully.',
+            'reaction_id': reaction_id
+        })
+
+    except json.JSONDecodeError:
+        return JsonResponse(
+            {'status': 'error', 'message': 'Invalid JSON data.'},
+            status=400
+        )
+    except Exception as e:
+        return JsonResponse(
+            {'status': 'error', 'message': f'An error occurred: {str(e)}'},
+            status=500
+        )
+
+
 def bypass_search_func(metabolites, types, *args, **kwargs):
     """
     Dummy function to bypass metabolite search.

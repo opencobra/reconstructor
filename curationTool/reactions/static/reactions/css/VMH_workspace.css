@@ -586,7 +586,69 @@
 	padding: 16px 24px;
 	border-top: 1px solid #e2e8f0;
 	display: flex;
-	justify-content: flex-end;
+	justify-content: space-between;
+	align-items: center;
+	gap: 16px;
+}
+
+.ws-footer-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.ws-footer-btn {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 10px 18px;
+	border: 1px solid #e2e8f0;
+	border-radius: 8px;
+	font-size: 13px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	background: white;
+}
+
+.ws-reset-btn {
+	color: #64748b;
+}
+
+.ws-reset-btn:hover {
+	background: #f8fafc;
+	border-color: #cbd5e1;
+	color: #475569;
+}
+
+.ws-reset-btn:active {
+	background: #f1f5f9;
+}
+
+.ws-save-local-btn {
+	color: #0f766e;
+	border-color: #99f6e4;
+	background: #f0fdfa;
+}
+
+.ws-save-local-btn:hover {
+	background: #ccfbf1;
+	border-color: #5eead4;
+	color: #0d9488;
+}
+
+.ws-save-local-btn:active {
+	background: #99f6e4;
+}
+
+.ws-footer-btn i {
+	font-size: 14px;
+}
+
+.ws-footer-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+	pointer-events: none;
 }
 
 .ws-submit-btn {
@@ -672,6 +734,23 @@
 	font-size: 13px;
 	color: #555;
 	text-align: center;
+}
+
+/* Inline loading state */
+.ws-loading-inline {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+	padding: 48px 24px;
+	color: #64748b;
+	font-size: 14px;
+	font-weight: 500;
+}
+
+.ws-loading-inline i {
+	font-size: 18px;
+	color: #3b82f6;
 }
 
 .tab-header .tab-link {

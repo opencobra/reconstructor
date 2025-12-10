@@ -503,6 +503,9 @@ window.vmhPrepCache = new VMHPrepCache({
 		prodsNeedNewNames = vmhResponse.prods_need_new_names;
 		reactionAbbrs = vmhResponse.reaction_abbrs;
 
+		// Check if there's a cached form state to restore
+		const cachedFormState = vmhResponse._formState || null;
+
 		let substrates_names = JSON.parse(reaction.fields.substrates_names);
 		let products_names = JSON.parse(reaction.fields.products_names);
 		let subs_comps = JSON.parse(reaction.fields.subs_comps);
@@ -520,7 +523,11 @@ window.vmhPrepCache = new VMHPrepCache({
 		let subsNeedNewNamesForReaction = subsNeedNewNames[0];
 		let prodsNeedNewNamesForReaction = prodsNeedNewNames[0];
 		let reactionAbbrForReaction = reactionAbbrs[0];
-		let confidenceScore = reaction.fields.confidence_score || ' ';
+		
+		// Use cached form state values if available, otherwise use reaction fields
+		let displayDescription = cachedFormState ? cachedFormState.description : reaction.fields.description;
+		let displayAbbreviation = cachedFormState ? cachedFormState.abbreviation : reaction.fields.short_name;
+		let confidenceScore = cachedFormState ? cachedFormState.confidence_score : (reaction.fields.confidence_score || ' ');
 
 		const listItem = document.createElement('div');
 		listItem.className = 'ws-reaction-card';
@@ -551,14 +558,14 @@ window.vmhPrepCache = new VMHPrepCache({
 							<label class="ws-form-label">Description</label>
 							<input type="text" class="ws-form-input reaction-name-input" 
 								placeholder="Enter reaction description" 
-								value="${reaction.fields.description}" 
+								value="${displayDescription}" 
 								data-reaction-id="${reaction.pk}">
 						</div>
 						<div class="ws-form-group">
 							<label class="ws-form-label">Abbreviation</label>
 							<input type="text" class="ws-form-input reaction-abbreviation-input" 
 								placeholder="e.g., RXN001" 
-								value="${reaction.fields.short_name}" 
+								value="${displayAbbreviation}" 
 								data-reaction-id="${reaction.pk}">
 						</div>
 					</div>
@@ -658,24 +665,27 @@ window.vmhPrepCache = new VMHPrepCache({
 					</div>
 				</div>
 		`;
-		// Add extra sections
-		let references = reaction.fields.references || [];
-		let ext_links = reaction.fields.ext_links || [];
-		let comments = reaction.fields.comments || [];
-		let gene_info = reaction.fields.gene_info || [];
+		// Add extra sections - use cached form state if available
+		let references = cachedFormState ? cachedFormState.references : (reaction.fields.references || []);
+		let ext_links = cachedFormState ? cachedFormState.ext_links : (reaction.fields.ext_links || []);
+		let comments = cachedFormState ? cachedFormState.comments : (reaction.fields.comments || []);
+		let gene_info = cachedFormState ? cachedFormState.gene_info : (reaction.fields.gene_info || []);
 
-		gene_info = gene_info.map((item) => {
-			if (item.info) {
-				let first = item.info.split(';')[0].trim();
+		// Only process gene_info if it came from the original reaction fields (not cached)
+		if (!cachedFormState) {
+			gene_info = gene_info.map((item) => {
+				if (item.info) {
+					let first = item.info.split(';')[0].trim();
 
-				if (first.startsWith("GPR: ")) {
-					first = first.slice("GPR: ".length);
+					if (first.startsWith("GPR: ")) {
+						first = first.slice("GPR: ".length);
+					}
+
+					item.info = first;
 				}
-
-				item.info = first;
-			}
-			return item;
-		});
+				return item;
+			});
+		}
 
 		// Build GPR summary string
 		const gprItems = gene_info.filter(item => item.info && item.info.trim() !== '').map(item => item.info);
@@ -735,6 +745,16 @@ window.vmhPrepCache = new VMHPrepCache({
 			</div>
 
 			<div class="ws-card-footer">
+				<div class="ws-footer-left">
+					<button class="ws-footer-btn ws-reset-btn" id="resetChangesBtn" data-pk="${reaction.pk}" title="Discard all changes and reload from server">
+						<i class="fas fa-undo"></i>
+						<span>Reset</span>
+					</button>
+					<button class="ws-footer-btn ws-save-local-btn" id="saveLocalBtn" data-pk="${reaction.pk}" title="Save changes to local database">
+						<i class="fas fa-save"></i>
+						<span>Save Draft</span>
+					</button>
+				</div>
 				<button class="ws-submit-btn" id="submitVMHBtn" data-pk="${reaction.pk}">
 					<i class="fas fa-cloud-upload-alt"></i>
 					<span>Add to VMH</span>
@@ -744,6 +764,293 @@ window.vmhPrepCache = new VMHPrepCache({
 
 		return listItem;
 	}
+
+	/**
+	 * Collect current form state for a reaction
+	 * @param {number} reactionPk - The reaction primary key
+	 * @returns {Object|null} Current form state or null if form not found
+	 */
+	function collectFormState(reactionPk) {
+		const nameInput = document.querySelector(`.reaction-name-input[data-reaction-id="${reactionPk}"]`);
+		if (!nameInput) return null;
+
+		const abbrInput = document.querySelector(`.reaction-abbreviation-input[data-reaction-id="${reactionPk}"]`);
+		const confidenceSelect = document.querySelector(`.ws-confidence-select[data-reaction-id="${reactionPk}"]`);
+
+		// Collect substrate details
+		const subsRows = document.querySelectorAll(`tr.ws-met-row[data-reaction-id="${reactionPk}"] input[name="subsNameInput"]`);
+		const subsDetails = [];
+		subsRows.forEach((nameInput) => {
+			const row = nameInput.closest('tr');
+			const abbrInput = row.querySelector('input[name="subsAbbrInput"]');
+			subsDetails.push({
+				name: nameInput.value.trim(),
+				abbreviation: abbrInput ? abbrInput.value.trim() : ''
+			});
+		});
+
+		// Collect product details
+		const prodsRows = document.querySelectorAll(`tr.ws-met-row[data-reaction-id="${reactionPk}"] input[name="prodsNameInput"]`);
+		const prodsDetails = [];
+		prodsRows.forEach((nameInput) => {
+			const row = nameInput.closest('tr');
+			const abbrInput = row.querySelector('input[name="prodsAbbrInput"]');
+			prodsDetails.push({
+				name: nameInput.value.trim(),
+				abbreviation: abbrInput ? abbrInput.value.trim() : ''
+			});
+		});
+
+		// Collect references
+		const references = [];
+		document.querySelectorAll(`.reference-item[data-reaction-id="${reactionPk}"]`).forEach((item) => {
+			const select = item.querySelector('.ref-type-select');
+			const input = item.querySelector('.reference-input');
+			if (input && input.value.trim()) {
+				references.push({
+					ref_type: select ? select.value : 'DOI',
+					info: input.value.trim()
+				});
+			}
+		});
+
+		// Collect external links
+		const ext_links = [];
+		document.querySelectorAll(`.ext-link-item[data-reaction-id="${reactionPk}"]`).forEach((item) => {
+			const select = item.querySelector('.ext-link-type-select');
+			const input = item.querySelector('.ext-link-input');
+			if (input && input.value.trim()) {
+				ext_links.push({
+					ext_link_type: select ? select.value : 'KEGG reaction',
+					info: input.value.trim()
+				});
+			}
+		});
+
+		// Collect comments
+		const comments = [];
+		document.querySelectorAll(`.comment-item[data-reaction-id="${reactionPk}"]`).forEach((item) => {
+			const input = item.querySelector('.comment-input');
+			if (input && input.value.trim()) {
+				comments.push({
+					info: input.value.trim()
+				});
+			}
+		});
+
+		// Collect gene info
+		const gene_info = [];
+		document.querySelectorAll(`.gene-info-item[data-reaction-id="${reactionPk}"]`).forEach((item) => {
+			const input = item.querySelector('.gene-info-input');
+			if (input && input.value.trim()) {
+				gene_info.push({
+					info: input.value.trim()
+				});
+			}
+		});
+
+		return {
+			description: nameInput.value.trim(),
+			abbreviation: abbrInput ? abbrInput.value.trim() : '',
+			confidence_score: confidenceSelect ? confidenceSelect.value : '',
+			substrates_info: subsDetails,
+			products_info: prodsDetails,
+			references: references,
+			ext_links: ext_links,
+			comments: comments,
+			gene_info: gene_info
+		};
+	}
+
+	/**
+	 * Update the cache with current form state
+	 * @param {number} reactionPk - The reaction primary key
+	 */
+	function updateCacheFromForm(reactionPk) {
+		const cachedData = window.vmhPrepCache.get(reactionPk);
+		if (!cachedData) return;
+
+		const formState = collectFormState(reactionPk);
+		if (!formState) return;
+
+		// Update the reaction object in reactions_active with form state
+		const reaction = reactions_active.find(r => r.pk === reactionPk);
+		if (reaction) {
+			reaction.fields.description = formState.description;
+			reaction.fields.short_name = formState.abbreviation;
+			reaction.fields.confidence_score = formState.confidence_score;
+			reaction.fields.references = formState.references;
+			reaction.fields.ext_links = formState.ext_links;
+			reaction.fields.comments = formState.comments;
+			reaction.fields.gene_info = formState.gene_info;
+			
+			// Store form state in cache for persistence
+			cachedData._formState = formState;
+			window.vmhPrepCache.set(reactionPk, cachedData);
+		}
+
+		console.debug(`[Workspace] Updated cache for reaction ${reactionPk}`);
+	}
+
+	/**
+	 * Reset reaction to original state from server
+	 * @param {number} reactionPk - The reaction primary key
+	 */
+	async function resetReactionChanges(reactionPk) {
+		// Show loading state
+		const availableDetailEl = document.getElementById('wsAvailableReactionDetails');
+		availableDetailEl.innerHTML = '<div class="ws-loading-inline"><i class="fas fa-spinner fa-spin"></i> Resetting...</div>';
+
+		try {
+			// Invalidate cache to force fresh fetch
+			window.vmhPrepCache.invalidate(reactionPk);
+			
+			// Fetch fresh reaction data from server (basic fields)
+			const [reactionResponse, detailsResponse] = await Promise.all([
+				fetch(`/get_reaction/${reactionPk}/`),
+				fetch('/get_reaction_details/', {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-CSRFToken': csrfToken
+					},
+					body: JSON.stringify(reactionPk)
+				})
+			]);
+			
+			const freshData = await reactionResponse.json();
+			const detailsData = await detailsResponse.json();
+			
+			// Check for error response
+			if (freshData.error) {
+				showWorkspaceToast(freshData.error, 'error');
+				return;
+			}
+			
+			// Update the reaction in reactions_active with fresh data
+			const reactionIndex = reactions_active.findIndex(r => r.pk === reactionPk);
+			if (reactionIndex !== -1) {
+				// Update the fields in the existing reaction object
+				const reaction = reactions_active[reactionIndex];
+				
+				// Update editable fields from fresh server data
+				reaction.fields.description = freshData.description || '';
+				reaction.fields.short_name = freshData.short_name || '';
+				reaction.fields.confidence_score = freshData.confidence_score || '';
+				reaction.fields.substrates_names = JSON.stringify(freshData.substrates_names || []);
+				reaction.fields.products_names = JSON.stringify(freshData.products_names || []);
+				
+				// Update metadata from details endpoint
+				reaction.fields.references = detailsData.references || null;
+				reaction.fields.ext_links = detailsData.external_links || null;
+				reaction.fields.comments = detailsData.comments || null;
+				reaction.fields.gene_info = detailsData.gene_info || null;
+				
+				// Rebuild the card with fresh data
+				const card = await buildEditableCard(reaction);
+				availableDetailEl.innerHTML = '';
+				if (card) availableDetailEl.appendChild(card);
+				
+			} else {
+				showWorkspaceToast('Reaction not found in list', 'error');
+			}
+		} catch (error) {
+			console.error('Error resetting reaction:', error);
+			showWorkspaceToast('Failed to reset changes', 'error');
+			
+			// Try to at least show the current state
+			const reaction = reactions_active.find(r => r.pk === reactionPk);
+			if (reaction) {
+				const card = await buildEditableCard(reaction);
+				availableDetailEl.innerHTML = '';
+				if (card) availableDetailEl.appendChild(card);
+			}
+		}
+	}
+
+	/**
+	 * Save current form changes to the local database
+	 * @param {number} reactionPk - The reaction primary key
+	 */
+	async function saveChangesToLocal(reactionPk) {
+		const formState = collectFormState(reactionPk);
+		if (!formState) {
+			showWorkspaceToast('No form data to save', 'error');
+			return;
+		}
+
+		// Find the reaction
+		const reaction = reactions_active.find(r => r.pk === reactionPk);
+		if (!reaction) {
+			showWorkspaceToast('Reaction not found', 'error');
+			return;
+		}
+
+		// Show loading state on button
+		const saveBtn = document.getElementById('saveLocalBtn');
+		if (saveBtn) {
+			saveBtn.disabled = true;
+			saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span>Saving...</span>';
+		}
+
+		try {
+			const response = await fetch('/save_reaction_draft/', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'X-Requested-With': 'XMLHttpRequest'
+				},
+				body: JSON.stringify({
+					reactionId: reactionPk,
+					description: formState.description,
+					abbreviation: formState.abbreviation,
+					confidence_score: formState.confidence_score,
+					substrates_info: formState.substrates_info,
+					products_info: formState.products_info,
+					references: formState.references,
+					ext_links: formState.ext_links,
+					comments: formState.comments,
+					gene_info: formState.gene_info
+				})
+			});
+
+			const data = await response.json();
+
+			if (data.status === 'success') {
+				// Update the reaction object in reactions_active
+				reaction.fields.description = formState.description;
+				reaction.fields.short_name = formState.abbreviation;
+				reaction.fields.confidence_score = formState.confidence_score;
+				reaction.fields.references = formState.references;
+				reaction.fields.ext_links = formState.ext_links;
+				reaction.fields.comments = formState.comments;
+				reaction.fields.gene_info = formState.gene_info;
+
+				// Invalidate cache so next load gets fresh data
+				window.vmhPrepCache.invalidate(reactionPk);
+
+				showWorkspaceToast('Draft saved successfully', 'success');
+			} else {
+				showWorkspaceToast(data.message || 'Failed to save draft', 'error');
+			}
+		} catch (error) {
+			console.error('Error saving draft:', error);
+			showWorkspaceToast('Failed to save draft', 'error');
+		} finally {
+			// Restore button state
+			if (saveBtn) {
+				saveBtn.disabled = false;
+				saveBtn.innerHTML = '<i class="fas fa-save"></i> <span>Save Draft</span>';
+			}
+		}
+	}
+
+	// Make functions available globally
+	window.collectFormState = collectFormState;
+	window.updateCacheFromForm = updateCacheFromForm;
+	window.resetReactionChanges = resetReactionChanges;
+	window.saveChangesToLocal = saveChangesToLocal;
 
 	// New section HTML generator for the redesigned layout
 	function createSectionHTMLNew(sectionTitle, className, items, reactionId, isExtLink = false, isRef = false) {
@@ -785,11 +1092,57 @@ window.vmhPrepCache = new VMHPrepCache({
 
 	// 4 – Save & Submit stubs
 	availableDetailEl.addEventListener('click', (e) => {
-		if (e.target.id === 'submitVMHBtn') {
-			const pk = +e.target.dataset.pk;
+		// Handle Submit to VMH button
+		if (e.target.id === 'submitVMHBtn' || e.target.closest('#submitVMHBtn')) {
+			const btn = e.target.id === 'submitVMHBtn' ? e.target : e.target.closest('#submitVMHBtn');
+			const pk = +btn.dataset.pk;
+			// Update cache before submitting
+			updateCacheFromForm(pk);
 			// reuse addToVMH() – but restrict to this one pk
 			addToVMHforSingle(pk);
 		}
+		
+		// Handle Reset Changes button
+		if (e.target.id === 'resetChangesBtn' || e.target.closest('#resetChangesBtn')) {
+			const btn = e.target.id === 'resetChangesBtn' ? e.target : e.target.closest('#resetChangesBtn');
+			const pk = +btn.dataset.pk;
+			resetReactionChanges(pk);
+		}
+		
+		// Handle Save Draft button
+		if (e.target.id === 'saveLocalBtn' || e.target.closest('#saveLocalBtn')) {
+			const btn = e.target.id === 'saveLocalBtn' ? e.target : e.target.closest('#saveLocalBtn');
+			const pk = +btn.dataset.pk;
+			saveChangesToLocal(pk);
+		}
+	});
+
+	// Auto-save to cache on form changes (debounced)
+	let saveTimeout = null;
+	availableDetailEl.addEventListener('input', (e) => {
+		// Check if the input is part of the reaction form
+		const reactionInput = e.target.closest('[data-reaction-id]');
+		if (!reactionInput) return;
+		
+		const reactionPk = +reactionInput.dataset.reactionId;
+		if (!reactionPk) return;
+
+		// Debounce the cache update
+		clearTimeout(saveTimeout);
+		saveTimeout = setTimeout(() => {
+			updateCacheFromForm(reactionPk);
+		}, 500);
+	});
+
+	// Also save on select changes
+	availableDetailEl.addEventListener('change', (e) => {
+		const reactionInput = e.target.closest('[data-reaction-id]');
+		if (!reactionInput) return;
+		
+		const reactionPk = +reactionInput.dataset.reactionId;
+		if (!reactionPk) return;
+
+		updateCacheFromForm(reactionPk);
 	});
 
 	function addToVMHforSingle(pk) {
@@ -869,7 +1222,11 @@ modalList.addEventListener('click', function (e) {
 	const removeBtn = e.target.closest('.remove-reference, .remove-ext-link, .remove-comment, .remove-gene-info, .ws-annotation-remove');
 	if (removeBtn) {
 		const isGeneInfo = removeBtn.classList.contains('remove-gene-info');
-		removeBtn.closest('.ws-annotation-item, [class$="-item"]').remove();
+		// Find the parent item - could be .ws-annotation-item, .gene-info-item, .reference-item, etc.
+		const parentItem = removeBtn.closest('.ws-annotation-item, .gene-info-item, .reference-item, .ext-link-item, .comment-item');
+		if (parentItem) {
+			parentItem.remove();
+		}
 		
 		// Update GPR summary if a gene info was removed
 		if (isGeneInfo) {

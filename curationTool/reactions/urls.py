@@ -76,6 +76,7 @@ urlpatterns = [
     
     path('send_to_workspace/', vmh_views.send_to_workspace, name='send_to_workspace'),
     path('VMH_Workspace/', vmh_views.vmh_workspace, name='VMH_Workspace'),
+    path('save_reaction_draft/', vmh_views.save_reaction_draft, name='save_reaction_draft'),
 
     path('get_ai_response/', ai_views.get_ai_response, name='get_ai_response'),
 
