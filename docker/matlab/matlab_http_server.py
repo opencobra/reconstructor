@@ -40,12 +40,27 @@ def initialize_matlab():
         print(f"Adding COBRA base path: {cobra_path}", flush=True)
         matlab_engine.addpath(cobra_path, nargout=0)
 
-        # Add key COBRA subdirectories without full initCobraToolbox
-        print("Adding COBRA src and external paths (light init)...", flush=True)
-        matlab_engine.addpath(str(Path(cobra_path) / "src"), nargout=0)
-        matlab_engine.addpath(str(Path(cobra_path) / "external"), nargout=0)
-
-        print("COBRA paths added (no full initCobraToolbox).", flush=True)
+        # Add all COBRA subdirectories recursively using genpath
+        print("Adding COBRA paths recursively (using genpath)...", flush=True)
+        
+        # Use genpath to get all subdirectories and add them
+        src_path = str(Path(cobra_path) / "src")
+        external_path = str(Path(cobra_path) / "external")
+        tutorials_path = str(Path(cobra_path) / "tutorials")
+        
+        # genpath returns a colon-separated string of all subdirectories
+        matlab_engine.eval(f"addpath(genpath('{src_path}'));", nargout=0)
+        matlab_engine.eval(f"addpath(genpath('{external_path}'));", nargout=0)
+        matlab_engine.eval(f"addpath(genpath('{tutorials_path}'));", nargout=0)
+        
+        # Change working directory to metaboAnnotator folder where data/metab.mat exists
+        # This is needed because generateVMHMetAbbr uses relative path: load('data/metab.mat')
+        metabo_annotator_path = str(Path(cobra_path) / "tutorials" / "dataIntegration" / "metaboAnnotator")
+        if Path(metabo_annotator_path).exists():
+            print(f"Changing MATLAB working directory to: {metabo_annotator_path}", flush=True)
+            matlab_engine.cd(metabo_annotator_path, nargout=0)
+        
+        print("COBRA paths added recursively.", flush=True)
         matlab_engine.eval(f"global CBTDIR; CBTDIR = '{cobra_path}';", nargout=0)
         print("global CBTDIR set", flush=True)
 
