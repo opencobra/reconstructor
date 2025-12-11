@@ -37,16 +37,18 @@ def initialize_matlab():
     
     # Initialize COBRA Toolbox
     if cobra_path and Path(cobra_path).exists():
-        print(f"Adding COBRA path: {cobra_path}", flush=True)
+        print(f"Adding COBRA base path: {cobra_path}", flush=True)
         matlab_engine.addpath(cobra_path, nargout=0)
-        
-        print("Initializing COBRA Toolbox...", flush=True)
-        try:
-            matlab_engine.eval("initCobraToolbox(false)", nargout=0)
-            print("COBRA Toolbox initialized successfully", flush=True)
-        except Exception as e:
-            print(f"Warning: COBRA Toolbox initialization failed: {e}", flush=True)
-    
+
+        # Add key COBRA subdirectories without full initCobraToolbox
+        print("Adding COBRA src and external paths (light init)...", flush=True)
+        matlab_engine.addpath(str(Path(cobra_path) / "src"), nargout=0)
+        matlab_engine.addpath(str(Path(cobra_path) / "external"), nargout=0)
+
+        print("COBRA paths added (no full initCobraToolbox).", flush=True)
+        matlab_engine.eval(f"global CBTDIR; CBTDIR = '{cobra_path}';", nargout=0)
+        print("global CBTDIR set", flush=True)
+
     print("MATLAB Engine initialized and ready!", flush=True)
 
 @app.route('/health', methods=['GET'])
