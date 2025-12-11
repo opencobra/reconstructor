@@ -6,6 +6,7 @@ the MATLAB Engine API in client containers.
 """
 import os
 import sys
+import json
 import atexit
 import traceback
 from pathlib import Path
@@ -14,6 +15,37 @@ import matlab.engine
 
 app = Flask(__name__)
 matlab_engine = None
+
+
+def _format_args_for_matlab(args):
+    """
+    Format Python arguments into a MATLAB-compatible string for eval.
+    Handles strings, numbers, and lists (cell arrays).
+    """
+    formatted = []
+    for arg in args:
+        if isinstance(arg, str):
+            # Escape single quotes in strings
+            escaped = arg.replace("'", "''")
+            formatted.append(f"'{escaped}'")
+        elif isinstance(arg, (list, tuple)):
+            # Convert to cell array
+            if all(isinstance(x, str) for x in arg):
+                # Cell array of strings
+                items = [f"'{x.replace(chr(39), chr(39)+chr(39))}'" for x in arg]
+                formatted.append("{" + ", ".join(items) + "}")
+            else:
+                # Mixed or numeric array
+                items = [str(x) if not isinstance(x, str) else f"'{x}'" for x in arg]
+                formatted.append("{" + ", ".join(items) + "}")
+        elif isinstance(arg, (int, float)):
+            formatted.append(str(arg))
+        elif isinstance(arg, bool):
+            formatted.append("true" if arg else "false")
+        else:
+            # Fallback: convert to string
+            formatted.append(f"'{str(arg)}'")
+    return ", ".join(formatted)
 
 def initialize_matlab():
     """Initialize MATLAB engine and set up paths"""
@@ -129,14 +161,36 @@ def execute_function():
         matlab_function = getattr(matlab_engine, function_name)
         
         # Execute the function
+        result = None
+        used_json_workaround = False
+        
         if nargout == 0:
             matlab_function(*args, nargout=0, **kwargs)
             result = None
         else:
-            result = matlab_function(*args, nargout=nargout, **kwargs)
+            try:
+                result = matlab_function(*args, nargout=nargout, **kwargs)
+            except ValueError as ve:
+                # Handle "cell arrays returned from MATLAB must be 1-by-N or M-by-1" error
+                # by using eval with jsonencode to serialize complex cell arrays
+                if "cell arrays" in str(ve):
+                    print(f"[MATLAB HTTP] Detected 2D cell array issue, using jsonencode workaround", flush=True)
+                    
+                    # Build MATLAB code to call function and jsonencode the result
+                    args_str = _format_args_for_matlab(args)
+                    matlab_code = f"jsonencode({function_name}({args_str}))"
+                    
+                    print(f"[MATLAB HTTP] Executing: {matlab_code}", flush=True)
+                    json_result = matlab_engine.eval(matlab_code, nargout=1)
+                    
+                    # Parse the JSON string
+                    result = json.loads(json_result)
+                    used_json_workaround = True
+                else:
+                    raise
         
         # Convert MATLAB arrays to Python lists if needed
-        if result is not None:
+        if result is not None and not used_json_workaround:
             try:
                 if hasattr(result, 'tolist'):
                     result = result.tolist()
