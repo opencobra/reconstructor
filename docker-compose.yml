@@ -63,7 +63,7 @@ services:
     restart: on-failure
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:9090/health || exit 1"]
-      interval: 180s
+      interval: 4500s
       timeout: 10s
       retries: 3
       start_period: 240s

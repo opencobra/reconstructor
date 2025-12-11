@@ -6,8 +6,7 @@ the MATLAB Engine API in client containers.
 """
 import os
 import sys
-import time
-import json
+import atexit
 import traceback
 from pathlib import Path
 from flask import Flask, request, jsonify
@@ -225,6 +224,19 @@ def eval_code():
             'message': f'Unexpected error: {str(e)}',
             'traceback': traceback.format_exc()
         }), 500
+
+def shutdown_matlab():
+    """Ensure MATLAB engine is closed cleanly on exit."""
+    global matlab_engine
+    if matlab_engine is not None:
+        try:
+            print("Shutting down MATLAB engine...", flush=True)
+            matlab_engine.quit()
+        except Exception:
+            pass
+
+# Register shutdown handler
+atexit.register(shutdown_matlab)
 
 if __name__ == "__main__":
     # Initialize MATLAB before starting the Flask server
