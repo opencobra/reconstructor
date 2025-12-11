@@ -347,6 +347,7 @@ class Command(BaseCommand):
     def _format_references(self, references):
         """
         Format references as: PMID:12345, DOI:10.xxxx, ...
+        Only adds the prefix if it doesn't already exist in the info.
         """
         if not references:
             return ''
@@ -354,12 +355,21 @@ class Command(BaseCommand):
         formatted = []
         for ref in references:
             if isinstance(ref, dict):
-                ref_type = ref.get('ref_type', '')
-                info = ref.get('info', '')
+                ref_type = ref.get('ref_type', '').upper()  # Normalize to uppercase
+                info = ref.get('info', '').strip()
                 if info:
-                    formatted.append(f"{ref_type}:{info}" if ref_type else info)
+                    # Check if info already starts with the ref_type prefix (case-insensitive)
+                    info_upper = info.upper()
+                    if ref_type and info_upper.startswith(f"{ref_type}:"):
+                        # Already has prefix, just use the info as-is but normalize prefix
+                        formatted.append(f"{ref_type}:{info[len(ref_type)+1:].strip()}")
+                    elif ref_type:
+                        # Add prefix
+                        formatted.append(f"{ref_type}:{info}")
+                    else:
+                        formatted.append(info)
             elif isinstance(ref, str):
-                formatted.append(ref)
+                formatted.append(ref.strip())
 
         return ', '.join(formatted)
 
