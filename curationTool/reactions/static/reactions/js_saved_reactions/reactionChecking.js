@@ -1,5 +1,6 @@
 
 var checkedReactions = []; // Store IDs of checked reactions
+window.checkedReactions = checkedReactions; // Expose to window for graph visualization
 
 document.addEventListener('DOMContentLoaded', function () {
     const checkboxes = document.querySelectorAll('.reaction-checkbox');
@@ -18,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     checkedReactions.splice(index, 1);
                 }
             }
+            // Keep window reference in sync (same array, but just to be safe)
+            window.checkedReactions = checkedReactions;
         });
     });
 });

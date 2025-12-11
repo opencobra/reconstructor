@@ -81,6 +81,9 @@
                             <h2 class="graph-title">
                                 <i class="fa fa-project-diagram"></i>
                                 Reaction Network
+                                <span class="graph-filter-badge" id="graphFilterBadge" style="display: none;">
+                                    <i class="fa fa-filter"></i> Selected Only
+                                </span>
                             </h2>
                             <div class="graph-stats" id="graphStats">
                                 <div class="graph-stat">
@@ -400,13 +403,24 @@
             const csrfToken = window.csrfToken || document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
             const userID = window.userID || '';
             
+            // Get checked/selected reaction IDs (if any are selected)
+            const checkedReactions = window.checkedReactions || [];
+            
+            // Build request body
+            let bodyParams = 'userID=' + encodeURIComponent(userID);
+            
+            // If reactions are checked, only show those in the graph
+            if (checkedReactions.length > 0) {
+                bodyParams += '&reactionIDs=' + encodeURIComponent(JSON.stringify(checkedReactions));
+            }
+            
             const response = await fetch(CONFIG.api.graphInfo, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                     'X-CSRFToken': csrfToken
                 },
-                body: 'userID=' + encodeURIComponent(userID)
+                body: bodyParams
             });
             
             if (!response.ok) throw new Error('Failed to fetch graph data');
@@ -423,6 +437,14 @@
             if (graphData.stats.edge_count === 0) {
                 showEmptyState();
                 return;
+            }
+            
+            // Show filter badge if viewing selected reactions only
+            const filterBadge = document.getElementById('graphFilterBadge');
+            if (checkedReactions.length > 0) {
+                filterBadge.style.display = 'inline-flex';
+            } else {
+                filterBadge.style.display = 'none';
             }
             
             updateStats(graphData.stats);
@@ -447,6 +469,9 @@
         hideTooltip();
         hideContextMenu();
         hideInfoPanel();
+        
+        // Hide filter badge
+        document.getElementById('graphFilterBadge').style.display = 'none';
         
         if (cy) {
             cy.destroy();

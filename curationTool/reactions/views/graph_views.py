@@ -126,9 +126,24 @@ def get_graph_info(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid user'}, status=401)
 
     # ─────────────────────────────────────────────────────────────────────────
-    # 2. Fetch user's saved reactions
+    # 2. Fetch user's saved reactions (optionally filtered by selected IDs)
     # ─────────────────────────────────────────────────────────────────────────
     reactions = user.saved_reactions.prefetch_related('flags').all()
+    
+    # Check if specific reaction IDs were provided (for filtering to checked reactions)
+    reaction_ids_param = request.POST.get('reactionIDs')
+    selected_reaction_ids = None
+    if reaction_ids_param:
+        try:
+            selected_reaction_ids = json.loads(reaction_ids_param)
+            # Convert to integers for filtering
+            selected_reaction_ids = [int(rid) for rid in selected_reaction_ids if rid]
+        except (json.JSONDecodeError, ValueError, TypeError):
+            selected_reaction_ids = None
+    
+    # If specific reactions are selected, filter to only those
+    if selected_reaction_ids:
+        reactions = reactions.filter(id__in=selected_reaction_ids)
     
     if not reactions.exists():
         return JsonResponse({
