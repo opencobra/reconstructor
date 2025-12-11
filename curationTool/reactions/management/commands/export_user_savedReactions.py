@@ -26,9 +26,8 @@ from django.core.management.base import BaseCommand, CommandError
 
 from reactions.models import User, Reaction, SavedMetabolite
 from reactions.utils.search_vmh import search_metabolites_vmh
-from reactions.utils.gen_vmh_abbrs import check_met_abbr_exists
+from reactions.utils.gen_vmh_abbrs import gen_metabolite_abbr
 from reactions.utils.add_to_vmh_utils import merge_gene_infos
-from reactions.utils.MatlabHTTPClient import MatlabSessionManager
 
 
 class Command(BaseCommand):
@@ -155,7 +154,6 @@ class Command(BaseCommand):
     def _generate_abbreviations(self, new_mets):
         """
         Generate VMH abbreviations for new metabolites using MATLAB.
-        Calls generateVMHMetAbbr once with all metabolite names as a batch.
         
         Args:
             new_mets: dict with keys (met, met_type, met_name)
@@ -163,84 +161,27 @@ class Command(BaseCommand):
         Returns:
             dict: Same keys mapped to generated abbreviations
         """
-        if not new_mets:
-            return {}
-
-        # Build ordered list of keys and names for batch processing
-        keys_list = list(new_mets.keys())
-        names_list = [key[2] for key in keys_list]  # key[2] is met_name
-        
-        self.stdout.write(f"  Calling MATLAB generateVMHMetAbbr with {len(names_list)} metabolite names...")
-        
         generated = {}
+        total = len(new_mets)
         
-        try:
-            # Call MATLAB with all names at once
-            matlab_session = MatlabSessionManager()
-            result = matlab_session.execute('generateVMHMetAbbr', names_list)
-            
-            if result['status'] == 'success':
-                # Result is a cell array: [[name1, abbr1], [name2, abbr2], ...]
-                abbr_results = result['result']
-                
-                self.stdout.write(self.style.SUCCESS(f"  MATLAB returned {len(abbr_results)} abbreviations"))
-                
-                # Map results back to keys
-                for i, key in enumerate(keys_list):
-                    if i < len(abbr_results):
-                        # Each result is [original_name, generated_abbr]
-                        row = abbr_results[i]
-                        if isinstance(row, list) and len(row) >= 2:
-                            abbr = row[1]  # Second element is the abbreviation
-                        else:
-                            abbr = row if isinstance(row, str) else str(row)
-                        
-                        # Check if abbr already exists in VMH and append _ if needed
-                        abbr = self._ensure_unique_abbr(abbr)
-                        generated[key] = abbr
-                        self.stdout.write(f"    {key[2][:40]:40} -> {abbr}")
-                    else:
-                        # Fallback if result is missing
-                        fallback = self._sanitize_name_as_abbr(key[2])
-                        generated[key] = fallback
-                        self.stdout.write(
-                            self.style.WARNING(f"    {key[2][:40]:40} -> {fallback} (missing from result)")
-                        )
-            else:
-                # MATLAB call failed, use fallback for all
-                error_msg = result.get('message', 'Unknown error')
-                self.stdout.write(self.style.ERROR(f"  MATLAB error: {error_msg}"))
-                self.stdout.write("  Using fallback abbreviations...")
-                
-                for key in keys_list:
-                    fallback = self._sanitize_name_as_abbr(key[2])
-                    generated[key] = fallback
-                    self.stdout.write(self.style.WARNING(f"    {key[2][:40]:40} -> {fallback}"))
-                    
-        except Exception as e:
-            self.stdout.write(self.style.ERROR(f"  Error calling MATLAB: {e}"))
-            self.stdout.write("  Using fallback abbreviations for all metabolites...")
-            
-            for key in keys_list:
-                fallback = self._sanitize_name_as_abbr(key[2])
-                generated[key] = fallback
-                self.stdout.write(self.style.WARNING(f"    {key[2][:40]:40} -> {fallback}"))
+        for idx, (met, met_type, met_name) in enumerate(new_mets.keys(), 1):
+            self.stdout.write(f"  [{idx}/{total}] Generating abbr for: {met_name[:50]}...")
+            try:
+                abbr = gen_metabolite_abbr(
+                    met, 
+                    met_type, 
+                    met_name, 
+                    search_metabolites_vmh
+                )
+                generated[(met, met_type, met_name)] = abbr
+                self.stdout.write(self.style.SUCCESS(f" -> {abbr}"))
+            except Exception as e:
+                # Fallback: use a sanitized version of the name
+                fallback = self._sanitize_name_as_abbr(met_name)
+                generated[(met, met_type, met_name)] = fallback
+                self.stdout.write(self.style.WARNING(f" -> {fallback} (fallback, error: {e})"))
         
         return generated
-
-    def _ensure_unique_abbr(self, abbr):
-        """
-        Ensure the abbreviation doesn't already exist in VMH.
-        Appends underscores if needed.
-        """
-        try:
-            exists = check_met_abbr_exists(abbr)
-            while exists:
-                abbr = abbr + '_'
-                exists = check_met_abbr_exists(abbr)
-        except Exception:
-            pass  # If check fails, just return the original abbr
-        return abbr
 
     def _build_csv_row(self, reaction, generated_abbrs):
         """
