@@ -124,37 +124,42 @@
 }
 
 .graph-search-container {
-    position: relative;
-}
-
-.graph-search {
+    display: flex;
+    align-items: center;
     background: #0f3460;
     border: 1px solid #1a4a7a;
     border-radius: 6px;
-    padding: 8px 12px 8px 36px;
-    color: #e8e8e8;
-    font-size: 13px;
-    width: 220px;
+    overflow: hidden;
     transition: all 0.2s ease;
 }
 
-.graph-search:focus {
-    outline: none;
+.graph-search-container:focus-within {
     border-color: #667eea;
     box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
 }
 
-.graph-search::placeholder {
-    color: #6a6a8a;
-}
-
-.graph-search-icon {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
+.graph-search-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
     color: #6a6a8a;
     font-size: 13px;
+    flex-shrink: 0;
+}
+
+.graph-search {
+    background: transparent;
+    border: none;
+    padding: 8px 12px 8px 0;
+    color: #e8e8e8;
+    font-size: 13px;
+    width: 180px;
+    outline: none;
+}
+
+.graph-search::placeholder {
+    color: #6a6a8a;
 }
 
 .graph-btn {

@@ -105,7 +105,9 @@
                         </div>
                         <div class="graph-header-controls">
                             <div class="graph-search-container">
-                                <i class="fa fa-search graph-search-icon"></i>
+                                <span class="graph-search-icon-wrapper">
+                                    <i class="fa fa-search"></i>
+                                </span>
                                 <input type="text" class="graph-search" id="graphSearch" 
                                        placeholder="Search metabolites... (/)">
                             </div>
