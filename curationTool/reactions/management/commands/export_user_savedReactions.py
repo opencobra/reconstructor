@@ -463,7 +463,7 @@ class Command(BaseCommand):
         
         Gets data from SavedMetabolite model for each new metabolite.
         
-        Returns a list of dicts with keys: vmh_abbr, name, source, charged_formula, original_identifier
+        Returns a list of dicts with keys: vmh_abbr, name, source, charged_formula
         """
         rows = []
         
@@ -476,7 +476,6 @@ class Command(BaseCommand):
             name = met_name
             source = met_type
             charged_formula = ''
-            original_identifier = ''
             
             # Try to get details from SavedMetabolite if it's a Saved type
             if met_type == 'Saved':
@@ -486,28 +485,20 @@ class Command(BaseCommand):
                     source = saved_met.source_type or met_type
                     charged_formula = saved_met.mol_formula or ''
                     
-                    # Add original_identifier for non-draw/mol_file sources
-                    if source.lower() not in ('draw', 'mol_file'):
-                        original_identifier = saved_met.original_identifier or ''
+                    # Add original_identifier in brackets for non-draw/mol_file sources
+                    if source.lower() not in ('draw', 'mol_file') and saved_met.original_identifier:
+                        source = f"{source} ({saved_met.original_identifier})"
                 except (SavedMetabolite.DoesNotExist, ValueError):
                     pass
             else:
                 raise ValueError(f"Unexpected metabolite type: {met_type}")
             
-            row = {
+            rows.append({
                 'vmh_abbr': abbr,
                 'name': name,
                 'source': source,
                 'charged_formula': charged_formula,
-            }
-            
-            # Only add original_identifier if it has a value
-            if original_identifier:
-                row['original_identifier'] = original_identifier
-            else:
-                row['original_identifier'] = ''
-            
-            rows.append(row)
+            })
         
         return rows
 
@@ -523,7 +514,6 @@ class Command(BaseCommand):
             'name',
             'source',
             'charged_formula',
-            'original_identifier',
         ]
 
         with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
