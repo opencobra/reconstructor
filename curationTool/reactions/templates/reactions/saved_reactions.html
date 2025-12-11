@@ -7,12 +7,15 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Constructor — Saved Reactions</title>
 		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/saved_reactions.css' %}" />
+		<link rel="stylesheet" type="text/css" href="{% static 'reactions/css/graph_visualization.css' %}" />
 		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/imgs/favicon.ico' %}" />
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
 		<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet" />
+		<!-- Cytoscape.js for graph visualization -->
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
 	</head>
 	<body>
 		<div class="top-menu-saved-reactions">
@@ -203,6 +206,10 @@
 				<div class="toolbar-section toolbar-view">
 					<span class="toolbar-section-label">View</span>
 					<div class="toolbar-section-content">
+						<button id="viewGraphBtn" class="ui button toolbar-btn graph-btn">
+							<i class="fas fa-project-diagram"></i>
+							<span>View Graph</span>
+						</button>
 						<div class="sort-control">
 							<i class="fas fa-sort-amount-down"></i>
 							<select id="sortBy" class="toolbar-select">
@@ -321,10 +328,24 @@
 			const prepAddToVMHUrl = "{% url 'prepare_add_to_vmh' %}";
 			const csrfToken = '{{ csrf_token }}';
 			const userID = '{{ userID }}';
+			// Also expose to window for graph visualization module
+			window.csrfToken = csrfToken;
+			window.userID = userID;
 			const editReactionURL = "{% url 'edit_reaction_info' %}";
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
 			var reactions = {{ reactions_json|safe }};
+
+			// Graph button click handler - uses GraphVisualization module
+			document.getElementById('viewGraphBtn').addEventListener('click', function() {
+				if (window.GraphVisualization) {
+					window.GraphVisualization.open();
+				} else {
+					console.error('Graph visualization module not loaded');
+					alert('Graph visualization is not available. Please refresh the page.');
+				}
+			});
 		</script>
+		<script src="{% static 'reactions/js/graph_visualization.js' %}"></script>
 		<script src="{% static 'reactions/js_saved_reactions/reactionChecking.js' %}"></script>
 		<script src="{% static 'reactions/js_saved_reactions/dynamicEventListeners.js' %}"></script>
 		<script src="{% static 'reactions/js_saved_reactions/reactionViewAndDelete.js' %}"></script>

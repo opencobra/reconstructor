@@ -113,6 +113,31 @@
 	color: #495057;
 }
 
+/* Graph Button - Special styling */
+.toolbar-btn.graph-btn {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+	color: white !important;
+	border: none !important;
+	font-weight: 500 !important;
+	box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.toolbar-btn.graph-btn:hover {
+	background: linear-gradient(135deg, #5a6fd6 0%, #6a4190 100%) !important;
+	box-shadow: 0 4px 8px rgba(102, 126, 234, 0.4);
+	transform: translateY(-1px);
+}
+
+.toolbar-btn.graph-btn i {
+	color: white;
+}
+
+.toolbar-btn.graph-btn:disabled {
+	opacity: 0.7;
+	cursor: not-allowed;
+	transform: none;
+}
+
 .toolbar-btn-sm {
 	background: #28a745 !important;
 	color: white !important;

@@ -10,7 +10,8 @@ from .views import (
     template_views,
     vmh_views,
     ai_views,
-    utility_views)
+    utility_views,
+    graph_views)
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -91,5 +92,7 @@ urlpatterns = [
     path('get_pubmed_info/<str:pmid>/', utility_views.get_pubmed_info, name='get_pubmed_info'),
     path('chemdoodle_sketcher/', utility_views.chemdoodle_sketcher, name='chemdoodle_sketcher'),
     path('get_doi_info/<path:doi>/', utility_views.get_doi_info, name='get_doi_info'),
+
+    path('get_graph_info/', graph_views.get_graph_info, name='get_graph_info'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
