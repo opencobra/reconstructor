@@ -97,7 +97,7 @@ class Command(BaseCommand):
             csv_rows.append(row)
 
         # ─────────────────────────────────────────────────────────────────────
-        # 4. Write to CSV file
+        # 4. Write reactions CSV file
         # ─────────────────────────────────────────────────────────────────────
         if output_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -108,6 +108,25 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"\nExported {len(csv_rows)} reactions to: {output_path}\n")
         )
+
+        # ─────────────────────────────────────────────────────────────────────
+        # 5. Build and write new metabolites CSV
+        # ─────────────────────────────────────────────────────────────────────
+        if new_mets_to_generate:
+            new_mets_rows = self._build_new_mets_csv_rows(new_mets_to_generate, generated_abbrs)
+            
+            # Generate metabolites output path
+            mets_output_path = output_path.replace('.csv', '_new_metabolites.csv')
+            if mets_output_path == output_path:
+                mets_output_path = output_path + '_new_metabolites.csv'
+            
+            self._write_new_mets_csv(mets_output_path, new_mets_rows)
+            
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Exported {len(new_mets_rows)} new metabolites to: {mets_output_path}\n"
+                )
+            )
 
     # =========================================================================
     # Helper Methods
@@ -437,6 +456,80 @@ class Command(BaseCommand):
                 formatted.append(link)
 
         return ', '.join(formatted)
+
+    def _build_new_mets_csv_rows(self, new_mets_to_generate, generated_abbrs):
+        """
+        Build CSV rows for new metabolites (not in VMH) with details.
+        
+        Gets data from SavedMetabolite model for each new metabolite.
+        
+        Returns a list of dicts with keys: vmh_abbr, name, source, charged_formula, original_identifier
+        """
+        rows = []
+        
+        # Process each new metabolite
+        for key in new_mets_to_generate.keys():
+            met_id, met_type, met_name = key
+            abbr = generated_abbrs.get(key, self._sanitize_name_as_abbr(met_name))
+            
+            # Default values
+            name = met_name
+            source = met_type
+            charged_formula = ''
+            original_identifier = ''
+            
+            # Try to get details from SavedMetabolite if it's a Saved type
+            if met_type == 'Saved':
+                try:
+                    saved_met = SavedMetabolite.objects.get(pk=int(met_id))
+                    name = saved_met.name
+                    source = saved_met.source_type or met_type
+                    charged_formula = saved_met.mol_formula or ''
+                    
+                    # Add original_identifier for non-draw/mol_file sources
+                    if source.lower() not in ('draw', 'mol_file'):
+                        original_identifier = saved_met.original_identifier or ''
+                except (SavedMetabolite.DoesNotExist, ValueError):
+                    pass
+            else:
+                raise ValueError(f"Unexpected metabolite type: {met_type}")
+            
+            row = {
+                'vmh_abbr': abbr,
+                'name': name,
+                'source': source,
+                'charged_formula': charged_formula,
+            }
+            
+            # Only add original_identifier if it has a value
+            if original_identifier:
+                row['original_identifier'] = original_identifier
+            else:
+                row['original_identifier'] = ''
+            
+            rows.append(row)
+        
+        return rows
+
+    def _write_new_mets_csv(self, output_path, rows):
+        """
+        Write new metabolites rows to a CSV file.
+        """
+        if not rows:
+            return
+
+        fieldnames = [
+            'vmh_abbr',
+            'name',
+            'source',
+            'charged_formula',
+            'original_identifier',
+        ]
+
+        with open(output_path, 'w', newline='', encoding='utf-8') as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows)
 
     def _write_csv(self, output_path, rows):
         """
