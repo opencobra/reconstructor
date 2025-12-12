@@ -183,8 +183,8 @@
                                     <option value="cose-bilkent">Force-Directed (COSE)</option>
                                     <option value="cola">Cola (Constraint-Based)</option>
                                     <option value="dagre">Dagre (Hierarchical)</option>
-                                    <option value="concentric">Concentric (Radial)</option>
-                                    <option value="circle">Circle</option>
+                                    <option value="concentric">Concentric (by Degree)</option>
+                                    <option value="circle">Circle (Reactions Center)</option>
                                     <option value="grid">Grid</option>
                                 </select>
                             </div>
@@ -767,22 +767,31 @@
                 };
                 
             case 'circle':
+                // Use concentric layout with reactions in center, metabolites on perimeter
                 return {
-                    name: 'circle',
+                    name: 'concentric',
                     ...baseOptions,
-                    spacingFactor: 1 + (nodeSpacing / 50),
-                    radius: undefined, // auto calculate
+                    // Place reactions in center ring, metabolites on outer rings
+                    concentric: function(node) {
+                        const type = node.data('type');
+                        if (type === 'reaction') {
+                            return 100; // Highest value = center
+                        } else if (type === 'saved') {
+                            return 50;  // Middle ring for new metabolites
+                        } else {
+                            return 10;  // Outer ring for VMH metabolites
+                        }
+                    },
+                    levelWidth: function(nodes) {
+                        // Create distinct rings for each type
+                        return 1;
+                    },
+                    minNodeSpacing: nodeSpacing,
+                    spacingFactor: 1 + (edgeLength / 150),
+                    equidistant: true,
                     startAngle: 3 / 2 * Math.PI,
                     sweep: 2 * Math.PI,
-                    clockwise: true,
-                    sort: function(a, b) {
-                        // Sort by type, then by degree
-                        if (a.data('type') !== b.data('type')) {
-                            const order = ['vmh', 'saved', 'reaction'];
-                            return order.indexOf(a.data('type')) - order.indexOf(b.data('type'));
-                        }
-                        return b.degree() - a.degree();
-                    }
+                    clockwise: true
                 };
                 
             case 'grid':
