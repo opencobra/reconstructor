@@ -501,20 +501,30 @@ function getTotalsFromForm() {
 	substrateGroups.forEach((group) => {
 		if (group.dataset.atomCounts) {
 			const counts = JSON.parse(group.dataset.atomCounts);
+			// Get stoichiometry from the input field (default to 1 if not found)
+			const stoichInput = group.querySelector('input[name="subs_sch"]');
+			const stoich = stoichInput ? parseFloat(stoichInput.value) || 1 : 1;
+			// Multiply atom counts by stoichiometry
 			for (const elem in counts) {
-				totalAtomsSubs[elem] = (totalAtomsSubs[elem] || 0) + counts[elem];
+				totalAtomsSubs[elem] = (totalAtomsSubs[elem] || 0) + (counts[elem] * stoich);
 			}
-			totalChargeSubs += parseFloat(group.dataset.charge) || 0;
+			// Multiply charge by stoichiometry too
+			totalChargeSubs += (parseFloat(group.dataset.charge) || 0) * stoich;
 		}
 	});
 
 	productGroups.forEach((group) => {
 		if (group.dataset.atomCounts) {
 			const counts = JSON.parse(group.dataset.atomCounts);
+			// Get stoichiometry from the input field (default to 1 if not found)
+			const stoichInput = group.querySelector('input[name="prod_sch"]');
+			const stoich = stoichInput ? parseFloat(stoichInput.value) || 1 : 1;
+			// Multiply atom counts by stoichiometry
 			for (const elem in counts) {
-				totalAtomsProds[elem] = (totalAtomsProds[elem] || 0) + counts[elem];
+				totalAtomsProds[elem] = (totalAtomsProds[elem] || 0) + (counts[elem] * stoich);
 			}
-			totalChargeProds += parseFloat(group.dataset.charge) || 0;
+			// Multiply charge by stoichiometry too
+			totalChargeProds += (parseFloat(group.dataset.charge) || 0) * stoich;
 		}
 	});
 

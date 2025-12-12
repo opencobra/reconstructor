@@ -76,6 +76,27 @@ document.addEventListener('DOMContentLoaded', function () {
 
 	attachEventListenersToDoneButtons();
 	attachEventListenersToDoneAllButtons();
+	
+	// Use event delegation to listen for stoichiometry changes on all inputs (existing and future)
+	// This ensures balance is recalculated when stoichiometry changes after verification
+	const substratesDiv = document.getElementById('substratesDiv');
+	const productsDiv = document.getElementById('productsDiv');
+	
+	if (substratesDiv) {
+		substratesDiv.addEventListener('input', function(e) {
+			if (e.target.name === 'subs_sch') {
+				updateAtomChargeCounters();
+			}
+		});
+	}
+	
+	if (productsDiv) {
+		productsDiv.addEventListener('input', function(e) {
+			if (e.target.name === 'prod_sch') {
+				updateAtomChargeCounters();
+			}
+		});
+	}
 });
 // Adds a new substrate field to the reaction form when the 'Add Substrate' button is clicked.
 document.getElementById('addSubstrate').addEventListener('click', function () {
@@ -225,6 +246,7 @@ function buildReactantRow(containerId, inputName, numberName) {
 	numberInput.id = numberName;
 	numberInput.min = '1';
 	numberInput.value = '1';
+	// Note: stoichiometry change listener is handled via event delegation on parent container
 	stoichCell.appendChild(numberInput);
 	row.appendChild(stoichCell);
 
@@ -877,16 +899,30 @@ function updateAtomChargeCounters() {
 	(substratesDiv ? substratesDiv.querySelectorAll('.inputs-group') : []).forEach((group) => {
 		if (group.dataset.atomCounts) {
 			const counts = JSON.parse(group.dataset.atomCounts);
-			for (const elem in counts) totalAtomsSubs[elem] = (totalAtomsSubs[elem] || 0) + counts[elem];
-			totalChargeSubs += parseFloat(group.dataset.charge) || 0;
+			// Get stoichiometry from the input field (default to 1 if not found)
+			const stoichInput = group.querySelector('input[name="subs_sch"]');
+			const stoich = stoichInput ? parseFloat(stoichInput.value) || 1 : 1;
+			// Multiply atom counts by stoichiometry
+			for (const elem in counts) {
+				totalAtomsSubs[elem] = (totalAtomsSubs[elem] || 0) + (counts[elem] * stoich);
+			}
+			// Multiply charge by stoichiometry too
+			totalChargeSubs += (parseFloat(group.dataset.charge) || 0) * stoich;
 		}
 	});
 
 	(productsDiv ? productsDiv.querySelectorAll('.inputs-group') : []).forEach((group) => {
 		if (group.dataset.atomCounts) {
 			const counts = JSON.parse(group.dataset.atomCounts);
-			for (const elem in counts) totalAtomsProds[elem] = (totalAtomsProds[elem] || 0) + counts[elem];
-			totalChargeProds += parseFloat(group.dataset.charge) || 0;
+			// Get stoichiometry from the input field (default to 1 if not found)
+			const stoichInput = group.querySelector('input[name="prod_sch"]');
+			const stoich = stoichInput ? parseFloat(stoichInput.value) || 1 : 1;
+			// Multiply atom counts by stoichiometry
+			for (const elem in counts) {
+				totalAtomsProds[elem] = (totalAtomsProds[elem] || 0) + (counts[elem] * stoich);
+			}
+			// Multiply charge by stoichiometry too
+			totalChargeProds += (parseFloat(group.dataset.charge) || 0) * stoich;
 		}
 	});
 
