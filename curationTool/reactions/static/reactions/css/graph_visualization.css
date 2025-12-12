@@ -768,3 +768,309 @@
     transform: rotate(45deg);
     flex-shrink: 0;
 }
+
+/* =====================================
+   LAYOUT CONTROL PANEL
+   ===================================== */
+
+.sidebar-divider {
+    height: 1px;
+    background: rgba(102, 126, 234, 0.3);
+    margin: 4px 0;
+}
+
+.layout-control-panel {
+    position: absolute;
+    top: 12px;
+    left: 60px;
+    width: 280px;
+    background: rgba(15, 52, 96, 0.98);
+    border: 1px solid #1a4a7a;
+    border-radius: 12px;
+    z-index: 150;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    transform: translateX(-10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.layout-control-panel.visible {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+}
+
+.layout-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.layout-panel-title {
+    color: #e8e8e8;
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.layout-panel-title i {
+    color: #667eea;
+}
+
+.layout-panel-close {
+    background: transparent;
+    border: none;
+    color: #a0a0a0;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.layout-panel-close:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e8e8e8;
+}
+
+.layout-panel-section {
+    padding: 12px 16px;
+}
+
+.layout-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #c0c0c0;
+    font-size: 12px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.layout-value {
+    color: #667eea;
+    font-weight: 600;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 11px;
+    min-width: 45px;
+    text-align: right;
+}
+
+.layout-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(26, 74, 122, 0.6);
+    border: 1px solid #1a4a7a;
+    border-radius: 8px;
+    color: #e8e8e8;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2'%3E%3Cpolyline points='6,9 12,15 18,9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+.layout-select:hover {
+    border-color: #667eea;
+    background-color: rgba(26, 74, 122, 0.8);
+}
+
+.layout-select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.layout-select option {
+    background: #0f3460;
+    color: #e8e8e8;
+    padding: 8px;
+}
+
+/* Custom Range Slider */
+.layout-slider {
+    width: 100%;
+    height: 6px;
+    background: rgba(26, 74, 122, 0.6);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+}
+
+.layout-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #0f3460;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.layout-slider::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.5);
+}
+
+.layout-slider::-moz-range-thumb {
+    width: 18px;
+    height: 18px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid #0f3460;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.layout-slider::-moz-range-thumb:hover {
+    transform: scale(1.15);
+    box-shadow: 0 3px 10px rgba(102, 126, 234, 0.5);
+}
+
+/* Slider Track Fill Effect */
+.layout-slider::-webkit-slider-runnable-track {
+    height: 6px;
+    border-radius: 3px;
+    background: linear-gradient(to right, 
+        rgba(102, 126, 234, 0.7) 0%, 
+        rgba(102, 126, 234, 0.3) 100%);
+}
+
+.layout-panel-divider {
+    height: 1px;
+    background: rgba(102, 126, 234, 0.2);
+    margin: 4px 16px;
+}
+
+/* Layout Presets */
+.layout-presets {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.layout-preset-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 12px 8px;
+    background: rgba(26, 74, 122, 0.4);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: #c0c0c0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 11px;
+}
+
+.layout-preset-btn:hover {
+    background: rgba(102, 126, 234, 0.2);
+    border-color: #667eea;
+    color: #e8e8e8;
+    transform: translateY(-2px);
+}
+
+.layout-preset-btn:active {
+    transform: translateY(0);
+}
+
+.layout-preset-btn.active {
+    background: rgba(102, 126, 234, 0.3);
+    border-color: #667eea;
+    color: #e8e8e8;
+}
+
+.layout-preset-btn i {
+    font-size: 16px;
+    color: #667eea;
+}
+
+.layout-preset-btn span {
+    font-weight: 500;
+}
+
+/* Apply Layout Button */
+.layout-panel-footer {
+    padding: 12px 16px;
+    border-top: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+.layout-apply-btn {
+    width: 100%;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border: none;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.layout-apply-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.layout-apply-btn:active {
+    transform: translateY(0);
+}
+
+.layout-apply-btn.running {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    pointer-events: none;
+}
+
+.layout-apply-btn.running i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Physics controls visibility */
+.physics-controls {
+    transition: opacity 0.2s ease, max-height 0.3s ease;
+    overflow: hidden;
+}
+
+.physics-controls.hidden {
+    opacity: 0.4;
+    pointer-events: none;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin: 0;
+}
+
+/* Layout Panel Button Active State */
+#btnLayoutPanel.active {
+    background: #667eea;
+    border-color: #667eea;
+}
+

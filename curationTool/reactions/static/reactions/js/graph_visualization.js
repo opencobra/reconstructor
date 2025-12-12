@@ -35,20 +35,33 @@
             edgeHighlight: '#667eea',
             background: '#1a1a2e'
         },
-        layout: {
-            name: 'cose',
+        // Default layout - uses cose-bilkent for better metabolic network visualization
+        // This is overridden by the layout control panel
+        defaultLayout: {
+            name: 'cose-bilkent',
+            quality: 'proof',
             animate: true,
-            animationDuration: 800,
+            animationDuration: 1000,
+            animationEasing: 'ease-out-cubic',
             fit: true,
-            padding: 50,
-            nodeRepulsion: 8000,
-            idealEdgeLength: 100,
-            edgeElasticity: 100,
-            nestingFactor: 1.2,
-            gravity: 0.25,
-            numIter: 1000,
-            coolingFactor: 0.95,
-            minTemp: 1.0
+            padding: 60,
+            nodeDimensionsIncludeLabels: true,
+            // Tuned for metabolic networks - spread out, not jumbled
+            nodeRepulsion: 6000,
+            idealEdgeLength: 150,
+            edgeElasticity: 0.45,
+            // Gentle gravity - keeps nodes from flying too far
+            gravity: 0.15,
+            gravityRange: 3.8,
+            gravityCompound: 1.0,
+            // Spacing
+            tile: true,
+            tilingPaddingVertical: 40,
+            tilingPaddingHorizontal: 40,
+            // Quality settings
+            numIter: 2500,
+            nestingFactor: 0.1,
+            randomize: false
         }
     };
 
@@ -147,6 +160,100 @@
                             <button class="graph-sidebar-btn" id="btnScreenshot" title="Download image">
                                 <i class="fa fa-camera"></i>
                             </button>
+                            <div class="sidebar-divider"></div>
+                            <button class="graph-sidebar-btn" id="btnLayoutPanel" title="Layout controls">
+                                <i class="fa fa-sliders-h"></i>
+                            </button>
+                        </div>
+
+                        <!-- Layout Control Panel -->
+                        <div class="layout-control-panel" id="layoutControlPanel">
+                            <div class="layout-panel-header">
+                                <span class="layout-panel-title">
+                                    <i class="fa fa-project-diagram"></i> Layout
+                                </span>
+                                <button class="layout-panel-close" id="btnCloseLayoutPanel">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
+                            
+                            <div class="layout-panel-section">
+                                <label class="layout-label">Algorithm</label>
+                                <select class="layout-select" id="layoutAlgorithm">
+                                    <option value="cose-bilkent">Force-Directed (COSE)</option>
+                                    <option value="cola">Cola (Constraint-Based)</option>
+                                    <option value="dagre">Dagre (Hierarchical)</option>
+                                    <option value="concentric">Concentric (Radial)</option>
+                                    <option value="circle">Circle</option>
+                                    <option value="grid">Grid</option>
+                                </select>
+                            </div>
+                            
+                            <div class="layout-panel-section" id="spacingSection">
+                                <label class="layout-label">
+                                    <span>Node Spacing</span>
+                                    <span class="layout-value" id="nodeSpacingValue">50</span>
+                                </label>
+                                <input type="range" class="layout-slider" id="nodeSpacing" 
+                                       min="10" max="200" value="50" step="5">
+                            </div>
+                            
+                            <div class="layout-panel-section" id="edgeLengthSection">
+                                <label class="layout-label">
+                                    <span>Edge Length</span>
+                                    <span class="layout-value" id="edgeLengthValue">120</span>
+                                </label>
+                                <input type="range" class="layout-slider" id="edgeLength" 
+                                       min="30" max="300" value="120" step="10">
+                            </div>
+                            
+                            <div class="layout-panel-section physics-controls" id="physicsSection">
+                                <label class="layout-label">
+                                    <span>Gravity</span>
+                                    <span class="layout-value" id="gravityValue">0.25</span>
+                                </label>
+                                <input type="range" class="layout-slider" id="gravitySlider" 
+                                       min="0" max="2" value="0.25" step="0.05">
+                            </div>
+                            
+                            <div class="layout-panel-section physics-controls" id="repulsionSection">
+                                <label class="layout-label">
+                                    <span>Node Repulsion</span>
+                                    <span class="layout-value" id="repulsionValue">4500</span>
+                                </label>
+                                <input type="range" class="layout-slider" id="repulsionSlider" 
+                                       min="1000" max="20000" value="4500" step="500">
+                            </div>
+                            
+                            <div class="layout-panel-divider"></div>
+                            
+                            <div class="layout-panel-section">
+                                <label class="layout-label">Quick Presets</label>
+                                <div class="layout-presets">
+                                    <button class="layout-preset-btn" data-preset="compact" title="Compact layout">
+                                        <i class="fa fa-compress-arrows-alt"></i>
+                                        <span>Compact</span>
+                                    </button>
+                                    <button class="layout-preset-btn" data-preset="spread" title="Spread out layout">
+                                        <i class="fa fa-expand-arrows-alt"></i>
+                                        <span>Spread</span>
+                                    </button>
+                                    <button class="layout-preset-btn" data-preset="hierarchical" title="Hierarchical layout">
+                                        <i class="fa fa-sitemap"></i>
+                                        <span>Hierarchy</span>
+                                    </button>
+                                    <button class="layout-preset-btn" data-preset="circular" title="Circular layout">
+                                        <i class="fa fa-circle-notch"></i>
+                                        <span>Circular</span>
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="layout-panel-footer">
+                                <button class="layout-apply-btn" id="btnApplyLayout">
+                                    <i class="fa fa-play"></i> Apply Layout
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Legend -->
@@ -211,6 +318,7 @@
                                         <div class="help-row"><kbd>F</kbd> Fit graph to screen</div>
                                         <div class="help-row"><kbd>R</kbd> Re-layout graph</div>
                                         <div class="help-row"><kbd>L</kbd> Toggle labels</div>
+                                        <div class="help-row"><kbd>P</kbd> Toggle layout panel</div>
                                         <div class="help-row"><kbd>+</kbd> / <kbd>-</kbd> Zoom in/out</div>
                                         <div class="help-row"><kbd>/</kbd> Focus search</div>
                                         <div class="help-row"><kbd>Esc</kbd> Close panel/modal</div>
@@ -223,6 +331,22 @@
                                         <div class="help-row"><strong>Double-click</strong> VMH metabolite to view on VMH</div>
                                         <div class="help-row"><strong>Right-click</strong> for context menu</div>
                                         <div class="help-row"><strong>Drag</strong> to pan, <strong>Scroll</strong> to zoom</div>
+                                    </div>
+                                    <div class="help-section">
+                                        <div class="help-section-title">Layout Controls</div>
+                                        <div class="help-row">
+                                            <i class="fa fa-sliders-h" style="color: #667eea;"></i>
+                                            Click slider icon in sidebar to open layout panel
+                                        </div>
+                                        <div class="help-row">
+                                            <strong>Algorithms:</strong> COSE (force), Cola, Dagre (hierarchy)
+                                        </div>
+                                        <div class="help-row">
+                                            <strong>Presets:</strong> Compact, Spread, Hierarchy, Circular
+                                        </div>
+                                        <div class="help-row">
+                                            <strong>Sliders:</strong> Adjust spacing, gravity, repulsion
+                                        </div>
                                     </div>
                                     <div class="help-section">
                                         <div class="help-section-title">Visual Guide</div>
@@ -309,6 +433,10 @@
                     // Toggle labels
                     toggleLabels();
                     break;
+                case 'p':
+                    // Toggle layout panel
+                    toggleLayoutPanel();
+                    break;
                 case '+':
                 case '=':
                     // Zoom in
@@ -373,6 +501,362 @@
                 hideContextMenu();
             }
         });
+        
+        // Layout Control Panel Events
+        bindLayoutControlEvents();
+    }
+    
+    // =========================================
+    // LAYOUT CONTROL SYSTEM
+    // =========================================
+    
+    // Current layout state
+    let currentLayoutConfig = {
+        algorithm: 'cose-bilkent',
+        nodeSpacing: 50,
+        edgeLength: 120,
+        gravity: 0.25,
+        repulsion: 4500
+    };
+    
+    /**
+     * Bind layout control panel events
+     */
+    function bindLayoutControlEvents() {
+        // Toggle layout panel
+        document.getElementById('btnLayoutPanel').addEventListener('click', toggleLayoutPanel);
+        document.getElementById('btnCloseLayoutPanel').addEventListener('click', hideLayoutPanel);
+        
+        // Algorithm selector
+        document.getElementById('layoutAlgorithm').addEventListener('change', (e) => {
+            currentLayoutConfig.algorithm = e.target.value;
+            updatePhysicsControlsVisibility(e.target.value);
+        });
+        
+        // Sliders with live value updates
+        const sliders = [
+            { id: 'nodeSpacing', prop: 'nodeSpacing', display: 'nodeSpacingValue' },
+            { id: 'edgeLength', prop: 'edgeLength', display: 'edgeLengthValue' },
+            { id: 'gravitySlider', prop: 'gravity', display: 'gravityValue' },
+            { id: 'repulsionSlider', prop: 'repulsion', display: 'repulsionValue' }
+        ];
+        
+        sliders.forEach(slider => {
+            const element = document.getElementById(slider.id);
+            element.addEventListener('input', (e) => {
+                const value = parseFloat(e.target.value);
+                currentLayoutConfig[slider.prop] = value;
+                document.getElementById(slider.display).textContent = 
+                    slider.prop === 'gravity' ? value.toFixed(2) : value;
+            });
+        });
+        
+        // Preset buttons
+        document.querySelectorAll('.layout-preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                applyLayoutPreset(btn.dataset.preset);
+                // Update active state
+                document.querySelectorAll('.layout-preset-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Apply layout button
+        document.getElementById('btnApplyLayout').addEventListener('click', applyCurrentLayout);
+    }
+    
+    /**
+     * Toggle layout panel visibility
+     */
+    function toggleLayoutPanel() {
+        const panel = document.getElementById('layoutControlPanel');
+        const btn = document.getElementById('btnLayoutPanel');
+        
+        if (panel.classList.contains('visible')) {
+            hideLayoutPanel();
+        } else {
+            panel.classList.add('visible');
+            btn.classList.add('active');
+        }
+    }
+    
+    /**
+     * Hide layout panel
+     */
+    function hideLayoutPanel() {
+        document.getElementById('layoutControlPanel').classList.remove('visible');
+        document.getElementById('btnLayoutPanel').classList.remove('active');
+    }
+    
+    /**
+     * Update physics controls visibility based on algorithm
+     */
+    function updatePhysicsControlsVisibility(algorithm) {
+        const physicsControls = document.querySelectorAll('.physics-controls');
+        const spacingSection = document.getElementById('spacingSection');
+        const edgeLengthSection = document.getElementById('edgeLengthSection');
+        
+        // Force-directed algorithms show physics controls
+        const isPhysicsBased = ['cose-bilkent', 'cola'].includes(algorithm);
+        physicsControls.forEach(ctrl => {
+            ctrl.classList.toggle('hidden', !isPhysicsBased);
+        });
+        
+        // Adjust spacing label based on algorithm
+        if (['grid', 'circle', 'concentric'].includes(algorithm)) {
+            spacingSection.querySelector('span:first-child').textContent = 'Spacing';
+        } else {
+            spacingSection.querySelector('span:first-child').textContent = 'Node Spacing';
+        }
+    }
+    
+    /**
+     * Apply a layout preset
+     */
+    function applyLayoutPreset(preset) {
+        const presets = {
+            compact: {
+                algorithm: 'cose-bilkent',
+                nodeSpacing: 25,
+                edgeLength: 60,
+                gravity: 0.8,
+                repulsion: 2000
+            },
+            spread: {
+                algorithm: 'cose-bilkent',
+                nodeSpacing: 100,
+                edgeLength: 200,
+                gravity: 0.1,
+                repulsion: 10000
+            },
+            hierarchical: {
+                algorithm: 'dagre',
+                nodeSpacing: 60,
+                edgeLength: 100,
+                gravity: 0.25,
+                repulsion: 4500
+            },
+            circular: {
+                algorithm: 'concentric',
+                nodeSpacing: 80,
+                edgeLength: 120,
+                gravity: 0.25,
+                repulsion: 4500
+            }
+        };
+        
+        const config = presets[preset];
+        if (!config) return;
+        
+        // Update state
+        currentLayoutConfig = { ...config };
+        
+        // Update UI controls to match preset
+        document.getElementById('layoutAlgorithm').value = config.algorithm;
+        document.getElementById('nodeSpacing').value = config.nodeSpacing;
+        document.getElementById('nodeSpacingValue').textContent = config.nodeSpacing;
+        document.getElementById('edgeLength').value = config.edgeLength;
+        document.getElementById('edgeLengthValue').textContent = config.edgeLength;
+        document.getElementById('gravitySlider').value = config.gravity;
+        document.getElementById('gravityValue').textContent = config.gravity.toFixed(2);
+        document.getElementById('repulsionSlider').value = config.repulsion;
+        document.getElementById('repulsionValue').textContent = config.repulsion;
+        
+        // Update physics controls visibility
+        updatePhysicsControlsVisibility(config.algorithm);
+        
+        // Auto-apply the layout
+        applyCurrentLayout();
+    }
+    
+    /**
+     * Build layout options for current configuration
+     */
+    function buildLayoutOptions() {
+        const { algorithm, nodeSpacing, edgeLength, gravity, repulsion } = currentLayoutConfig;
+        
+        const baseOptions = {
+            fit: true,
+            padding: 50,
+            animate: true,
+            animationDuration: 800,
+            animationEasing: 'ease-out'
+        };
+        
+        switch (algorithm) {
+            case 'cose-bilkent':
+                return {
+                    name: 'cose-bilkent',
+                    ...baseOptions,
+                    quality: 'proof',
+                    nodeDimensionsIncludeLabels: true,
+                    // Node spacing
+                    nodeRepulsion: repulsion,
+                    idealEdgeLength: edgeLength,
+                    edgeElasticity: 0.45,
+                    // Physics
+                    gravity: gravity,
+                    gravityRange: 3.8,
+                    gravityCompound: 1.0,
+                    gravityRangeCompound: 1.5,
+                    // Layout quality
+                    numIter: 2500,
+                    tile: true,
+                    tilingPaddingVertical: nodeSpacing,
+                    tilingPaddingHorizontal: nodeSpacing,
+                    // Nesting factor for compound nodes
+                    nestingFactor: 0.1,
+                    // Randomize initial positions for variety
+                    randomize: false,
+                    // Animation
+                    animationEasing: 'ease-out-cubic'
+                };
+                
+            case 'cola':
+                return {
+                    name: 'cola',
+                    ...baseOptions,
+                    maxSimulationTime: 4000,
+                    ungrabifyWhileSimulating: false,
+                    // Node spacing
+                    nodeSpacing: function() { return nodeSpacing; },
+                    edgeLength: function() { return edgeLength; },
+                    // Forces
+                    edgeSymDiffLength: edgeLength * 0.3,
+                    avoidOverlap: true,
+                    convergenceThreshold: 0.01,
+                    // Flow (optional - for hierarchical tendencies)
+                    flow: gravity > 0.5 ? { axis: 'y', minSeparation: 30 } : undefined
+                };
+                
+            case 'dagre':
+                return {
+                    name: 'dagre',
+                    ...baseOptions,
+                    // Direction
+                    rankDir: 'TB',
+                    // Spacing
+                    nodeSep: nodeSpacing,
+                    edgeSep: Math.max(10, edgeLength * 0.3),
+                    rankSep: edgeLength,
+                    // Alignment
+                    align: 'UL',
+                    // Acyclic algorithm
+                    acyclicer: 'greedy',
+                    // Rank assignment
+                    ranker: 'network-simplex'
+                };
+                
+            case 'concentric':
+                return {
+                    name: 'concentric',
+                    ...baseOptions,
+                    // Concentric layout - put high-degree nodes in center
+                    concentric: function(node) {
+                        return node.degree();
+                    },
+                    levelWidth: function(nodes) {
+                        return Math.max(2, Math.ceil(nodes.length / 8));
+                    },
+                    minNodeSpacing: nodeSpacing,
+                    spacingFactor: 1 + (edgeLength / 100),
+                    equidistant: false,
+                    startAngle: 3 / 2 * Math.PI,
+                    sweep: 2 * Math.PI,
+                    clockwise: true
+                };
+                
+            case 'circle':
+                return {
+                    name: 'circle',
+                    ...baseOptions,
+                    spacingFactor: 1 + (nodeSpacing / 50),
+                    radius: undefined, // auto calculate
+                    startAngle: 3 / 2 * Math.PI,
+                    sweep: 2 * Math.PI,
+                    clockwise: true,
+                    sort: function(a, b) {
+                        // Sort by type, then by degree
+                        if (a.data('type') !== b.data('type')) {
+                            const order = ['vmh', 'saved', 'reaction'];
+                            return order.indexOf(a.data('type')) - order.indexOf(b.data('type'));
+                        }
+                        return b.degree() - a.degree();
+                    }
+                };
+                
+            case 'grid':
+                return {
+                    name: 'grid',
+                    ...baseOptions,
+                    spacingFactor: 1 + (nodeSpacing / 50),
+                    avoidOverlap: true,
+                    avoidOverlapPadding: nodeSpacing / 2,
+                    condense: nodeSpacing < 50,
+                    rows: undefined,
+                    cols: undefined,
+                    sort: function(a, b) {
+                        // Group by type
+                        if (a.data('type') !== b.data('type')) {
+                            const order = ['reaction', 'vmh', 'saved'];
+                            return order.indexOf(a.data('type')) - order.indexOf(b.data('type'));
+                        }
+                        return 0;
+                    }
+                };
+                
+            default:
+                // Fallback to basic COSE
+                return {
+                    name: 'cose',
+                    ...baseOptions,
+                    nodeRepulsion: repulsion,
+                    idealEdgeLength: edgeLength,
+                    gravity: gravity,
+                    numIter: 1500
+                };
+        }
+    }
+    
+    /**
+     * Apply the current layout configuration
+     */
+    function applyCurrentLayout() {
+        if (!cy) return;
+        
+        const btn = document.getElementById('btnApplyLayout');
+        const originalContent = btn.innerHTML;
+        
+        // Show running state
+        btn.innerHTML = '<i class="fa fa-spinner"></i> Running...';
+        btn.classList.add('running');
+        
+        // Build and run layout
+        const layoutOptions = buildLayoutOptions();
+        
+        // Add completion callback
+        layoutOptions.stop = function() {
+            btn.innerHTML = originalContent;
+            btn.classList.remove('running');
+        };
+        
+        try {
+            const layout = cy.layout(layoutOptions);
+            layout.run();
+        } catch (error) {
+            console.error('Layout error:', error);
+            btn.innerHTML = originalContent;
+            btn.classList.remove('running');
+            
+            // Fallback to basic cose if layout fails
+            const fallbackLayout = cy.layout({
+                name: 'cose',
+                animate: true,
+                fit: true,
+                padding: 50
+            });
+            fallbackLayout.run();
+        }
     }
     
     /**
@@ -1487,10 +1971,18 @@
     }
 
     /**
-     * Run graph layout
+     * Run graph layout - uses the default layout or current layout panel settings
      */
     function runLayout() {
-        const layout = cy.layout(CONFIG.layout);
+        if (!cy) return;
+        
+        // If layout panel has been used, apply those settings
+        // Otherwise use the default optimized layout
+        const layoutOptions = currentLayoutConfig.algorithm !== 'cose-bilkent' 
+            ? buildLayoutOptions() 
+            : CONFIG.defaultLayout;
+            
+        const layout = cy.layout(layoutOptions);
         layout.run();
     }
 
@@ -1501,11 +1993,12 @@
         const btn = document.getElementById('btnRelayout');
         btn.classList.add('active');
         
-        runLayout();
+        // Use current layout settings from panel
+        applyCurrentLayout();
         
         setTimeout(() => {
             btn.classList.remove('active');
-        }, 1000);
+        }, 1200);
     }
 
     /**
