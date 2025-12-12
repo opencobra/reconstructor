@@ -192,19 +192,19 @@
                             <div class="layout-panel-section" id="spacingSection">
                                 <label class="layout-label">
                                     <span>Node Spacing</span>
-                                    <span class="layout-value" id="nodeSpacingValue">50</span>
+                                    <span class="layout-value" id="nodeSpacingValue">150</span>
                                 </label>
                                 <input type="range" class="layout-slider" id="nodeSpacing" 
-                                       min="10" max="200" value="50" step="5">
+                                       min="10" max="300" value="150" step="5">
                             </div>
                             
                             <div class="layout-panel-section" id="edgeLengthSection">
                                 <label class="layout-label">
                                     <span>Edge Length</span>
-                                    <span class="layout-value" id="edgeLengthValue">120</span>
+                                    <span class="layout-value" id="edgeLengthValue">100</span>
                                 </label>
                                 <input type="range" class="layout-slider" id="edgeLength" 
-                                       min="30" max="300" value="120" step="10">
+                                       min="30" max="300" value="100" step="10">
                             </div>
                             
                             <div class="layout-panel-section physics-controls" id="physicsSection">
@@ -513,8 +513,8 @@
     // Current layout state
     let currentLayoutConfig = {
         algorithm: 'cose-bilkent',
-        nodeSpacing: 50,
-        edgeLength: 120,
+        nodeSpacing: 150,
+        edgeLength: 100,
         gravity: 0.25,
         repulsion: 4500
     };
@@ -748,12 +748,17 @@
                 };
                 
             case 'concentric':
+                // Radial layout - high-degree nodes in center, but also group by type
                 return {
                     name: 'concentric',
                     ...baseOptions,
-                    // Concentric layout - put high-degree nodes in center
+                    // Combine degree with type preference (reactions slightly more central)
                     concentric: function(node) {
-                        return node.degree();
+                        const degree = node.degree();
+                        const type = node.data('type');
+                        // Boost reactions slightly toward center
+                        const typeBonus = type === 'reaction' ? 5 : 0;
+                        return degree + typeBonus;
                     },
                     levelWidth: function(nodes) {
                         return Math.max(2, Math.ceil(nodes.length / 8));
@@ -985,8 +990,8 @@
             elements: elements,
             style: getCytoscapeStyle(),
             layout: { name: 'preset' }, // We'll run layout after
-            minZoom: 0.1,
-            maxZoom: 4,
+            minZoom: 0.001,  // Allow zooming out much further for large networks
+            maxZoom: 5,
             wheelSensitivity: 0.3
         });
 
