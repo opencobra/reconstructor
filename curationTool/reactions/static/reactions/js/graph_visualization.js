@@ -192,7 +192,7 @@
                             <div class="layout-panel-section" id="spacingSection">
                                 <label class="layout-label">
                                     <span>Node Spacing</span>
-                                    <span class="layout-value" id="nodeSpacingValue">150</span>
+                                    <span class="layout-value" id="nodeSpacingValue">5</span>
                                 </label>
                                 <input type="range" class="layout-slider" id="nodeSpacing" 
                                        min="1" max="300" value="150" step="5">
