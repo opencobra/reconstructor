@@ -195,7 +195,7 @@
                                     <span class="layout-value" id="nodeSpacingValue">150</span>
                                 </label>
                                 <input type="range" class="layout-slider" id="nodeSpacing" 
-                                       min="10" max="300" value="150" step="5">
+                                       min="1" max="300" value="150" step="5">
                             </div>
                             
                             <div class="layout-panel-section" id="edgeLengthSection">
@@ -204,7 +204,7 @@
                                     <span class="layout-value" id="edgeLengthValue">100</span>
                                 </label>
                                 <input type="range" class="layout-slider" id="edgeLength" 
-                                       min="30" max="300" value="100" step="10">
+                                       min="1" max="300" value="100" step="10">
                             </div>
                             
                             <div class="layout-panel-section physics-controls" id="physicsSection">
