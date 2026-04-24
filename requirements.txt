@@ -60,3 +60,5 @@ zeep
 pandas
 pubchempy
 coreapi
+# coreapi imports pkg_resources at runtime
+setuptools
