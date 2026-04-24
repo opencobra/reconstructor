@@ -1,5 +1,6 @@
 services:
   web:
+    cgroup_parent: reconstructor.slice
     build: .
     command: gunicorn reactions_project.wsgi:application --config /app/gunicorn.conf.py
     env_file:
@@ -22,6 +23,7 @@ services:
       - MATLAB_HTTP_PORT=9090
       
   db:
+    cgroup_parent: reconstructor.slice
     image: postgres:15-alpine
     env_file:
       - .env
@@ -36,6 +38,7 @@ services:
       - ./docker/postgres_data:/var/lib/postgresql/data
 
   matlab:
+    cgroup_parent: reconstructor.slice
     build:
       context: .
       dockerfile: docker/matlab/Dockerfile
