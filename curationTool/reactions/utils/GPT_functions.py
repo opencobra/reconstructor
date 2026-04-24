@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import re
 import pubchempy as pcp
-import coreapi
 import re
 from openai import OpenAI
 import time
@@ -22,27 +21,27 @@ from IPython.display import display, HTML
 # os.environ.get('OPENAI_API_KEY')
 openai_api_key = "sk-proj-KDaeymwJ58UELawwkqwVT3BlbkFJ3raLweuqMjdC0HqzDHzE"
 
+def _api_get(url):
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    return response.json()
+
 
 def get_gene_name(gene_id):
-    client = coreapi.Client()
-
-    schema = client.get(
+    schema = _api_get(
         "https://www.vmh.life/_api/genes/?gene_number=" +
         str(gene_id))
     return schema['results'][0]['symbol']
 
 
 def get_ncbi_gene_id(gene_name):
-    client = coreapi.Client()
-
-    schema = client.get("https://www.vmh.life/_api/genes/?symbol=" + gene_name)
+    schema = _api_get("https://www.vmh.life/_api/genes/?symbol=" + gene_name)
     return schema['results'][0]['gene_number']
 
 
 def get_vmh_synonyms(abbreviation):
-    client = coreapi.Client()
     try:
-        schema = client.get(
+        schema = _api_get(
             "https://www.vmh.life/_api/metabolites/?abbreviation=" +
             abbreviation +
             "&format=json")
@@ -53,9 +52,8 @@ def get_vmh_synonyms(abbreviation):
 
 
 def get_vmh_met_from_inchi(inchi, met):
-    client = coreapi.Client()
     try:
-        schema = client.get(
+        schema = _api_get(
             "https://www.vmh.life/_api/metabolites/?inchiString=" +
             inchi +
             "&format=json")
@@ -68,9 +66,7 @@ def get_vmh_met_from_inchi(inchi, met):
 def get_gene_reactions(ncbi_id):
 
     reactions = []
-    # Initialize a client & load the schema document
-    client = coreapi.Client()
-    schema = client.get("https://www.vmh.life/_api/genereactions/" + ncbi_id)
+    schema = _api_get("https://www.vmh.life/_api/genereactions/" + ncbi_id)
 
     for item in schema['results']:
         reactions.append(item['formula'])
@@ -96,14 +92,13 @@ def extract_compounds(chemical_formula):
 
 def vmh_to_normal(formula):
     new_formula = formula
-    client = coreapi.Client()
 
     compounds = extract_compounds(formula)
 
     for compound in compounds:
 
         try:
-            schema = client.get(
+            schema = _api_get(
                 "https://www.vmh.life/_api/metabolites/?abbreviation=" +
                 compound)
             normal_name = schema["results"][0]['fullName']
@@ -120,10 +115,8 @@ def vmh_to_normal(formula):
 def get_cid_vmh_api(name):
     cid = 0
     try:
-        client = coreapi.Client()
-
         # getting pubchem ID from VMH API
-        schema = client.get(
+        schema = _api_get(
             "https://www.vmh.life/_api/metabolites/?abbreviation=" + name)
         cid = schema["results"][0]['pubChemId']
 
