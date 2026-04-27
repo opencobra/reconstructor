@@ -1,24 +1,47 @@
 function displayReactionMessage(reactionData) {
-    // Clear the previous message
-    let messageContainer = document.getElementById('reactionFoundMessage');
+    const messageContainer = document.getElementById('reactionFoundMessage');
+    if (!messageContainer) {
+        return;
+    }
 
     messageContainer.innerHTML = '';
 
-    if (reactionData.vmh_found) {
-        const reactionFoundMessage = reactionData.vmh_found_similar ?
-            'Similar Reaction found at VMH:' : 'Exact Reaction found at VMH:';
+    const hasMatch = Boolean(reactionData && reactionData.vmh_found);
+    const isSimilar = Boolean(reactionData && reactionData.vmh_found_similar);
+    const rawUrl = reactionData && reactionData.vmh_url ? reactionData.vmh_url : '';
+    const cleanedUrl = rawUrl.trim().replace(/^"|"$/g, '');
 
-        const messageText = document.createTextNode(reactionFoundMessage);
-        messageContainer.appendChild(messageText);
-        messageContainer.appendChild(document.createElement('br'));
+    if (!hasMatch) {
+        const emptyBadge = document.createElement('span');
+        emptyBadge.className = 'vmh-badge vmh-badge--none';
+        emptyBadge.innerHTML =
+            '<i class="fas fa-search" aria-hidden="true"></i><span>No VMH match found</span>';
+        messageContainer.appendChild(emptyBadge);
+        return;
+    }
 
-        const link = document.createElement('a');
-        link.setAttribute('href', reactionData.vmh_url.trim().replace(/^"|"$/g, ''));
-        link.setAttribute('target', '_blank');
-        link.textContent = reactionData.vmh_url;
-        messageContainer.appendChild(link);
-    } 
+    const reactionId = cleanedUrl.split('/').filter(Boolean).pop() || 'Open in VMH';
+    const hasLink = cleanedUrl !== '';
 
-    // Display the message
-    messageContainer.style.display = 'block';
+    const badge = hasLink ? document.createElement('a') : document.createElement('span');
+    badge.className = isSimilar ? 'vmh-badge vmh-badge--similar' : 'vmh-badge vmh-badge--exact';
+
+    if (hasLink) {
+        badge.href = cleanedUrl;
+        badge.target = '_blank';
+        badge.rel = 'noopener noreferrer';
+    }
+
+    const icon = document.createElement('i');
+    icon.className = isSimilar ? 'fas fa-code-branch' : 'fas fa-check-circle';
+    icon.setAttribute('aria-hidden', 'true');
+
+    const label = document.createElement('span');
+    label.textContent = isSimilar
+        ? `VMH similar reaction: ${reactionId}`
+        : `VMH exact reaction: ${reactionId}`;
+
+    badge.appendChild(icon);
+    badge.appendChild(label);
+    messageContainer.appendChild(badge);
 }

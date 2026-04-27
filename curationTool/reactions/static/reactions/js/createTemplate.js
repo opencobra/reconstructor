@@ -20,7 +20,15 @@ function toggleCreateTemplateMode() {
     const formButtonsContainer = document.getElementById('FormButtons');
 
     // Update status
-    statusElement.innerHTML = `Status: <span class="status-dot-top ${dotClass}"></span> Creating Template`;
+    if (typeof renderStatusBadge === 'function') {
+        renderStatusBadge({
+            dotClass,
+            iconClass: 'fas fa-layer-group',
+            label: 'Creating template',
+        });
+    } else {
+        statusElement.innerHTML = `<span class="status-badge ${dotClass}"><i class="fas fa-layer-group" aria-hidden="true"></i> Creating template</span>`;
+    }
 
     // Hide save button
     saveButton.style.display = 'none';

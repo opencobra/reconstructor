@@ -22,12 +22,12 @@ body {
 	align-items: center;
 	width: 100%;
 	height: auto;
-	min-height: 60px;
+	min-height: 88px;
 	background: linear-gradient(135deg, #1976d2 0%, #2196f3 50%, #42a5f5 100%);
 	font-size: 1rem;
 	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 	box-sizing: border-box;
-	padding: 8px 20px;
+	padding: 10px 20px;
 }
 
 /* Header Left Section */
@@ -193,23 +193,37 @@ body {
 /* Status Message - Centered */
 .statusAndMessage {
 	position: absolute;
+	top: 50%;
 	left: 50%;
-	transform: translateX(-50%);
+	transform: translate(-50%, -50%);
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	gap: 4px;
+	gap: 8px;
+	width: clamp(280px, 42vw, 560px);
+	max-width: calc(100% - 520px);
 	color: white;
+	pointer-events: none;
 }
 
 .status-item {
-	font-size: 14px;
+	font-size: 13px;
 	font-weight: 500;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 100%;
+	pointer-events: auto;
 }
 
 #reactionFoundMessage {
-	font-size: 12px;
-	opacity: 0.9;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	max-width: 100%;
+	pointer-events: auto;
 }
 
 /* Legacy styles - kept for backward compatibility */
@@ -231,26 +245,24 @@ body {
 .ui.secondary.vertical.pointing.menu {
 	display: flex;
 	flex-direction: column;
-	background-color: #b1e5ff; /* A lighter, sky-blue color that complements the existing blues in the image */
+	background-color: #b1e5ff;
 	margin: 0;
-	padding: 0;
+	padding: 8px 0;
 	justify-content: flex-start;
 	height: 100%;
-	width: 120%; /* Ensure the menu takes full width of its container */
-	align-items: center;
-}
-
-.ui.secondary.vertical.pointing.menu {
-	box-shadow: inset -2px 0 0 0 #000 !important; /* Add a left border to the menu */
+	width: 100%;
+	align-items: stretch;
+	box-shadow: inset -1px 0 0 #86bfdc !important;
+	border-radius: 0;
 }
 
 .ui.fluid.button {
-	font-weight: bold;
+	font-weight: 600;
 	background: #eed8c3;
 }
 
 .ui.fluid.button:hover {
-	background-color: #eed8c3;
+	background-color: #e8cfb9;
 }
 
 .main-container {
@@ -269,9 +281,9 @@ body {
 	align-items: stretch;
 	gap: 10px;
 	height: auto;
-	margin-left: 1%;
+	margin-left: 0;
 	background-color: #e7f7ff !important;
-	border-left: 2px solid black; /* Added this line */
+	border-left: none;
 }
 
 .divs-container {
@@ -521,28 +533,39 @@ body {
 }
 
 .fluid.ui.button {
-	font-size: 1.2rem;
-	display: grid !important;
-	place-items: center !important;
-	border: 0.5px solid #000; /* Ensure the border is styled properly */
-	color: white !important;
-	border-radius: 2px;
-	height: 70px;
-	box-sizing: border-box; /* Include the border in the element's width and height */
-	background-color: #3198cc;
+	display: flex !important;
+	flex-direction: column !important;
+	align-items: center !important;
+	justify-content: center !important;
+	gap: 4px;
+	border: 1px solid #2579a3 !important;
+	color: #ffffff !important;
+	border-radius: 6px;
+	height: 66px;
+	box-sizing: border-box;
+	background: linear-gradient(180deg, #3198cc, #2888b7) !important;
+	font-size: 0.74rem !important;
+	font-weight: 600 !important;
+	letter-spacing: 0.01em;
+	line-height: 1.15;
+	transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18) !important;
 }
 
 .fluid.ui.button:hover {
-	background-color: #2078a4;
+	background: linear-gradient(180deg, #2a8ec0, #2078a4) !important;
+	transform: translateY(-1px);
 }
 
 .ui.button.active {
 	background-color: transparent !important;
-	box-shadow: none !important; /* Optional: Removes any shadow if there is */
+	box-shadow: none !important;
 }
 
 .fluid.ui.button.active {
-	background: linear-gradient(180deg, rgba(12, 74, 110, 0.95), #073651) !important;
+	background: linear-gradient(180deg, #2078a4, #1a668d) !important;
+	color: #ffffff !important;
+	box-shadow: inset 4px 0 0 #eed8c3, 0 1px 3px rgba(0, 0, 0, 0.2) !important;
 }
 
 #userIcon {
@@ -1159,8 +1182,9 @@ footer {
 }
 
 #reactionFoundMessage {
-	display: block;
-	text-align: center;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .dropdown {
@@ -1453,4 +1477,217 @@ footer {
 }
 .s-badge.new {
 	color: #b26a00;
+}
+
+/* ============================================
+   SIDEBAR NAVIGATION — REDESIGN
+   ============================================ */
+
+.side-buttons {
+	width: 150px;
+	min-width: 150px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	background: #b1e5ff;
+	box-shadow: inset -1px 0 0 #86bfdc;
+	z-index: 10;
+}
+
+/* Tighten margins so items fill the panel */
+.side-buttons .fluid.ui.button,
+.side-buttons .ui.fluid.button {
+	margin: 2px 8px;
+	width: calc(100% - 16px) !important;
+	padding: 8px 4px !important;
+}
+
+/* Active: left-side accent bar + tinted background */
+.side-buttons .fluid.ui.button.active,
+.side-buttons .ui.fluid.button.active {
+	background: linear-gradient(180deg, #2078a4, #1a668d) !important;
+	color: #ffffff !important;
+	border-left: 4px solid #eed8c3 !important;
+	border-radius: 0 6px 6px 0 !important;
+	padding-left: 6px !important;
+}
+
+.side-buttons .fluid.ui.button i,
+.side-buttons .ui.fluid.button i {
+	font-size: 1.1rem;
+	display: block;
+	line-height: 1;
+}
+
+.side-buttons .fluid.ui.button span,
+.side-buttons .ui.fluid.button span {
+	display: block;
+}
+
+/* Bottom utility buttons (Stats, About) */
+.side-buttons .bottom {
+	margin-top: auto;
+	padding: 6px 0;
+	border-top: 1px solid rgba(24, 82, 112, 0.25);
+	width: 100%;
+}
+
+/* ============================================
+   STATUS BADGE — HEADER CENTER
+   ============================================ */
+
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 12px;
+	font-weight: 600;
+	white-space: normal;
+	max-width: 100%;
+	text-align: center;
+	border: 1px solid rgba(255, 255, 255, 0.32);
+	background: rgba(255, 255, 255, 0.14);
+	color: #ffffff;
+	line-height: 1.4;
+}
+
+.status-badge .status-label {
+	white-space: nowrap;
+}
+
+.status-badge .status-separator {
+	line-height: 1;
+	opacity: 0.95;
+}
+
+.status-badge.dot-green {
+	background: rgba(76, 175, 80, 0.22);
+	border-color: rgba(220, 255, 224, 0.45);
+	color: #effff1;
+}
+
+.status-badge.dot-orange {
+	background: rgba(255, 152, 0, 0.24);
+	border-color: rgba(255, 232, 199, 0.5);
+	color: #fff5e5;
+}
+
+.status-badge.dot-red {
+	background: rgba(244, 67, 54, 0.24);
+	border-color: rgba(255, 224, 223, 0.45);
+	color: #fff0ef;
+}
+
+.status-badge.dot-grey {
+	background: rgba(84, 110, 122, 0.26);
+	border-color: rgba(233, 240, 245, 0.45);
+	color: #f5f8fa;
+}
+
+/* Reaction name inside the badge */
+.status-badge .reaction-name {
+	color: #ffffff !important;
+	font-style: italic;
+	font-weight: 700;
+	cursor: default;
+	position: relative;
+	display: inline-block;
+	max-width: 240px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.status-badge .reaction-name[data-tooltip-this]:hover::after {
+	content: attr(data-tooltip-this);
+	position: absolute;
+	top: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	background: #155a86;
+	color: #ffffff;
+	padding: 6px 12px;
+	border-radius: 6px;
+	white-space: nowrap;
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	font-size: 11px;
+	font-style: normal;
+	z-index: 9999;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+	pointer-events: none;
+}
+
+/* ============================================
+   VMH MATCH BADGE — HEADER CENTER
+   ============================================ */
+
+.vmh-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	padding: 4px 12px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	text-decoration: none;
+	letter-spacing: 0.01em;
+	transition: filter 0.15s ease, opacity 0.15s ease;
+	cursor: pointer;
+	max-width: 100%;
+	border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.vmh-badge span {
+	display: inline-block;
+	max-width: 260px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.vmh-badge:hover {
+	filter: brightness(1.08);
+	opacity: 1;
+}
+
+.vmh-badge--similar {
+	background: rgba(255, 193, 7, 0.24);
+	border-color: rgba(255, 244, 214, 0.5);
+	color: #fff7df;
+}
+
+.vmh-badge--exact {
+	background: rgba(76, 175, 80, 0.24);
+	border-color: rgba(231, 255, 236, 0.52);
+	color: #f2fff4;
+}
+
+.vmh-badge--none {
+	background: rgba(84, 110, 122, 0.3);
+	border-color: rgba(229, 238, 244, 0.45);
+	color: #f3f8fb;
+	cursor: default;
+}
+
+@media (max-width: 1200px) {
+	.top-menu {
+		min-height: 92px;
+	}
+
+	.statusAndMessage {
+		width: min(520px, calc(100% - 360px));
+		max-width: calc(100% - 360px);
+	}
+
+	.status-badge .reaction-name,
+	.vmh-badge span {
+		max-width: 170px;
+	}
 }

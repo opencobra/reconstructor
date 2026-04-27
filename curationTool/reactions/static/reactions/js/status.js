@@ -1,50 +1,105 @@
-function setLoggedInStatusBasedOnUrl(reactionData) {
-    let status = '';
-    let dotClass = '';
-
-    if (reactionData === '') {
-        status = "Creating Reaction";
-        dotClass = "dot-red"; 
-    } else {
-        const urlParams = new URLSearchParams(window.location.search);
-        const reactionId = urlParams.get('reaction_id');
-        const action = urlParams.get('action');
-        let reactionName = reactionData.name;
-        let reactionDescription = reactionData.description;
-
-        if (action !== "edit" && reactionId !== null) {
-            status = `Viewing reaction <br>
-                      <span class="reaction-name" data-tooltip-this="${reactionDescription}">${reactionName}</span>`;
-            dotClass = "dot-green";
-        } else if (reactionId === null && action !== "edit") {
-            status = "Creating Reaction";
-            dotClass = "dot-red"; 
-        } else {
-            status = `Editing reaction 
-                      <span class="reaction-name" data-tooltip-this="${reactionDescription}">${reactionName}</span>`;
-            dotClass = "dot-orange";
-        }
+function buildReactionNameElement(name, description) {
+    if (!name) {
+        return null;
     }
 
+    const reactionName = document.createElement('span');
+    reactionName.className = 'reaction-name';
+    reactionName.textContent = name;
+    if (description) {
+        reactionName.setAttribute('data-tooltip-this', description);
+    }
+
+    return reactionName;
+}
+
+function renderStatusBadge(options) {
+    const {
+        dotClass,
+        iconClass,
+        label,
+        reactionName,
+        reactionDescription,
+    } = options;
+
     const statusElement = document.getElementById('statusTitle');
-    if (statusElement) {
-        statusElement.innerHTML = `Status: <span class="status-dot-top ${dotClass}"></span> ${status}`;
+    if (!statusElement) {
+        console.error('Status element not found in the DOM');
+        return;
+    }
+
+    const badge = document.createElement('span');
+    badge.className = `status-badge ${dotClass}`;
+
+    const icon = document.createElement('i');
+    icon.className = iconClass;
+    icon.setAttribute('aria-hidden', 'true');
+    badge.appendChild(icon);
+
+    const labelSpan = document.createElement('span');
+    labelSpan.className = 'status-label';
+    labelSpan.textContent = label;
+    badge.appendChild(labelSpan);
+
+    const reactionNameElement = buildReactionNameElement(reactionName, reactionDescription);
+    if (reactionNameElement) {
+        const separator = document.createElement('span');
+        separator.className = 'status-separator';
+        separator.textContent = '·';
+        badge.appendChild(separator);
+        badge.appendChild(reactionNameElement);
+    }
+
+    statusElement.replaceChildren(badge);
+}
+
+function setLoggedInStatusBasedOnUrl(reactionData) {
+    if (!reactionData || reactionData === '') {
+        renderStatusBadge({
+            dotClass: 'dot-red',
+            iconClass: 'fas fa-plus-circle',
+            label: 'Creating reaction',
+        });
+        return;
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const reactionId = urlParams.get('reaction_id');
+    const action = urlParams.get('action');
+
+    const reactionName = reactionData.name || 'Unnamed reaction';
+    const reactionDescription = reactionData.description || '';
+
+    if (action !== 'edit' && reactionId !== null) {
+        renderStatusBadge({
+            dotClass: 'dot-green',
+            iconClass: 'fas fa-eye',
+            label: 'Viewing reaction',
+            reactionName,
+            reactionDescription,
+        });
+    } else if (reactionId === null && action !== 'edit') {
+        renderStatusBadge({
+            dotClass: 'dot-red',
+            iconClass: 'fas fa-plus-circle',
+            label: 'Creating reaction',
+        });
     } else {
-        console.error("Status element not found in the DOM");
+        renderStatusBadge({
+            dotClass: 'dot-orange',
+            iconClass: 'fas fa-pencil-alt',
+            label: 'Editing reaction',
+            reactionName,
+            reactionDescription,
+        });
     }
 }
 
 function setLoggedOutStatusBasedOnUrl() {
-    // 1. Determine the status for logged-out users
-    const status = "Idle"; // Default for logged-out users
-    const dotClass = "dot-grey"; // Grey dot for "Idle"
-
-    // 2. Display the status in the div with id="statusTitle"
-    const statusElement = document.getElementById('statusTitle');
-    if (statusElement) {
-        statusElement.innerHTML = `Status: <span class="status-dot-top ${dotClass}"></span> ${status}`;
-    } else {
-        console.error("Status element not found in the DOM");
-    }
+    renderStatusBadge({
+        dotClass: 'dot-grey',
+        iconClass: 'fas fa-clock',
+        label: 'Idle',
+    });
 }
 

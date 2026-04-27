@@ -84,7 +84,8 @@ else:
         '192.168.1.49',
         'reconstructor.chatimd.org',
         'reconstructor.humanmetabolism.org',
-        'constructor.humanmetabolism.org'
+        'constructor.humanmetabolism.org',
+        '0.0.0.0'
     ]
 
 #allow CsrfViewMiddleware
