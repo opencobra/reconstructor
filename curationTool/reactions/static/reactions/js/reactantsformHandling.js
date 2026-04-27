@@ -5,6 +5,14 @@ document.getElementById('submitBtn-form').addEventListener('click', function(eve
     document.getElementById('reactionForm').requestSubmit();
 });
 
+// Keep loader outside hidden modal containers so it is always visible.
+(function ensureGlobalLoadingIndicator() {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    if (loadingIndicator && loadingIndicator.parentElement !== document.body) {
+        document.body.appendChild(loadingIndicator);
+    }
+})();
+
 function normalizeReactionDirection(direction) {
     const value = (direction || '').toString().trim().toLowerCase();
     if (value === 'forward' || value === '->' || value === '=>' || value === '=') {
@@ -144,6 +152,14 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     e.preventDefault(); // Prevent the default form submission
 
     var submitBtn = document.getElementById('submitBtn-form');
+    const stopLoadingState = function () {
+        submitBtn.disabled = false;
+        hideLoader();
+    };
+
+    submitBtn.disabled = true;
+    showLoader();
+
     currentUrl = window.location.href;
     editing = false
     if (currentUrl.includes('edit')) {
@@ -151,6 +167,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         // pop up that says "are you sure you want to update this reaction?"
         var userConfirmed = confirm('Are you sure you want to update your saved reaction? This action cannot be undone.');
         if (!userConfirmed) {
+            stopLoadingState();
             return; // Exit the function and do not submit form
         }
     }
@@ -165,6 +182,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     var subsystemField = document.getElementById('subsystemField').value;
     if (!subsystemField.trim()) {
         alert('Please enter a subsystem.');
+        stopLoadingState();
         return; // Exit the function and do not submit form
     }
 
@@ -177,6 +195,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
             var errorMessage = 'Verify all metabolites before creating reaction.';
             showErrorModal(errorMessage);
             window.scrollTo(0, 0);
+            stopLoadingState();
             return
         }
     }
@@ -206,9 +225,9 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         var errorMessage = 'Enter all metabolite names before creating reaction.';
         showErrorModal(errorMessage);
         window.scrollTo(0, 0);
+        stopLoadingState();
         return; // Exit the function and do not submit form
     }
-    submitBtn.disabled = true;
     loadingIndicator.style.display = 'flex';
     if (subsystemList.length === 0) {
         subsystemList = await updateSubsystems();
@@ -221,8 +240,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
             var errorMessage = 'The subsystem entered is not valid.';
             showErrorModal(errorMessage);
             window.scrollTo(0, 0);
-            submitBtn.disabled = false;
-            loadingIndicator.style.display = 'none';
+            stopLoadingState();
             return; // Exit the function and do not submit form
         } else {
             if (sessionStorage.getItem('userID') !== null) {
@@ -234,8 +252,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
                 var errorMessage = 'Please login to add a new subsystem.';
                 showErrorModal(errorMessage);
                 window.scrollTo(0, 0);
-                submitBtn.disabled = false;
-                loadingIndicator.style.display = 'none';
+                stopLoadingState();
                 return; // Exit the function and do not submit form
             }
         }
@@ -266,8 +283,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     if (!editing){
         const shouldProceed = await checkIdenticalReaction(formData, loadingIndicator, submitBtn);
         if (!shouldProceed) {
-            submitBtn.disabled = false;
-            loadingIndicator.style.display = 'none';
+            stopLoadingState();
             return;
         }
     }
