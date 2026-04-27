@@ -48,14 +48,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // Add event listeners for nav links
-    const statsNav = document.getElementById('view-leader-board-nav');
-    if (statsNav) {
-        statsNav.addEventListener('click', function(e) {
-            e.preventDefault();
-            window.location.href = '/leader_board';
-        });
-    }
-    
     const aboutNav = document.getElementById('about-nav');
     if (aboutNav) {
         aboutNav.addEventListener('click', function(e) {
