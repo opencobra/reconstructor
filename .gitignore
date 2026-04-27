@@ -10,3 +10,4 @@ staticfiles/
 .DS_Store
 temp_mol.mol
 .env
+.codex
