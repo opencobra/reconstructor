@@ -423,6 +423,29 @@ function createCompartmentSelect(prod_or_subs) {
 	compartmentSelect.value = 'c'; // Set default value to 'c'
 	return compartmentSelect;
 }
+
+function normalizeDirectionForSelect(direction) {
+	const value = (direction || '').toString().trim().toLowerCase();
+	if (value === 'forward' || value === '->' || value === '=>' || value === '=') {
+		return 'forward';
+	}
+	if (
+		value === 'bidirectional' ||
+		value === 'reversible' ||
+		value === '<=>' ||
+		value === '<->' ||
+		value === '<-->' ||
+		value === '↔' ||
+		value === '⇌' ||
+		value === 'reverse' ||
+		value === 'backward' ||
+		value === '<=' ||
+		value === '<-'
+	) {
+		return 'bidirectional';
+	}
+	return 'forward';
+}
 // Updates the form fields with given substrates and products data.
 async function updateFormFields(data) {
 	let substratesDiv = document.getElementById('substratesDiv');
@@ -442,7 +465,7 @@ async function updateFormFields(data) {
 
 	// Update reaction direction
 	let direction = document.getElementById('reactionDirection');
-	direction.value = data.direction;
+	direction.value = normalizeDirectionForSelect(data.direction);
 
 	let subsystem = document.getElementById('subsystemField');
 	subsystem.value = data.subsystem;

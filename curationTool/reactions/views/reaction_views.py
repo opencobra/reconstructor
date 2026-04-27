@@ -46,6 +46,21 @@ from reactions.forms import ReactionForm
 from reactions.models import User, CreatedReaction, Reaction, ReactionsAddedVMH, SavedMetabolite
 # Suppress RDKit warnings
 RDLogger.DisableLog('rdApp.*')
+
+
+def _normalize_direction(direction):
+    """Normalize direction values coming from different clients/sources."""
+    value = (direction or '').strip().lower()
+    if value in {'forward', '->', '=>', '='}:
+        return 'forward'
+    if value in {'bidirectional', 'reversible', '<=>', '<->', '<-->', '↔', '⇌'}:
+        return 'bidirectional'
+    if value in {'reverse', 'backward', '<=', '<-'}:
+        # The app currently supports forward/bidirectional only.
+        return 'bidirectional'
+    return 'forward'
+
+
 def input_reaction(request):
     """
     Process and store a reaction submitted by a user.
@@ -115,7 +130,7 @@ def input_reaction(request):
     if ('Saved' in substrates_types or 'Saved' in products_types) and not user:
         return JsonResponse(
             {'status': 'error', 'message': 'Cannot use saved metabolites without signing in.'})
-    direction = request.POST.get('direction')
+    direction = _normalize_direction(request.POST.get('direction'))
     subs_sch = [int(s) for s in subs_sch]
     prod_sch = [int(s) for s in prod_sch]
 
@@ -440,7 +455,7 @@ def get_reaction(request, reaction_id):
             'products': safe_json_loads(reaction.products),
             'substrates_names': safe_json_loads(reaction.substrates_names),
             'products_names': safe_json_loads(reaction.products_names),
-            'direction': reaction.direction,
+            'direction': _normalize_direction(reaction.direction),
             'subsystem': reaction.subsystem,
             'subs_comps': safe_json_loads(reaction.subs_comps),
             'prods_comps': safe_json_loads(reaction.prods_comps),
@@ -999,7 +1014,7 @@ def saved_reactions(request, modal=False):
                     'balanced_count': json.loads(reaction.balanced_count)[0] if reaction.balanced_count else None,
                     'balanced_charge': json.loads(reaction.balanced_charge)[0] if reaction.balanced_charge else None,
                     'subsystem': reaction.subsystem,
-                    'direction': reaction.direction,
+                    'direction': _normalize_direction(reaction.direction),
                     'gene_info': gene_info_list,
                     'flags': flag_details,  # Include flag details with name and color
                     'confidence_score': reaction.confidence_score,

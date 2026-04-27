@@ -5,6 +5,29 @@ document.getElementById('submitBtn-form').addEventListener('click', function(eve
     document.getElementById('reactionForm').requestSubmit();
 });
 
+function normalizeReactionDirection(direction) {
+    const value = (direction || '').toString().trim().toLowerCase();
+    if (value === 'forward' || value === '->' || value === '=>' || value === '=') {
+        return 'forward';
+    }
+    if (
+        value === 'bidirectional' ||
+        value === 'reversible' ||
+        value === '<=>' ||
+        value === '<->' ||
+        value === '<-->' ||
+        value === '↔' ||
+        value === '⇌' ||
+        value === 'reverse' ||
+        value === 'backward' ||
+        value === '<=' ||
+        value === '<-'
+    ) {
+        return 'bidirectional';
+    }
+    return 'forward';
+}
+
 function hidemodal(){
 
     document.getElementById('error-modal').style.display = 'none';
@@ -164,6 +187,8 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     var formData = new FormData(this);
 
     disabledInputs.forEach(input => input.disabled = true);
+    const directionEl = document.getElementById('reactionDirection');
+    formData.set('direction', normalizeReactionDirection(directionEl ? directionEl.value : 'forward'));
     var nameData = {};
     var metaboliteFields = document.querySelectorAll('.substrates-name, .products-name');
     var allNamesEntered = true;

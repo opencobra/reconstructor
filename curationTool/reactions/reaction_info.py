@@ -7,6 +7,18 @@ from rdkit.Chem.rdchem import GetPeriodicTable
 import json
 
 
+def _normalize_direction(direction):
+    """Normalize reaction direction to supported internal values."""
+    value = (direction or '').strip().lower()
+    if value in {'forward', '->', '=>', '='}:
+        return 'forward'
+    if value in {'bidirectional', 'reversible', '<=>', '<->', '<-->', '↔', '⇌'}:
+        return 'bidirectional'
+    if value in {'reverse', 'backward', '<=', '<-'}:
+        return 'bidirectional'
+    return 'forward'
+
+
 def calculate_total_charge(molecules):
     """Calculate the total charge of a set of molecules."""
     total_charge = 0
@@ -121,7 +133,12 @@ def get_molecular_formula(file_path, direction):
     # Construct reaction formula
     reactant_side = ' + '.join(reactant_formulas)
     product_side = ' + '.join(product_formulas)
-    reaction_formula = f"{reactant_side} -> {product_side}" if direction == 'forward' else f"{reactant_side} <=> {reactant_side}"
+    normalized_direction = _normalize_direction(direction)
+    reaction_formula = (
+        f"{reactant_side} -> {product_side}"
+        if normalized_direction == 'forward'
+        else f"{reactant_side} <=> {product_side}"
+    )
 
     return reaction_formula, symb_to_name
 
@@ -157,6 +174,6 @@ def construct_vmh_formula(reaction, subs_abbr, prods_abbr):
         [f"{subs_stch[i]} {subs_abbr[i]}[{subs_comps[i]}]" for i in range(len(subs_stch))])
     product_formula = ' + '.join(
         [f"{prods_stch[i]} {prods_abbr[i]}[{prods_comps[i]}]" for i in range(len(prods_stch))])
-    direction = '->' if reaction.direction == 'forward' else '<=>'
+    direction = '->' if _normalize_direction(reaction.direction) == 'forward' else '<=>'
     formula = f"{substrate_formula} {direction} {product_formula}"
     return formula

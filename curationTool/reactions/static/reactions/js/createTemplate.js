@@ -78,6 +78,8 @@ async function createTemplate() {
             // Collect form data
             const reactionForm = document.getElementById('reactionForm');
             const formData = new FormData(reactionForm);
+            const directionElement = document.getElementById('reactionDirection');
+            formData.set('direction', directionElement ? directionElement.value : 'forward');
 
             // Append template name and description
             formData.append('template_name', templateName);

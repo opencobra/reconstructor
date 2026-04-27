@@ -120,6 +120,25 @@ function appendVMHFormulaSection(contentDiv, reactionData) {
 	if (reactionData.rxn_formula) {
 		formulaDisplay.textContent = reactionData.rxn_formula;
 	} else {
+		const normalizeDirection = (direction) => {
+			const value = (direction || '').toString().trim().toLowerCase();
+			if (value === 'forward' || value === '->' || value === '=>' || value === '=') return 'forward';
+			if (
+				value === 'bidirectional' ||
+				value === 'reversible' ||
+				value === '<=>' ||
+				value === '<->' ||
+				value === '<-->' ||
+				value === '↔' ||
+				value === '⇌' ||
+				value === 'reverse' ||
+				value === 'backward' ||
+				value === '<=' ||
+				value === '<-'
+			) return 'bidirectional';
+			return 'forward';
+		};
+
 		const formulaText = [];
 		// Substrates
 		(reactionData.subs_sch || []).forEach((stoich, index) => {
@@ -132,8 +151,8 @@ function appendVMHFormulaSection(contentDiv, reactionData) {
 		});
 
 		// Direction
-		const dir = reactionData.direction;
-		formulaText.push(dir === 'forward' ? ' -> ' : dir === 'bidirectional' ? ' <=> ' : ' ');
+		const dir = normalizeDirection(reactionData.direction);
+		formulaText.push(dir === 'forward' ? ' -> ' : ' <=> ');
 
 		// Products
 		(reactionData.prod_sch || []).forEach((stoich, index) => {

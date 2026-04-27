@@ -115,7 +115,6 @@ document.addEventListener('DOMContentLoaded', async function () {
             })
             .then(async reactionData => {
                 await updateFormFields(reactionData);
-                reactionData.substrates = ['test'];
                 confirmAll();
                 displayDivs(reactionData);
                 if (reactionData.short_name) {
