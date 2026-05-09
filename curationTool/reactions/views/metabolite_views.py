@@ -27,8 +27,8 @@ from reactions.utils.search_vmh import search_vmh
 from reactions.utils.to_mol import any_to_mol
 from reactions.utils.utils import capitalize_first_letter, parse_mol_formula
 from reactions.utils.get_from_rhea import get_from_rhea
+from reactions.utils.vmh_api import find_metabolite_by_abbreviation, vmh_metabolite_url
 from reactions.models import SavedMetabolite, User
-
 from django.conf import settings
 
 def verify_metabolite(request):
@@ -62,22 +62,11 @@ def verify_metabolite(request):
 
 def _verify_vmh_metabolite(main_input, input_type):
     """Helper function to verify a metabolite in VMH."""
-    base_url = settings.OLD_VMH_BASE_URL
-    endpoint = f"{base_url}_api/metabolites/?abbreviation={main_input}"
+    row = find_metabolite_by_abbreviation(main_input)
 
-    try:
-        response = requests.get(endpoint, verify=False, timeout=10)
-    except Exception:
-        response = None
-
-    results = []
-    if response and response.status_code == 200:
-        data = response.json()
-        results = data.get('results', [])
-
-    if results:
-        inchi_string = results[0].get('inchiString', '')
-        smile = results[0].get('smile', '')
+    if row:
+        inchi_string = row.get('inchiString', '')
+        smile = row.get('smile', '')
 
         if not smile and not inchi_string:
             return JsonResponse({
@@ -98,9 +87,9 @@ def _verify_vmh_metabolite(main_input, input_type):
 
         return JsonResponse({
             'found': True,
-            'abbr': results[0]['abbreviation'],
-            'name': results[0]['fullName'],
-            'miriam': results[0]['miriam'],
+            'abbr': row.get('abbreviation', main_input),
+            'name': row.get('fullName') or main_input,
+            'miriam': vmh_metabolite_url(row.get('abbreviation') or main_input),
             'input_type': input_type,
             'atom_counts': atom_counts,
             'charge': charge,

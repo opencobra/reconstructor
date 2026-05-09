@@ -1,4 +1,5 @@
 var llm_html = '';
+const vmhBaseUrl = (window.vmhBaseUrl || '').replace(/\/$/, '');
 
 document.getElementById('AIButton').addEventListener('click', function() {
     var dropdown = document.getElementById('dropdown');
@@ -73,7 +74,10 @@ document.getElementById('submitGene').addEventListener('click', function() {
         // Function to create a link if the metabolite doesn't have an underscore
         function createLink(metabolite) {
             if (!metabolite.includes('_')) {
-                return `<a href="https://www.vmh.life/#metabolite/${metabolite}">${metabolite}</a>`;
+                if (!vmhBaseUrl) {
+                    return metabolite;
+                }
+                return `<a href="${vmhBaseUrl}/metabolite/${encodeURIComponent(metabolite)}">${metabolite}</a>`;
             } else {
                 return metabolite.replace('_', '');
             }

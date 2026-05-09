@@ -38,6 +38,7 @@ from reactions.reaction_info import get_reaction_info
 from reactions.utils.process_strings import construct_reaction_rxnfile
 from reactions.utils.get_mol_info import get_mol_info
 from reactions.utils.search_vmh import search_metabolites_vmh, check_reaction_vmh
+from reactions.utils.vmh_api import vmh_public_base_url
 from reactions.utils.to_mol import any_to_mol
 from reactions.utils.utils import get_fields
 from reactions.utils.RDT import RDT
@@ -1026,6 +1027,7 @@ def saved_reactions(request, modal=False):
             'reactions_json': reactions_json,
             'userID': userID,
             'user_name': user.name,
+            'vmh_base_url': vmh_public_base_url(),
             'combined_reactions_details': combined_reactions_details,
         }
 

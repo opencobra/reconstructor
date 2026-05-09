@@ -23,8 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from reactions.organ_data import ORGAN_MAPPING, location_mapping
 from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular_locations, _vmh_gene_exists, _entrez_exists, _hgnc_symbol_exists_exact
-
-from django.conf import settings
+from reactions.utils.vmh_api import gene_data_new, gene_rows_old, gene_symbol_from_row
 
 from reactions.models import Gene
 from django.db.models import Q
@@ -127,26 +126,21 @@ def get_gene_info(request):
                     return JsonResponse(
                         {'error': False, 'symbol': gene_data["name"]})
 
-        # If not found in Entrez, check VMH
-        vmh_base_url = settings.OLD_VMH_BASE_URL
-        vmh_endpoint = f"{vmh_base_url}_api/genes/?gene_number={gene_input}"
-        vmh_response = requests.get(vmh_endpoint, verify=False,timeout=10)
+        # If not found in Entrez, check VMH (new API first, then old fallback).
+        vmh_rows = gene_data_new(gene_input)
+        if not vmh_rows and "." not in gene_input:
+            vmh_rows = gene_data_new(f"{gene_input}.1")
 
-        if vmh_response.status_code != 200:
-            return JsonResponse(
-                {
-                    'error': True,
-                    'message': f'VMH API returned error {vmh_response.status_code}'
-                     f'for gene number `{gene_input}`'},
-                status=500)
+        if not vmh_rows:
+            vmh_rows = gene_rows_old(gene_number=gene_input)
+        if not vmh_rows and "." not in gene_input:
+            vmh_rows = gene_rows_old(gene_number=f"{gene_input}.1")
 
-        vmh_data = vmh_response.json()
-        if vmh_data['count'] == 0:
+        if not vmh_rows:
             return JsonResponse(
                 {'error': True, 'message': f'Gene number `{gene_input}` not found in VMH'}, status=404) # pylint: disable=line-too-long
 
-        gene = vmh_data['results'][0]
-        symbol = gene.get('symbol', '')
+        symbol = gene_symbol_from_row(vmh_rows[0]) or vmh_rows[0].get('symbol', '')
         return JsonResponse({'error': False, 'symbol': symbol})
 
     elif type_input == 'HGNC Symbol':

@@ -7,14 +7,12 @@
 from rdkit import Chem
 import os
 from django.core.files.temp import NamedTemporaryFile
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 import requests
 from reactions_project.settings import MEDIA_ROOT, MEDIA_URL
 from zeep import Client
 from reactions.models import SavedMetabolite
-
-from django.conf import settings
-
+from reactions.utils.vmh_api import find_metabolite_by_abbreviation
 
 def smiles_with_explicit_hydrogens(smiles):
     """
@@ -52,20 +50,11 @@ def vmh_to_smiles(abbreviation):
     Output:
     - (tuple): A tuple containing the SMILES string and an error message (if any).
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    encoded_abbr = quote(abbreviation)
-    endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
-    response = requests.get(endpoint, verify=False)
-
-    if response.status_code != 200:
-        return None, f"VMH API returned error {response.status_code} for metabolite {abbreviation}"
-
-    data = response.json()
-    res = data.get('results', [])
-    if len(res) == 0:
+    row = find_metabolite_by_abbreviation(abbreviation)
+    if not row:
         return None, f"Metabolite {abbreviation} does not exist in VMH"
 
-    smile = res[0].get('smile', '')
+    smile = row.get('smile', '')
     if not smile:
         return None, f"Metabolite {abbreviation} does not have SMILES on VMH"
     smile = smiles_with_explicit_hydrogens(smile)

@@ -1,11 +1,11 @@
 import random
-import requests
 import json
 import os
 import sys
 import traceback
 from pathlib import Path
 from django.conf import settings
+from reactions.utils.vmh_api import find_metabolite_by_abbreviation, find_reaction_by_abbreviation
 
 # Use HTTP client to communicate with MATLAB container
 from reactions.utils.MatlabHTTPClient import MatlabSessionManager
@@ -37,25 +37,13 @@ def _save_abbr_cache(cache):
         print(f"[WARN gen_vmh_abbrs] Failed to save cache: {e}", flush=True)
 
 def check_reaction_abbr_exists(abbr):
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    endpoint = f"{BASE_URL}_api/reactions/?abbreviation={abbr}"
-    # Make the GET request
-    response = requests.get(endpoint, verify=False)
-    if response.json().get('count', 0) == 0:
-        return False
-    else:
-        return True
+    row = find_reaction_by_abbreviation(abbr)
+    return bool(row and (row.get("abbreviation") or "").lower() == abbr.lower())
 
 
 def check_met_abbr_exists(abbr):
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={abbr}"
-    # Make the GET request
-    response = requests.get(endpoint, verify=False)
-    if response.json().get('count', 0) == 0:
-        return False
-    else:
-        return True
+    row = find_metabolite_by_abbreviation(abbr)
+    return bool(row and (row.get("abbreviation") or "").lower() == abbr.lower())
 
 
 def gen_reaction_abbr(sub_abbr, prod_abbr, reaction):

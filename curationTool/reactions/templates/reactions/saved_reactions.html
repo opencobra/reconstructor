@@ -336,9 +336,11 @@
 			const prepAddToVMHUrl = "{% url 'prepare_add_to_vmh' %}";
 			const csrfToken = '{{ csrf_token }}';
 			const userID = '{{ userID }}';
+			const vmhBaseUrl = '{{ vmh_base_url }}';
 			// Also expose to window for graph visualization module
 			window.csrfToken = csrfToken;
 			window.userID = userID;
+			window.vmhBaseUrl = vmhBaseUrl;
 			const editReactionURL = "{% url 'edit_reaction_info' %}";
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
 			var reactions = {{ reactions_json|safe }};

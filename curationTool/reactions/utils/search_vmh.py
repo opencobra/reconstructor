@@ -9,14 +9,25 @@ import os
 from rdkit import Chem
 from reactions.utils.to_smiles import smiles_with_explicit_hydrogens
 from django.core.files.temp import NamedTemporaryFile
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 import json
 import re
 from django.http import JsonResponse
 from reactions.utils.to_smiles import any_to_smiles
 from reactions.utils.to_mol import any_to_mol
+from reactions.utils.vmh_api import (
+    find_metabolite_by_abbreviation,
+    find_metabolite_by_full_name,
+    find_metabolite_by_inchi_string_old,
+    find_metabolite_by_inchikey,
+    find_reaction_by_abbreviation,
+    vmh_metabolite_url,
+    vmh_old_get,
+    vmh_reaction_url,
+)
 
 from django.conf import settings
+
 
 def is_name_in_vmh(name):
     """
@@ -28,21 +39,7 @@ def is_name_in_vmh(name):
     Output:
     - (bool): True if found, False otherwise.
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    encoded_name = quote(name)
-    endpoint = f"{BASE_URL}_api/metabolites/?fullName={encoded_name}"
-    response = requests.get(endpoint, verify=False)
-    if response.status_code != 200:
-        return False
-    elif response.json().get('count', 0) == 0:
-        return False
-    else:
-        match = False
-        for result in response.json().get('results', []):
-            if result.get('fullName', '').lower() == name.lower():
-                match = True
-                break
-        return match
+    return bool(find_metabolite_by_full_name(name))
 
 
 def any_to_vmh(mols, types, smiles):
@@ -57,27 +54,29 @@ def any_to_vmh(mols, types, smiles):
     Output:
     - (list): List of VMH database abbreviations or 'error' for unsuccessful conversions.
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
     mols_list = []
     for idx, mol in enumerate(mols):
         if types[idx] == 'VMH':
             mols_list.append(mol)
         else:
-            m = Chem.MolFromSmiles(str(smiles[idx]), sanitize=False)
-            inchi = Chem.MolToInchi(m)
-            encoded_inchi = quote(inchi)
-            endpoint = f"{BASE_URL}_api/metabolites/?inchiString={encoded_inchi}"
-            # Make the GET request
-            response = requests.get(endpoint, verify=False)
-            if response.status_code != 200:
+            try:
+                m = Chem.MolFromSmiles(str(smiles[idx]), sanitize=False)
+                if m is None:
+                    mols_list.append('error')
+                    continue
+                inchi = Chem.MolToInchi(m)
+                inchi_key = Chem.MolToInchiKey(m)
+            except Exception:
                 mols_list.append('error')
-            if response.json().get('count', 0) == 0:
-                mols_list.append('error')
-            else:
-                abbr = response.json().get(
-                    'results', [[]])[0].get(
-                    'abbreviation', '')
-                mols_list.append(abbr)
+                continue
+
+            match = find_metabolite_by_inchikey(
+                inchi_key,
+                inchi_string=inchi,
+            ) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+
+            abbr = (match or {}).get('abbreviation', '')
+            mols_list.append(abbr if abbr else 'error')
     return mols_list
 
 
@@ -106,8 +105,6 @@ def check_reaction_vmh(
     Output:
     - (dict): Dictionary containing reaction information if found, otherwise an 'error' or 'not found' message.
     """
-    # Checking lo
-    BASE_URL = settings.OLD_VMH_BASE_URL
     subs_smiles = any_to_smiles(
         subs_mols, [
             'MDL Mol file' for _ in range(
@@ -138,14 +135,13 @@ def check_reaction_vmh(
             abbrProduct = products[ip]
 
             # Construct the API endpoint URL
-            endpoint = f"{BASE_URL}_api/reactionfromreactandproduct/{abbrReactant}/{abbrProduct}/"
-
-            # Make the GET request
-            response = requests.get(endpoint, verify=False)
-
-            if response.status_code != 200:
+            response = vmh_old_get(
+                f"/_api/reactionfromreactandproduct/{abbrReactant}/{abbrProduct}/"
+            )
+            if not response or response.status_code != 200:
+                status_code = response.status_code if response else "no_response"
                 return json.dumps(
-                    {"error": f"Failed to fetch data from API. Status code: {response.status_code}"})
+                    {"error": f"Failed to fetch data from API. Status code: {status_code}"})
 
             # Parse the API response
             data = response.json()
@@ -208,8 +204,14 @@ def check_reaction_vmh(
                                                                        for molecule in this_products)
                 if substrates_match and products_match:
                     found = True
-                    img_code = result.get("rxn", {}).get("miriam")
-                    miriams.append(img_code)
+                    rxn_data = result.get("rxn", {})
+                    rxn_abbr = (
+                        rxn_data.get("abbreviation")
+                        or rxn_data.get("rxnAbbr")
+                        or rxn_data.get("id")
+                        or ""
+                    )
+                    miriams.append(vmh_reaction_url(rxn_abbr) if rxn_abbr else "")
                     formulas.append(formula)
                     similar = False if this_subsystem == subsystem and this_direction == direction and comps_match else True
 
@@ -235,7 +237,6 @@ def search_vmh(mol, return_abbr=False, return_name=False):
     Output:
     - (tuple): A tuple containing a boolean indicating if found, and the miriam ID if found.
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
     found = False
     smiles = Chem.MolToSmiles(mol)
     smiles = smiles_with_explicit_hydrogens(smiles)
@@ -249,28 +250,35 @@ def search_vmh(mol, return_abbr=False, return_name=False):
     except BaseException:
         pass
     inchi = Chem.MolToInchi(m)
-    encoded_inchi = quote(inchi)
     if inchi.strip() == '':
         found = False
-        miriam = None
+        miriam = ''
         abbr = ''
         name = ''
     else:
-        endpoint = f"{BASE_URL}_api/metabolites/?inchiString__icontains={encoded_inchi}"
-        # Make the GET request
-        response = requests.get(endpoint, verify=False)
-        if response.status_code != 200 or response.json().get('count', 0) == 0:
-            encoded_inchi = quote(Chem.MolToInchi(mol))
-            endpoint = f"{BASE_URL}_api/metabolites/?inchiString={encoded_inchi}"
-            response = requests.get(endpoint, verify=False)
-            if response.status_code != 200 or response.json().get('count', 0) == 0:
-                if return_abbr and return_name:
-                    return found, '', '', ''
-                return found, ''
-        miriam = response.json().get('results', [[]])[0].get('miriam', '')
-        abbr = response.json().get('results', [[]])[0].get('abbreviation', '')
-        name = response.json().get('results', [[]])[0].get('fullName', '')
-    if miriam:
+        inchi_key = Chem.MolToInchiKey(m) if m else ''
+        match = find_metabolite_by_inchikey(inchi_key, inchi_string=inchi) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+
+        if not match:
+            try:
+                raw_inchi = Chem.MolToInchi(mol)
+                raw_inchi_key = Chem.MolToInchiKey(mol)
+            except Exception:
+                raw_inchi = ''
+                raw_inchi_key = ''
+
+            if raw_inchi and raw_inchi != inchi:
+                match = find_metabolite_by_inchikey(raw_inchi_key, inchi_string=raw_inchi) if raw_inchi_key else find_metabolite_by_inchi_string_old(raw_inchi)
+
+        if not match:
+            if return_abbr and return_name:
+                return found, '', '', ''
+            return found, ''
+
+        abbr = match.get('abbreviation', '')
+        name = match.get('fullName', '')
+        miriam = vmh_metabolite_url(abbr) if abbr else ''
+    if abbr:
         found = True
     if return_abbr and return_name:
         return found, miriam, abbr, name
@@ -291,17 +299,10 @@ def get_vmh_miriam(abbr):
     Output:
     - (str): The MIRIAM ID for the molecule is found, else empty string.
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    encoded_abbr = quote(abbr)
-    endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={encoded_abbr}"
-    try:
-        response = requests.get(endpoint, verify=False, timeout=10)
-        if response.status_code == 200:
-            results = response.json().get('results', [])
-            if results:
-                return results[0].get('miriam', '')
-    except Exception:
-        pass
+    match = find_metabolite_by_abbreviation(abbr)
+    if match:
+        resolved_abbr = match.get("abbreviation") or abbr
+        return vmh_metabolite_url(resolved_abbr)
 
     # Fallback: local mol file
     mol_path = os.path.join(settings.MOL_FILE_PATH, f"{abbr}.mol")
@@ -501,27 +502,24 @@ def get_from_vmh(request):
     Output:
     - (JsonResponse): A JsonResponse object containing reaction data or an error message.
     """
-    BASE_URL = settings.OLD_VMH_BASE_URL
     if request.method == 'POST':
         data = json.loads(request.body)  # Parse JSON data from request body
         reaction_abbreviation = data.get('reactionAbbreviation', '')
-        endpoint = f"{BASE_URL}_api/reactions/?abbreviation={reaction_abbreviation}"
-        response = requests.get(endpoint, verify=False)
-        data = response.json()
-        if response.status_code != 200:
-            return JsonResponse(
-                {"error": f"Failed to fetch data from API. Status code: {response.status_code}"})
-        if data.get('count', 0) == 0:
+        reaction_data = find_reaction_by_abbreviation(reaction_abbreviation)
+        if not reaction_data:
             return JsonResponse(
                 {"error": "No reaction found with this abbreviation"})
-        formula = data.get('results', [])[0].get('formula', '')
+        formula = reaction_data.get('formula', '')
+        if not formula:
+            return JsonResponse(
+                {"error": f"Reaction `{reaction_abbreviation}` has no formula in VMH"})
         substrates, products, subs_sch, prod_sch, subs_comps, prod_comps, direction = decode_formula(
             formula)
         # Construct the response data
         subs_types, prods_types = [
             'VMH' for _ in substrates], [
             'VMH' for _ in products]
-        subsystem = data.get('results', [])[0].get('subsystem', '')
+        subsystem = reaction_data.get('subsystem', '')
         data = {
             'substrates': substrates,
             'products': products,

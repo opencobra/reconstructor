@@ -1,5 +1,4 @@
 import json
-import requests
 import random
 import os
 
@@ -9,9 +8,13 @@ from django.http import JsonResponse
 
 from reactions.utils.to_mol import any_to_mol
 from reactions.utils.search_vmh import check_reaction_vmh
+from reactions.utils.vmh_api import (
+    find_metabolite_by_abbreviation,
+    find_metabolite_by_full_name,
+    find_reaction_by_abbreviation,
+    reaction_name_exists,
+)
 # Function to gather additional reaction details
-
-from django.conf import settings
 
 
 def gather_reaction_details(reaction_objs):
@@ -391,49 +394,17 @@ def check_reactions_vmh(reaction_objs):
 def check_names_abbrs_vmh(names_abbr_list):
     names_vmh = {}
     abbr_vmh = {}
-    BASE_URL = settings.OLD_VMH_BASE_URL
     for name, abbr in names_abbr_list:
-        endpoint = f"{BASE_URL}_api/reactions/?abbreviation={abbr}"
-        response = requests.get(endpoint, verify=False)
-        found_abbr = False
-        if response.json().get('count', 0) > 0:
-            for result in response.json().get('results', []):
-                if result['abbreviation'].lower() == abbr.lower():
-                    found_abbr = True
-                    break
-        abbr_vmh[abbr] = found_abbr
-        endpoint = f"{BASE_URL}_api/reactions/?description={name}"
-        response = requests.get(endpoint, verify=False)
-        found_name = False
-        if response.json().get('count', 0) > 0:
-            for result in response.json().get('results', []):
-                if result['description'].lower() == name.lower():
-                    found_name = True
-                    break
-        names_vmh[name] = found_name
+        found_reaction = find_reaction_by_abbreviation(abbr)
+        abbr_vmh[abbr] = bool(found_reaction and (found_reaction.get("abbreviation") or "").lower() == abbr.lower())
+        names_vmh[name] = reaction_name_exists(name)
     return names_vmh, abbr_vmh
 
 
 def make_request_names_abbrs(name, abbr):
-    BASE_URL = settings.OLD_VMH_BASE_URL
-    endpoint = f"{BASE_URL}_api/metabolites/?abbreviation={abbr}"
-    response = requests.get(endpoint, verify=False)
-    abbr_found = False
-    name_found = False
-    if response.json().get('count', 0) > 0:
-        for result in response.json().get('results', []):
-            if result['abbreviation'].lower() == abbr.lower():
-                abbr_found = True
-                break
-
-    endpoint = f"{BASE_URL}_api/metabolites/?fullName={name}"
-    response = requests.get(endpoint, verify=False)
-    if response.json().get('count', 0) > 0:
-        for result in response.json().get('results', []):
-            if result['fullName'].lower() == name.lower():
-                name_found = True
-                break
-
+    found_abbr = find_metabolite_by_abbreviation(abbr)
+    abbr_found = bool(found_abbr and (found_abbr.get("abbreviation") or "").lower() == abbr.lower())
+    name_found = bool(find_metabolite_by_full_name(name))
     return name_found, abbr_found
 
 

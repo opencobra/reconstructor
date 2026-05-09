@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from reactions.models import User, Reaction, SavedMetabolite
 from reactions.views.user_views import validate_user_ID
+from reactions.utils.vmh_api import vmh_metabolite_url
 import json
 
 
@@ -46,7 +47,7 @@ def _build_vmh_node(abbr, name, compartment=None, in_vmh=True, formula=None):
         'compartment': compartment,
         'in_vmh': in_vmh,
         'formula': formula,
-        'vmh_url': f"https://www.vmh.life/#metabolite/{abbr}" if in_vmh else None,
+        'vmh_url': vmh_metabolite_url(abbr) if in_vmh else None,
     }
 
 

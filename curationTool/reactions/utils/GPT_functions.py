@@ -12,6 +12,16 @@ import pubchempy as pcp
 import requests
 from itertools import permutations
 from IPython.display import display, HTML
+from rdkit import Chem
+from reactions.utils.vmh_api import (
+    find_metabolite_by_abbreviation,
+    find_metabolite_by_inchi_string_old,
+    find_metabolite_by_inchikey,
+    gene_data_new,
+    gene_rows_old,
+    gene_symbol_from_row,
+    vmh_old_get,
+)
 
 
 # create a new openai api key
@@ -28,45 +38,58 @@ def _api_get(url):
 
 
 def get_gene_name(gene_id):
-    schema = _api_get(
-        "https://www.vmh.life/_api/genes/?gene_number=" +
-        str(gene_id))
-    return schema['results'][0]['symbol']
+    rows = gene_data_new(str(gene_id))
+    if not rows:
+        rows = gene_rows_old(gene_number=str(gene_id))
+    if not rows:
+        rows = gene_rows_old(gene_number=f"{gene_id}.1")
+    if not rows:
+        return str(gene_id)
+    return gene_symbol_from_row(rows[0]) or rows[0].get('symbol', str(gene_id))
 
 
 def get_ncbi_gene_id(gene_name):
-    schema = _api_get("https://www.vmh.life/_api/genes/?symbol=" + gene_name)
-    return schema['results'][0]['gene_number']
+    rows = gene_data_new(gene_name)
+    if rows and rows[0].get('gene_number'):
+        return rows[0]['gene_number']
+
+    rows = gene_rows_old(symbol=gene_name)
+    if rows and rows[0].get('gene_number'):
+        return rows[0]['gene_number']
+    return gene_name
 
 
 def get_vmh_synonyms(abbreviation):
-    try:
-        schema = _api_get(
-            "https://www.vmh.life/_api/metabolites/?abbreviation=" +
-            abbreviation +
-            "&format=json")
-        return schema['results'][0]['synonyms'].split('***')
-    except BaseException:
-        schema = abbreviation
-        return [schema]
+    row = find_metabolite_by_abbreviation(abbreviation)
+    if not row:
+        return [abbreviation]
+
+    synonyms = row.get('synonyms', '')
+    if isinstance(synonyms, list):
+        return synonyms or [abbreviation]
+    if isinstance(synonyms, str) and synonyms.strip():
+        return synonyms.split('***') if '***' in synonyms else [synonyms]
+    return [abbreviation]
 
 
 def get_vmh_met_from_inchi(inchi, met):
     try:
-        schema = _api_get(
-            "https://www.vmh.life/_api/metabolites/?inchiString=" +
-            inchi +
-            "&format=json")
-        return schema['results'][0]['abbreviation']
-    except BaseException:
+        mol = Chem.MolFromInchi(inchi, sanitize=False, removeHs=False)
+        inchi_key = Chem.MolToInchiKey(mol) if mol else ''
+    except Exception:
+        inchi_key = ''
 
-        return met
+    row = find_metabolite_by_inchikey(inchi_key, inchi_string=inchi) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+    return row.get('abbreviation', met) if row else met
 
 
 def get_gene_reactions(ncbi_id):
 
     reactions = []
-    schema = _api_get("https://www.vmh.life/_api/genereactions/" + ncbi_id)
+    response = vmh_old_get(f"/_api/genereactions/{ncbi_id}", timeout=30)
+    if not response or response.status_code != 200:
+        return reactions
+    schema = response.json()
 
     for item in schema['results']:
         reactions.append(item['formula'])
@@ -98,10 +121,8 @@ def vmh_to_normal(formula):
     for compound in compounds:
 
         try:
-            schema = _api_get(
-                "https://www.vmh.life/_api/metabolites/?abbreviation=" +
-                compound)
-            normal_name = schema["results"][0]['fullName']
+            row = find_metabolite_by_abbreviation(compound)
+            normal_name = row['fullName'] if row and row.get('fullName') else compound
 #             print(compound, normal_name)
 
             new_formula = new_formula.replace(
@@ -115,14 +136,15 @@ def vmh_to_normal(formula):
 def get_cid_vmh_api(name):
     cid = 0
     try:
-        # getting pubchem ID from VMH API
-        schema = _api_get(
-            "https://www.vmh.life/_api/metabolites/?abbreviation=" + name)
-        cid = schema["results"][0]['pubChemId']
+        row = find_metabolite_by_abbreviation(name)
+        cid = row.get('pubChemId') if row else 0
 
     except BaseException:
         pass
-    return 0 if cid == '' else int(cid)
+    try:
+        return int(cid) if cid else 0
+    except (TypeError, ValueError):
+        return 0
 
 
 def get_cid_api(name):

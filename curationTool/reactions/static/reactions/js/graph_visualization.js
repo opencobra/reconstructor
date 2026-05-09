@@ -16,6 +16,7 @@
 
 (function() {
     'use strict';
+    const vmhBaseUrl = (window.vmhBaseUrl || '').replace(/\/$/, '');
 
     // Configuration
     const CONFIG = {
@@ -24,7 +25,7 @@
         },
         urls: {
             editReaction: (id) => `/?reaction_id=${id}&action=edit`,
-            vmhMetabolite: (abbr) => `https://www.vmh.life/#metabolite/${abbr}`
+            vmhMetabolite: (abbr) => vmhBaseUrl ? `${vmhBaseUrl}/metabolite/${encodeURIComponent(abbr)}` : null
         },
         colors: {
             vmhNode: '#4fc3f7',

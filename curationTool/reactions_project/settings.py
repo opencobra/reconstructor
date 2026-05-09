@@ -29,9 +29,9 @@ except ImportError:
     print("WARNING: python-dotenv not installed, environment variables must be set manually")
     pass
 
-# base url for api calls
-OLD_VMH_BASE_URL = 'https://www.vmh.life/'
-NEW_VMH_BASE_URL = 'https://vmh2.life/'
+# VMH configuration
+VMH_BASE_URL = os.getenv('VMH_BASE_URL', '').rstrip('/')
+VMH_API_KEY = os.getenv('VMH_API_KEY', '')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -234,4 +234,3 @@ LOGGING = {
         },
     },
 }
-

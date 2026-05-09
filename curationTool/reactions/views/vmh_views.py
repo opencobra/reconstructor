@@ -17,8 +17,6 @@ Dependencies:
 
 """
 import json
-import os
-import requests
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -26,8 +24,6 @@ from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect, render, get_object_or_404
 from django.views.decorators.http import require_POST
 from django.core import serializers 
-
-from django.conf import settings
 
 from reactions.models import (
     User,
@@ -112,40 +108,21 @@ def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):
 
 def get_vmh_subsystems():
     """
-    Retrieve subsystem names from the Virtual Metabolic Human (VMH) database.
-
-    Process:
-        - Fetches subsystem names from VMH via an API request.
-        - Iterates through paginated results to collect all subsystems.
+    Retrieve subsystem names from the local database.
 
     Returns:
         list:
-            A list of subsystem names from VMH.
+            A list of subsystem names stored locally.
     """
-    base_url = settings.OLD_VMH_BASE_URL
-    endpoint = f"{base_url}_api/subsystems/"
-    subsystems = []
-
-    # Fetch subsystems from VMH
-    while True:
-        response = requests.get(endpoint, verify=False,timeout=10)
-        data = response.json()['results']
-        subsystems.extend([subsystem['name'] for subsystem in data])
-        endpoint = response.json().get('next')
-        if not endpoint:
-            break
-
-    return subsystems
+    return list(Subsystem.objects.values_list('name', flat=True))
 
 
 def get_subsystems(request):
     """
-    Retrieve subsystem names from VMH and merge them with stored subsystems.
+    Retrieve subsystem names from the local Subsystem table.
 
     Process:
-        - Fetches subsystems from VMH.
-        - Retrieves stored subsystems from the local database.
-        - Combines both sets of subsystem names.
+        - Reads all subsystem names from the local database.
 
     Parameters:
         request (HttpRequest): 
@@ -159,14 +136,7 @@ def get_subsystems(request):
     try:
         subsystems = get_vmh_subsystems()
 
-        # Fetch subsystems from the database
-        stored_subsystems = Subsystem.objects.values_list('name', flat=True)
-
-        # Merge the two lists
-        combined_subsystems = set(subsystems).union(set(stored_subsystems))
-        combined_subsystems = list(combined_subsystems)
-
-        return JsonResponse({'subsystem_list': combined_subsystems})
+        return JsonResponse({'subsystem_list': subsystems})
 
     except Exception as e:
         return JsonResponse({'error': True, 'message': str(e)}, status=500)
