@@ -1,11 +1,16 @@
 import json
+from collections import defaultdict
 from typing import Dict, Optional, Set
 
+import urllib3
 from django.core.management.base import BaseCommand
 from rdkit import Chem
+from tqdm import tqdm
 
 from reactions.models import Reaction, SavedMetabolite
 from reactions.utils.vmh_api import find_metabolite_by_inchikey, vmh_metabolite_url
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class Command(BaseCommand):
@@ -99,10 +104,15 @@ class Command(BaseCommand):
 
         saved_lookup = {
             str(saved_met.id): saved_met
-            for saved_met in SavedMetabolite.objects.all().only("id", "inchi_key", "inchi", "smiles", "vmh_abbr", "name")
+            for saved_met in SavedMetabolite.objects.select_related("owner").only(
+                "id", "inchi_key", "inchi", "smiles", "vmh_abbr", "name", "owner__id", "owner__name"
+            )
         }
         promotion_cache: Dict[str, Optional[Dict[str, str]]] = {}
         promoted_saved_ids: Set[str] = set()
+        # per-user tracking: user_label -> list of (name, inchi_key) for unmatched
+        user_matched: Dict[str, Set[str]] = defaultdict(set)   # user_label -> set of saved_ids matched
+        user_unmatched: Dict[str, list] = defaultdict(list)    # user_label -> [(name, inchi_key)]
 
         reactions_updated = 0
         replacements_count = 0
@@ -122,7 +132,7 @@ class Command(BaseCommand):
             "prod_miriams",
         )
 
-        for reaction in reactions.iterator():
+        for reaction in tqdm(reactions.iterator(), total=reactions.count(), desc="Processing reactions"):
             substrates = self._safe_json_list(reaction.substrates)
             products = self._safe_json_list(reaction.products)
             subs_types = self._safe_json_list(reaction.substrates_types)
@@ -162,13 +172,19 @@ class Command(BaseCommand):
                     promotion_cache[saved_id] = None
                     return None
 
+                owner = saved_met.owner
+                user_label = f"{owner.name} (id={owner.id})" if owner else "Unknown"
+
                 promoted = self._resolve_saved_metabolite(saved_met)
                 promotion_cache[saved_id] = promoted
                 if promoted:
                     vmh_matches += 1
+                    user_matched[user_label].add(saved_id)
                     if not dry_run and saved_met.vmh_abbr != promoted["abbr"]:
                         saved_met.vmh_abbr = promoted["abbr"]
                         saved_met.save(update_fields=["vmh_abbr"])
+                else:
+                    user_unmatched[user_label].append((saved_met.name or "", saved_met.inchi_key or ""))
                 return promoted
 
             for idx, (met_id, met_type) in enumerate(zip(substrates, subs_types)):
@@ -236,11 +252,18 @@ class Command(BaseCommand):
             elif deletable_ids and dry_run:
                 deleted_count = len(deletable_ids)
 
-        self.stdout.write(
-            self.style.SUCCESS(
-                "Promotion complete "
-                f"(dry_run={dry_run}): vmh_matches={vmh_matches}, "
-                f"reactions_updated={reactions_updated}, replacements={replacements_count}, "
-                f"deleted_saved_metabolites={deleted_count}"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(
+            f"\nPromotion complete (dry_run={dry_run}): "
+            f"vmh_matches={vmh_matches}, reactions_updated={reactions_updated}, "
+            f"replacements={replacements_count}, deleted_saved_metabolites={deleted_count}"
+        ))
+        self.stdout.write("\n--- Per-user summary ---")
+        all_users = set(user_matched) | set(user_unmatched)
+        for user_label in sorted(all_users):
+            matched_count = len(user_matched.get(user_label, set()))
+            unmatched = user_unmatched.get(user_label, [])
+            self.stdout.write(f"\n  {user_label}: {matched_count} matched, {len(unmatched)} unmatched")
+            if unmatched:
+                self.stdout.write("    Unmatched saved metabolites:")
+                for name, inchi_key in unmatched:
+                    self.stdout.write(f"      - {name}  [{inchi_key}]")
