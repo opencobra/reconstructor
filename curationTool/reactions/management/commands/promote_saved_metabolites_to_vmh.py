@@ -41,9 +41,20 @@ class Command(BaseCommand):
             return list(default)
 
     def _resolve_saved_metabolite(self, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
+        explicit_smiles = ""
+        if saved_met.smiles:
+            try:
+                smiles_mol = Chem.MolFromSmiles(saved_met.smiles, sanitize=False)
+                if smiles_mol:
+                    smiles_mol_h = Chem.AddHs(smiles_mol)
+                    explicit_smiles = Chem.MolToSmiles(smiles_mol_h, allHsExplicit=True)
+            except Exception:
+                explicit_smiles = ""
+
         row = find_metabolite_by_inchikey(
             saved_met.inchi_key or "",
             inchi_string=saved_met.inchi or "",
+            smiles=explicit_smiles,
         )
         if not row and saved_met.smiles:
             try:
@@ -52,7 +63,7 @@ class Command(BaseCommand):
             except Exception:
                 alt_key = ""
             if alt_key:
-                row = find_metabolite_by_inchikey(alt_key)
+                row = find_metabolite_by_inchikey(alt_key, smiles=explicit_smiles)
         if not row:
             return None
 

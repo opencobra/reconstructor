@@ -18,7 +18,6 @@ from reactions.utils.to_mol import any_to_mol
 from reactions.utils.vmh_api import (
     find_metabolite_by_abbreviation,
     find_metabolite_by_full_name,
-    find_metabolite_by_inchi_string_old,
     find_metabolite_by_inchikey,
     find_reaction_by_abbreviation,
     vmh_metabolite_url,
@@ -60,7 +59,8 @@ def any_to_vmh(mols, types, smiles):
             mols_list.append(mol)
         else:
             try:
-                m = Chem.MolFromSmiles(str(smiles[idx]), sanitize=False)
+                smiles_explicit = smiles_with_explicit_hydrogens(str(smiles[idx]))
+                m = Chem.MolFromSmiles(smiles_explicit, sanitize=False)
                 if m is None:
                     mols_list.append('error')
                     continue
@@ -73,7 +73,8 @@ def any_to_vmh(mols, types, smiles):
             match = find_metabolite_by_inchikey(
                 inchi_key,
                 inchi_string=inchi,
-            ) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+                smiles=smiles_explicit,
+            )
 
             abbr = (match or {}).get('abbreviation', '')
             mols_list.append(abbr if abbr else 'error')
@@ -257,7 +258,11 @@ def search_vmh(mol, return_abbr=False, return_name=False):
         name = ''
     else:
         inchi_key = Chem.MolToInchiKey(m) if m else ''
-        match = find_metabolite_by_inchikey(inchi_key, inchi_string=inchi) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+        match = find_metabolite_by_inchikey(
+            inchi_key,
+            inchi_string=inchi,
+            smiles=smiles,
+        )
 
         if not match:
             try:
@@ -268,7 +273,16 @@ def search_vmh(mol, return_abbr=False, return_name=False):
                 raw_inchi_key = ''
 
             if raw_inchi and raw_inchi != inchi:
-                match = find_metabolite_by_inchikey(raw_inchi_key, inchi_string=raw_inchi) if raw_inchi_key else find_metabolite_by_inchi_string_old(raw_inchi)
+                raw_smiles = ""
+                try:
+                    raw_smiles = smiles_with_explicit_hydrogens(Chem.MolToSmiles(mol))
+                except Exception:
+                    raw_smiles = ""
+                match = find_metabolite_by_inchikey(
+                    raw_inchi_key,
+                    inchi_string=raw_inchi,
+                    smiles=raw_smiles,
+                )
 
         if not match:
             if return_abbr and return_name:

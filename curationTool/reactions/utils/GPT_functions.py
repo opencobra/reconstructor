@@ -15,7 +15,6 @@ from IPython.display import display, HTML
 from rdkit import Chem
 from reactions.utils.vmh_api import (
     find_metabolite_by_abbreviation,
-    find_metabolite_by_inchi_string_old,
     find_metabolite_by_inchikey,
     gene_data_new,
     gene_rows_old,
@@ -76,10 +75,19 @@ def get_vmh_met_from_inchi(inchi, met):
     try:
         mol = Chem.MolFromInchi(inchi, sanitize=False, removeHs=False)
         inchi_key = Chem.MolToInchiKey(mol) if mol else ''
+        explicit_smiles = ''
+        if mol:
+            mol_with_h = Chem.AddHs(mol)
+            explicit_smiles = Chem.MolToSmiles(mol_with_h, allHsExplicit=True)
     except Exception:
         inchi_key = ''
+        explicit_smiles = ''
 
-    row = find_metabolite_by_inchikey(inchi_key, inchi_string=inchi) if inchi_key else find_metabolite_by_inchi_string_old(inchi)
+    row = find_metabolite_by_inchikey(
+        inchi_key,
+        inchi_string=inchi,
+        smiles=explicit_smiles,
+    )
     return row.get('abbreviation', met) if row else met
 
 

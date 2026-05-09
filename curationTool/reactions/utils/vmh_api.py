@@ -198,12 +198,28 @@ def find_metabolite_by_inchi_string_old(inchi_string: str) -> Optional[Dict[str,
     return rows_old[0] if rows_old else None
 
 
+def find_metabolite_by_smiles(smiles: str) -> Optional[Dict[str, Any]]:
+    if not smiles:
+        return None
+    safe_smiles = re.escape(smiles)
+    rows = search_metabolites_new({"smileRegex": f"^{safe_smiles}$"})
+    exact = [r for r in rows if (r.get("smile") or "") == smiles]
+    return exact[0] if exact else None
+
+
 def find_metabolite_by_inchikey(
     inchi_key: str,
     *,
     inchi_string: str = "",
+    smiles: str = "",
 ) -> Optional[Dict[str, Any]]:
     if not inchi_key:
+        if inchi_string:
+            old_row = find_metabolite_by_inchi_string_old(inchi_string)
+            if old_row:
+                return old_row
+        if smiles:
+            return find_metabolite_by_smiles(smiles)
         return None
 
     safe_key = re.escape(inchi_key)
@@ -216,6 +232,10 @@ def find_metabolite_by_inchikey(
         old_row = find_metabolite_by_inchi_string_old(inchi_string)
         if old_row:
             return old_row
+    if smiles:
+        smiles_row = find_metabolite_by_smiles(smiles)
+        if smiles_row:
+            return smiles_row
     return None
 
 
