@@ -1,14 +1,16 @@
 import json
+import re
 from collections import defaultdict
 from typing import Dict, Optional, Set
 
 import urllib3
 from django.core.management.base import BaseCommand
 from rdkit import Chem
+from rdkit.Chem.rdMolDescriptors import CalcMolFormula  # pylint: disable=no-name-in-module
 from tqdm import tqdm
 
 from reactions.models import Reaction, SavedMetabolite
-from reactions.utils.vmh_api import find_metabolite_by_inchikey, vmh_metabolite_url
+from reactions.utils.vmh_api import search_metabolites_new, vmh_metabolite_url
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -45,33 +47,24 @@ class Command(BaseCommand):
         except Exception:
             return list(default)
 
-    def _resolve_saved_metabolite(self, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
-        explicit_smiles = ""
-        if saved_met.smiles:
-            try:
-                smiles_mol = Chem.MolFromSmiles(saved_met.smiles, sanitize=False)
-                if smiles_mol:
-                    smiles_mol_h = Chem.AddHs(smiles_mol)
-                    explicit_smiles = Chem.MolToSmiles(smiles_mol_h, allHsExplicit=True)
-            except Exception:
-                explicit_smiles = ""
+    @staticmethod
+    def _canonical_inchi(smiles: str) -> str:
+        if not smiles:
+            return ""
+        try:
+            mol = Chem.MolFromSmiles(smiles)
+            if not mol:
+                return ""
+            return Chem.MolToInchi(mol) or ""
+        except Exception:
+            return ""
 
-        row = find_metabolite_by_inchikey(
-            saved_met.inchi_key or "",
-            inchi_string=saved_met.inchi or "",
-            smiles=explicit_smiles,
-        )
-        if not row and saved_met.smiles:
-            try:
-                mol = Chem.MolFromSmiles(saved_met.smiles, sanitize=False)
-                alt_key = Chem.MolToInchiKey(mol) if mol else ""
-            except Exception:
-                alt_key = ""
-            if alt_key:
-                row = find_metabolite_by_inchikey(alt_key, smiles=explicit_smiles)
-        if not row:
-            return None
+    @staticmethod
+    def _inchi_filter(rows: list, query_inchi: str) -> list:
+        return [r for r in rows if Command._canonical_inchi(r.get("smile") or "") == query_inchi]
 
+    @staticmethod
+    def _to_result(row: Dict, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
         abbr = row.get("abbreviation", "")
         if not abbr:
             return None
@@ -80,6 +73,57 @@ class Command(BaseCommand):
             "name": row.get("fullName") or saved_met.name or abbr,
             "url": vmh_metabolite_url(abbr),
         }
+
+    def _resolve_saved_metabolite(self, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
+        explicit_smiles = ""
+        if saved_met.smiles:
+            try:
+                mol = Chem.MolFromSmiles(saved_met.smiles, sanitize=False)
+                if mol:
+                    explicit_smiles = Chem.MolToSmiles(Chem.AddHs(mol), allHsExplicit=True)
+            except Exception:
+                pass
+
+        query_inchi = self._canonical_inchi(saved_met.smiles or "")
+
+        # Step 1: InChI key regex
+        inchi_key = saved_met.inchi_key or ""
+        if inchi_key:
+            rows = search_metabolites_new({"inchiKeyRegex": f"^{re.escape(inchi_key)}$"})
+            exact = [r for r in rows if (r.get("inchiKey") or "").upper() == inchi_key.upper()]
+            if exact:
+                return self._to_result(exact[0], saved_met)
+
+        # Step 2: SMILES regex
+        if explicit_smiles:
+            rows = search_metabolites_new({"smileRegex": f"^{re.escape(explicit_smiles)}$"})
+            exact = [r for r in rows if (r.get("smile") or "") == explicit_smiles]
+            if exact:
+                return self._to_result(exact[0], saved_met)
+
+        # Step 3: name search + InChI comparison (only if exactly 1 match)
+        if saved_met.name and query_inchi:
+            rows = search_metabolites_new({"fullName": saved_met.name})
+            matched = self._inchi_filter(rows, query_inchi)
+            if len(matched) == 1:
+                return self._to_result(matched[0], saved_met)
+
+        # Step 4: charged formula regex + InChI comparison (only if exactly 1 match)
+        charged_formula = ""
+        if saved_met.smiles:
+            try:
+                mol = Chem.MolFromSmiles(saved_met.smiles)
+                if mol:
+                    charged_formula = CalcMolFormula(mol)
+            except Exception:
+                pass
+        if charged_formula and query_inchi:
+            rows = search_metabolites_new({"chargedFormulaRegex": f"^{re.escape(charged_formula)}$"})
+            matched = self._inchi_filter(rows, query_inchi)
+            if len(matched) == 1:
+                return self._to_result(matched[0], saved_met)
+
+        return None
 
     def _remaining_saved_ids(self) -> Set[str]:
         remaining: Set[str] = set()
