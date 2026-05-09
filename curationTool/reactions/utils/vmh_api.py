@@ -9,6 +9,7 @@ This module centralizes:
 
 from __future__ import annotations
 
+import logging
 import os
 import re
 from typing import Any, Dict, List, Optional
@@ -16,6 +17,8 @@ from urllib.parse import quote
 
 import requests
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
 
 # Hardcoded in one place, as requested.
 VMH_NEW_API_BASE = "https://vmh2.life"
@@ -53,7 +56,8 @@ def _safe_get(
 ) -> Optional[requests.Response]:
     try:
         return requests.get(url, params=params, headers=headers, timeout=timeout, verify=verify)
-    except Exception:
+    except Exception as exc:
+        logger.warning("VMH API request failed: %s — %s", url, exc)
         return None
 
 
@@ -84,9 +88,13 @@ def vmh_old_get(path: str, *, params: Optional[Dict[str, Any]] = None, timeout: 
 def _json_or_empty(resp: Optional[requests.Response]) -> Dict[str, Any]:
     if not resp:
         return {}
+    if resp.status_code != 200:
+        logger.warning("VMH API returned %s for %s", resp.status_code, resp.url)
+        return {}
     try:
-        return resp.json() if resp.status_code == 200 else {}
-    except Exception:
+        return resp.json()
+    except Exception as exc:
+        logger.warning("VMH API response parse error for %s: %s", resp.url, exc)
         return {}
 
 
