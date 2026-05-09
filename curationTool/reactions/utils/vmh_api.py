@@ -21,7 +21,7 @@ from django.conf import settings
 logger = logging.getLogger(__name__)
 
 # Hardcoded in one place, as requested.
-VMH_NEW_API_BASE = "https://vmh2.life"
+VMH_NEW_API_BASE = "https://vmh.chatimd.org/api/public"
 VMH_OLD_API_BASE = "https://www.vmh.life"
 
 _DEFAULT_TIMEOUT = 10
