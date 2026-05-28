@@ -10,7 +10,7 @@ from collections import defaultdict
 # ---------------------------------------------------------------------------
 # Globals
 # ---------------------------------------------------------------------------
-CSV_PATH = "/home/saleh/Downloads/2026_04_20_unmapped_metabolites_v7.xlsx - Unmatched VMH.csv"
+CSV_PATH = "/app/curationTool/2026_04_20_unmapped_metabolites_v7.xlsx - Unmatched VMH.csv"
 
 # InChI key layer depth (number of dash-separated segments to compare):
 #   1 = connectivity layer only  (e.g. "UXFQDXABPXWSTK")
@@ -72,13 +72,13 @@ def main():
     user_missing: dict[str, list] = defaultdict(list)  # user_label -> [(name, id, inchikey)]
 
     qs = SavedMetabolite.objects.select_related("owner").only(
-        "id", "name", "inchi_key", "owner__id", "owner__username"
+        "id", "name", "inchi_key", "owner__id", "owner__name"
     )
 
     for met in qs.iterator():
         owner = met.owner
         user_label = (
-            f"{owner.username} (id={owner.id})" if owner else "Unknown"
+            f"{owner.name} (id={owner.id})" if owner else "Unknown"
         )
         raw_key = met.inchi_key or ""
         truncated = truncate_inchikey(raw_key, INCHI_LEVEL)
