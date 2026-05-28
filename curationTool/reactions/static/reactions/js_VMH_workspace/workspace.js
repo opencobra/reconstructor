@@ -234,6 +234,76 @@ window.vmhPrepCache = new VMHPrepCache({
 	// Track selected reactions for batch operations
 	window.wsSelectedReactions = new Set();
 
+	function readBalanceValue(rawValue) {
+		if (rawValue === null || rawValue === undefined || rawValue === '') return null;
+
+		if (Array.isArray(rawValue)) {
+			return readBalanceValue(rawValue[0]);
+		}
+
+		if (typeof rawValue === 'boolean') return rawValue;
+
+		if (typeof rawValue === 'number') {
+			if (rawValue === 1) return true;
+			if (rawValue === 0) return false;
+			return null;
+		}
+
+		if (typeof rawValue === 'string') {
+			const normalized = rawValue.trim().toLowerCase();
+			if (normalized === 'true') return true;
+			if (normalized === 'false') return false;
+
+			try {
+				return readBalanceValue(JSON.parse(rawValue));
+			} catch (error) {
+				return null;
+			}
+		}
+
+		return null;
+	}
+
+	function formatBalanceIssues(issues) {
+		if (issues.length === 1) return issues[0];
+		return `${issues.slice(0, -1).join(', ')} and ${issues[issues.length - 1]}`;
+	}
+
+	function getBalanceWarning(reaction) {
+		const balancedCount = readBalanceValue(reaction.fields.balanced_count);
+		const balancedCharge = readBalanceValue(reaction.fields.balanced_charge);
+		const issues = [];
+
+		if (balancedCount === false) issues.push('atom count');
+		if (balancedCharge === false) issues.push('charge');
+
+		if (issues.length === 0) return null;
+
+		return {
+			issues,
+			label: formatBalanceIssues(issues)
+		};
+	}
+
+	function createBalanceWarningHTML(reaction) {
+		const warning = getBalanceWarning(reaction);
+		if (!warning) return '';
+
+		return `
+			<div class="ws-balance-warning" role="status">
+				<div class="ws-balance-warning-icon">
+					<i class="fas fa-exclamation-triangle"></i>
+				</div>
+				<div class="ws-balance-warning-copy">
+					<div class="ws-balance-warning-title">Balance warning</div>
+					<div class="ws-balance-warning-text">
+						This reaction is unbalanced by ${warning.label}. You can still add it to VMH, but review the stoichiometry and charges before relying on it.
+					</div>
+				</div>
+			</div>
+		`;
+	}
+
 	// Show empty state if no reactions
 	if (reactions_active.length === 0) {
 		const selectAllRow = document.querySelector('.ws-select-all-row');
@@ -250,8 +320,9 @@ window.vmhPrepCache = new VMHPrepCache({
 
 	// Load available reactions with checkboxes
 	reactions_active.forEach((r) => {
+		const balanceWarning = getBalanceWarning(r);
 		const li = document.createElement('li');
-		li.className = 'item';
+		li.className = `item${balanceWarning ? ' ws-item-balance-warning' : ''}`;
 		li.dataset.pk = r.pk;
 		li.innerHTML = `
 			<label class="ws-checkbox-container" onclick="event.stopPropagation();">
@@ -259,6 +330,12 @@ window.vmhPrepCache = new VMHPrepCache({
 				<span class="ws-checkmark"></span>
 			</label>
 			<span class="ws-reaction-name">${r.fields.short_name}</span>
+			${balanceWarning ? `
+				<span class="ws-list-balance-warning" title="Unbalanced by ${balanceWarning.label}">
+					<i class="fas fa-exclamation-triangle"></i>
+					<span>Unbalanced</span>
+				</span>
+			` : ''}
 		`;
 		availableListEl.appendChild(li);
 	});
@@ -552,6 +629,7 @@ window.vmhPrepCache = new VMHPrepCache({
 			</div>
 			
 			<div class="ws-card-body">
+				${createBalanceWarningHTML(reaction)}
 				<div class="ws-form-section">
 					<div class="ws-form-row">
 						<div class="ws-form-group ws-form-group-lg">

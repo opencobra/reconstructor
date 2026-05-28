@@ -293,6 +293,8 @@ function updateVMHModalStatus(state, data = {}) {
 			
 			let reactionsHTML = '';
 			let metabolitesHTML = '';
+			let balanceWarningsHTML = '';
+			const balanceWarnings = data.balanceWarnings || [];
 			
 			if (data.reactions && data.reactions.length > 0) {
 				reactionsHTML = `
@@ -330,10 +332,30 @@ function updateVMHModalStatus(state, data = {}) {
 				`;
 			}
 			
+			if (balanceWarnings.length > 0) {
+				balanceWarningsHTML = `
+					<div class="vmh-balance-warning-summary">
+						<div class="vmh-balance-warning-header">
+							<i class="fas fa-exclamation-triangle"></i>
+							<span>Balance warning</span>
+						</div>
+						<p>${balanceWarnings.length} added reaction(s) are unbalanced. Review them before relying on downstream results.</p>
+						<div class="vmh-balance-warning-list">
+							${balanceWarnings.map((warning) => `
+								<span class="vmh-balance-warning-item">
+									${warning.abbreviation || `Reaction ${warning.pk}`}: ${(warning.issues || []).join(' and ')}
+								</span>
+							`).join('')}
+						</div>
+					</div>
+				`;
+			}
+
 			statusContainer.innerHTML = `
 				<div class="vmh-success-icon"><i class="fas fa-check"></i></div>
 				<div class="vmh-success-title">Successfully Added to VMH!</div>
 				<div class="vmh-success-subtitle">${data.reactions?.length || 0} reaction(s) and ${data.metabolites?.length || 0} metabolite(s) were added</div>
+				${balanceWarningsHTML}
 				<div class="vmh-result-details">
 					${reactionsHTML}
 					${metabolitesHTML}
@@ -550,7 +572,8 @@ function addToVMH() {
 				// Update modal with success state
 				updateVMHModalStatus('success', {
 					reactions: reactions,
-					metabolites: metabolites
+					metabolites: metabolites,
+					balanceWarnings: data.balance_warnings || []
 				});
 
 				// Remove added reactions from DOM and data, and invalidate cache

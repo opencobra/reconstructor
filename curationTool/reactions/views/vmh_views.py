@@ -520,6 +520,7 @@ def add_to_vmh(request):
         - Checks for missing reaction details (e.g., name, abbreviation, confidence score).
         - Ensures reaction names and abbreviations are unique in VMH.
         - Checks whether metabolites already exist in VMH.
+        - Reports unbalanced reactions as warnings instead of blocking submission.
         - Sends metabolite and reaction data to VMH via MATLAB.
         - Logs added metabolites and reactions.
 
@@ -546,7 +547,8 @@ def add_to_vmh(request):
     user_full_name = user.name
     reactions = req_body.get('reactions')
     reaction_ids = []
-    not_enough_info, no_comments, not_balanced = [], [], []
+    not_enough_info, no_comments = [], []
+    balance_warnings = []
     met_added_info = {}
 
     # Validate reaction fields (missing info and duplicates)
@@ -633,13 +635,23 @@ def add_to_vmh(request):
         obj.comments = new_comments if new_comments else None
         obj.confidence_score = reaction.get(
             'confidence_score', 0)  # Add confidence score
-        if not (
-            json.loads(
-                obj.balanced_charge)[0] and json.loads(
-                obj.balanced_count)[0]):
-            not_balanced.append(True)
-        else:
-            not_balanced.append(False)
+        balanced_charge = (
+            json.loads(obj.balanced_charge)[0] if obj.balanced_charge else None
+        )
+        balanced_count = (
+            json.loads(obj.balanced_count)[0] if obj.balanced_count else None
+        )
+        balance_issues = []
+        if balanced_count is False:
+            balance_issues.append('atom count')
+        if balanced_charge is False:
+            balance_issues.append('charge')
+        if balance_issues:
+            balance_warnings.append({
+                'pk': obj.pk,
+                'abbreviation': obj.short_name,
+                'issues': balance_issues,
+            })
         # Save the updated reaction object
         obj.save()
     reaction_objs = [
@@ -647,11 +659,10 @@ def add_to_vmh(request):
             pk=reaction_id) for reaction_id in reaction_ids]
 
     error_response = validate_reaction_objects(
-        reaction_objs, 
-        not_enough_info, 
-        no_comments, 
-        not_balanced
-    )    
+        reaction_objs,
+        not_enough_info,
+        no_comments
+    )
     if error_response:
         return error_response
 
@@ -701,6 +712,10 @@ def add_to_vmh(request):
     if matlab_result['status'] == 'success':
         added_mets = matlab_result.get('addedMets', [])
         added_rxns = matlab_result.get('addedRxns', [])
+        added_balance_warnings = [
+            warning for warning in balance_warnings
+            if warning['abbreviation'] in added_rxns
+        ]
         
         # Build met_added_info from MATLAB result
         met_added_info = {abbr: abbr for abbr in added_mets}
@@ -743,7 +758,8 @@ def add_to_vmh(request):
             'rxn_added_info': rxn_added_info,
             'met_added_info': met_added_info,
             'added_rxns': added_rxns,
-            'added_mets': added_mets
+            'added_mets': added_mets,
+            'balance_warnings': added_balance_warnings
         })
 
     return JsonResponse(

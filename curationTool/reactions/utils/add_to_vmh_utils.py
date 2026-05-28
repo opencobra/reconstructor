@@ -542,10 +542,10 @@ def validate_metabolite_existence(reactions_new_subsInfo, reactions_new_prodsInf
     return None
 
 
-def validate_reaction_objects(reaction_objs, not_enough_info, no_comments, not_balanced):
+def validate_reaction_objects(reaction_objs, not_enough_info, no_comments):
     """
     Validate that each updated reaction object has at least one reference/external link,
-    at least one comment, and is balanced.
+    and at least one comment.
     """
     if True in not_enough_info:
         not_enough_info_reactions = [
@@ -563,14 +563,5 @@ def validate_reaction_objects(reaction_objs, not_enough_info, no_comments, not_b
         return JsonResponse({
             'status': 'error',
             'message': f'The following reactions do not have at least one comment: {", ".join([reaction.short_name for reaction in no_comments_reactions])}'
-        })
-    
-    if True in not_balanced:
-        not_balanced_reactions = [
-            reaction for reaction, not_bal in zip(reaction_objs, not_balanced) if not_bal
-        ]
-        return JsonResponse({
-            'status': 'error',
-            'message': f'The following reactions are not balanced: {", ".join([reaction.short_name for reaction in not_balanced_reactions])}'
         })
     return None
