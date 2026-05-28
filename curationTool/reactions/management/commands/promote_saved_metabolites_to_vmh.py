@@ -48,20 +48,20 @@ class Command(BaseCommand):
             return list(default)
 
     @staticmethod
-    def _canonical_inchi(smiles: str) -> str:
+    def _canonical_inchikey(smiles: str) -> str:
         if not smiles:
             return ""
         try:
             mol = Chem.MolFromSmiles(smiles)
             if not mol:
                 return ""
-            return Chem.MolToInchi(mol) or ""
+            return Chem.MolToInchiKey(mol) or ""
         except Exception:
             return ""
 
     @staticmethod
-    def _inchi_filter(rows: list, query_inchi: str) -> list:
-        return [r for r in rows if Command._canonical_inchi(r.get("smile") or "") == query_inchi]
+    def _inchikey_filter(rows: list, query_key: str) -> list:
+        return [r for r in rows if Command._canonical_inchikey(r.get("smile") or "") == query_key]
 
     @staticmethod
     def _to_result(row: Dict, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
@@ -84,7 +84,7 @@ class Command(BaseCommand):
             except Exception:
                 pass
 
-        query_inchi = self._canonical_inchi(saved_met.smiles or "")
+        query_key = self._canonical_inchikey(saved_met.smiles or "")
 
         # Step 1: InChI key regex
         inchi_key = saved_met.inchi_key or ""
@@ -102,9 +102,9 @@ class Command(BaseCommand):
                 return self._to_result(exact[0], saved_met)
 
         # Step 3: name search + InChI comparison (only if exactly 1 match)
-        if saved_met.name and query_inchi:
+        if saved_met.name and query_key:
             rows = search_metabolites_new({"fullName": saved_met.name})
-            matched = self._inchi_filter(rows, query_inchi)
+            matched = self._inchikey_filter(rows, query_key)
             if len(matched) == 1:
                 return self._to_result(matched[0], saved_met)
 
@@ -117,9 +117,9 @@ class Command(BaseCommand):
                     charged_formula = CalcMolFormula(mol)
             except Exception:
                 pass
-        if charged_formula and query_inchi:
+        if charged_formula and query_key:
             rows = search_metabolites_new({"chargedFormulaRegex": f"^{re.escape(charged_formula)}$"})
-            matched = self._inchi_filter(rows, query_inchi)
+            matched = self._inchikey_filter(rows, query_key)
             if len(matched) == 1:
                 return self._to_result(matched[0], saved_met)
 
