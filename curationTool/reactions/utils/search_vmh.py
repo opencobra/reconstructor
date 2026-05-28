@@ -470,7 +470,11 @@ def decode_formula(formula):
     # Function to parse each part into components, stoichiometry, and
     # compartments
     def parse_part(part):
-        components = part.split(' + ')
+        part = (part or '').strip()
+        if not part:
+            return [], [], []
+        components = [component.strip()
+                      for component in part.split(' + ') if component.strip()]
         names = []
         stoichiometries = []
         compartments = []

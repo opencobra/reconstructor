@@ -17,6 +17,10 @@ import json
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from reactions.models import ReactionTemplate, User
+from reactions.utils.reaction_inputs import (
+    normalize_reaction_side,
+    reaction_has_any_side,
+)
 
 @csrf_exempt
 def create_template(request):
@@ -58,16 +62,39 @@ def create_template(request):
                     'message': f'You already have a template named {template_name}.'},
                     status=400)
 
-            # Collect the fields for the template
-            substrates = form_data.getlist('substrates')
-            substrates_types = form_data.getlist('substrates_type')
-            subs_comps = form_data.getlist('subs_comps')
-            subs_sch = form_data.getlist('subs_sch')
+            # Collect the fields for the template. Empty rows are ignored so
+            # templates can intentionally represent one-sided reactions.
+            substrates_side = normalize_reaction_side(
+                form_data.getlist('substrates'),
+                form_data.getlist('substrates_type'),
+                form_data.getlist('subs_sch'),
+                form_data.getlist('subs_comps'),
+                uploaded_file_count=len(request.FILES.getlist('substrates')),
+            )
+            products_side = normalize_reaction_side(
+                form_data.getlist('products'),
+                form_data.getlist('products_type'),
+                form_data.getlist('prod_sch'),
+                form_data.getlist('prod_comps'),
+                uploaded_file_count=len(request.FILES.getlist('products')),
+            )
+            substrates = substrates_side['metabolites']
+            substrates_types = substrates_side['types']
+            subs_comps = substrates_side['compartments']
+            subs_sch = substrates_side['stoichiometries']
+            products = products_side['metabolites']
+            products_types = products_side['types']
+            prods_comps = products_side['compartments']
+            prods_sch = products_side['stoichiometries']
 
-            products = form_data.getlist('products')
-            products_types = form_data.getlist('products_type')
-            prods_comps = form_data.getlist('prod_comps')
-            prods_sch = form_data.getlist('prod_sch')
+            if not reaction_has_any_side(substrates, products):
+                return JsonResponse(
+                    {
+                        'status': 'error',
+                        'message': 'Enter at least one substrate or one product before creating a template.'
+                    },
+                    status=400,
+                )
 
             direction = form_data.get('direction', 'forward')
             subsystem = form_data.get('subsystem', 'undefined')
@@ -510,4 +537,3 @@ def delete_template(request):
         return JsonResponse(
             {'status': 'error', 'message': str(e)}, status=500
         )
-    

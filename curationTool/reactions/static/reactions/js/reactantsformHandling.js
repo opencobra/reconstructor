@@ -36,6 +36,27 @@ function normalizeReactionDirection(direction) {
     return 'forward';
 }
 
+function getMetaboliteIdentifierInput(group) {
+    if (!group) return null;
+    return group.querySelector(
+        '.cell-identifier input[name="substrates"], .cell-identifier input[name="products"]'
+    );
+}
+
+function reactionRowHasMetabolite(group) {
+    if (!group) return false;
+    const fileInput = group.querySelector('.cell-identifier input[type="file"]');
+    if (fileInput && fileInput.files && fileInput.files.length > 0) {
+        return true;
+    }
+    const identifierInput = getMetaboliteIdentifierInput(group);
+    return Boolean(identifierInput && identifierInput.value && identifierInput.value.trim());
+}
+
+function getActiveReactionRows(root = document) {
+    return Array.from(root.querySelectorAll('.inputs-group')).filter(reactionRowHasMetabolite);
+}
+
 function hidemodal(){
 
     document.getElementById('error-modal').style.display = 'none';
@@ -186,7 +207,14 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         return; // Exit the function and do not submit form
     }
 
-    var inputsGroups = document.querySelectorAll('.inputs-group');
+    var inputsGroups = getActiveReactionRows();
+    if (inputsGroups.length === 0) {
+        var noMetabolitesMessage = 'Enter at least one substrate or one product before creating a reaction.';
+        showErrorModal(noMetabolitesMessage);
+        window.scrollTo(0, 0);
+        stopLoadingState();
+        return;
+    }
     
     for (var i = 0; i < inputsGroups.length; i++) {
         var group = inputsGroups[i];
@@ -212,11 +240,12 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     var metaboliteFields = document.querySelectorAll('.substrates-name, .products-name');
     var allNamesEntered = true;
     metaboliteFields.forEach(function(input, index) {
+        var group = input.closest('.inputs-group');
         var key = input.name + (index + 1);
         var value = input.value;
         nameData[key] = value;
 
-        if (input.value === '') {
+        if (reactionRowHasMetabolite(group) && input.value === '') {
             allNamesEntered = false;
         }
     });

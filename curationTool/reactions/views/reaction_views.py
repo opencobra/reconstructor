@@ -43,6 +43,11 @@ from reactions.utils.to_mol import any_to_mol
 from reactions.utils.utils import get_fields
 from reactions.utils.RDT import RDT
 from reactions.utils.to_mol import smiles_with_explicit_hydrogens
+from reactions.utils.reaction_inputs import (
+    normalize_reaction_side,
+    reaction_has_any_side,
+    split_reaction_names,
+)
 from reactions.forms import ReactionForm
 from reactions.models import User, CreatedReaction, Reaction, ReactionsAddedVMH, SavedMetabolite
 # Suppress RDKit warnings
@@ -60,6 +65,20 @@ def _normalize_direction(direction):
         # The app currently supports forward/bidirectional only.
         return 'bidirectional'
     return 'forward'
+
+
+def _reaction_submission_error(request, form, message, status=400):
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse(
+            {'status': 'error', 'message': message},
+            status=status,
+        )
+    return render(
+        request,
+        'reactions/home_page.html',
+        {'form': form, 'error_message': message},
+        status=status,
+    )
 
 
 def input_reaction(request):
@@ -102,38 +121,71 @@ def input_reaction(request):
         reaction = Reaction()
 
     # Get multiple substrates, products, and their stoichiometry as lists
-    substrates_list = request.POST.getlist('substrates')
-    products_list = request.POST.getlist('products')
+    raw_substrates_list = request.POST.getlist('substrates')
+    raw_products_list = request.POST.getlist('products')
     names_dict = request.POST.get('nameData')
     organs = request.POST.get('organs')
 
-    names_dict = json.loads(names_dict)
-    substrates_names = []
-    products_names = []
-
-    for key, value in names_dict.items():
-        if 'substrate' in key:
-            substrates_names.append(value)
-        elif 'product' in key:
-            products_names.append(value)
-        else:
-            raise ValueError(f"Invalid key: {key}")
+    names_dict = json.loads(names_dict or '{}')
+    raw_substrates_names, raw_products_names = split_reaction_names(names_dict)
 
     # Stoichiometry for substrates
-    subs_sch = request.POST.getlist('subs_sch')
-    prod_sch = request.POST.getlist(
+    raw_subs_sch = request.POST.getlist('subs_sch')
+    raw_prod_sch = request.POST.getlist(
         'prod_sch')  # Stoichiometry for products
-    subs_comp = request.POST.getlist(
+    raw_subs_comp = request.POST.getlist(
         'subs_comps')  # Compartments for substrates
-    prod_comp = request.POST.getlist('prod_comps')
-    substrates_types = request.POST.getlist('substrates_type')
-    products_types = request.POST.getlist('products_type')
+    raw_prod_comp = request.POST.getlist('prod_comps')
+    raw_substrates_types = request.POST.getlist('substrates_type')
+    raw_products_types = request.POST.getlist('products_type')
+
+    substrates_side = normalize_reaction_side(
+        raw_substrates_list,
+        raw_substrates_types,
+        raw_subs_sch,
+        raw_subs_comp,
+        raw_substrates_names,
+        uploaded_file_count=len(request.FILES.getlist('substrates')),
+    )
+    products_side = normalize_reaction_side(
+        raw_products_list,
+        raw_products_types,
+        raw_prod_sch,
+        raw_prod_comp,
+        raw_products_names,
+        uploaded_file_count=len(request.FILES.getlist('products')),
+    )
+    substrates_list = substrates_side['metabolites']
+    products_list = products_side['metabolites']
+    substrates_types = substrates_side['types']
+    products_types = products_side['types']
+    subs_sch = substrates_side['stoichiometries']
+    prod_sch = products_side['stoichiometries']
+    subs_comp = substrates_side['compartments']
+    prod_comp = products_side['compartments']
+    substrates_names = substrates_side['names']
+    products_names = products_side['names']
+
+    if not reaction_has_any_side(substrates_list, products_list):
+        return _reaction_submission_error(
+            request,
+            form,
+            'Enter at least one substrate or one product before creating a reaction.',
+        )
+
     if ('Saved' in substrates_types or 'Saved' in products_types) and not user:
         return JsonResponse(
             {'status': 'error', 'message': 'Cannot use saved metabolites without signing in.'})
     direction = _normalize_direction(request.POST.get('direction'))
-    subs_sch = [int(s) for s in subs_sch]
-    prod_sch = [int(s) for s in prod_sch]
+    try:
+        subs_sch = [int(s) for s in subs_sch]
+        prod_sch = [int(s) for s in prod_sch]
+    except ValueError:
+        return _reaction_submission_error(
+            request,
+            form,
+            'Stoichiometry values must be whole numbers.',
+        )
 
     subs_mols, subs_errors, _ = any_to_mol(
         substrates_list, substrates_types, request, side='substrates')
@@ -144,12 +196,7 @@ def input_reaction(request):
     if any(elem is not None for elem in all_errors):
         error_message = "\n".join(
             [error for error in all_errors if error is not None])
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return JsonResponse(
-                {'status': 'error', 'message': error_message})
-        # Return error message in context for non-AJAX requests
-        context = {'form': form, 'error_message': error_message}
-        return render(request, 'reactions/home_page.html', context)
+        return _reaction_submission_error(request, form, error_message)
     mol_data = get_mol_info(subs_mols + prod_mols)
     smiles = mol_data['smiles']
     inchis = mol_data['inchis']
@@ -183,9 +230,12 @@ def input_reaction(request):
 
     reaction.save()
 
-    # Skip atom mapping if any product fields are empty or only one
-    skip_atom_mapping = request.POST.get('skipAtomMapping') == 'true' or (
-        len(substrates_list) == 1 and len(products_list) == 0)
+    # RDT requires at least one reactant and one product.
+    skip_atom_mapping = (
+        request.POST.get('skipAtomMapping') == 'true'
+        or not substrates_list
+        or not products_list
+    )
     if skip_atom_mapping:
         response_data = {'visualizations': [
             '/images/atom_mapping_skip.png']}
@@ -1069,14 +1119,34 @@ def identical_reaction(request):
     except User.DoesNotExist:
         return JsonResponse({'exists': False, 'status': 'success'})
 
-    # Gather substrates/products and their stoichiometries from request
-    substrates_list = request.POST.getlist('substrates')
-    subs_sch_list = request.POST.getlist('subs_sch')
-    products_list = request.POST.getlist('products')
-    prods_sch_list = request.POST.getlist('prod_sch')
+    # Gather substrates/products and their stoichiometries from request.
+    # Empty UI rows are ignored so one-sided reactions compare correctly.
+    substrates_side = normalize_reaction_side(
+        request.POST.getlist('substrates'),
+        request.POST.getlist('substrates_type'),
+        request.POST.getlist('subs_sch'),
+        request.POST.getlist('subs_comps'),
+        uploaded_file_count=len(request.FILES.getlist('substrates')),
+    )
+    products_side = normalize_reaction_side(
+        request.POST.getlist('products'),
+        request.POST.getlist('products_type'),
+        request.POST.getlist('prod_sch'),
+        request.POST.getlist('prod_comps'),
+        uploaded_file_count=len(request.FILES.getlist('products')),
+    )
+    substrates_list = substrates_side['metabolites']
+    products_list = products_side['metabolites']
+    substrates_types = substrates_side['types']
+    products_types = products_side['types']
+    subs_sch_list = substrates_side['stoichiometries']
+    prods_sch_list = products_side['stoichiometries']
 
-    substrates_types = request.POST.getlist('substrates_type')
-    products_types = request.POST.getlist('products_type')
+    if not reaction_has_any_side(substrates_list, products_list):
+        return JsonResponse({
+            'error': 'Enter at least one substrate or one product.',
+            'status': 'error',
+        })
 
     # Convert stoichiometries to integers
     try:

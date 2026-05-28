@@ -650,7 +650,6 @@ function handleMetaboliteTypeChange(selectElement) {
 			const replacementInput = document.createElement('input');
 			replacementInput.type = 'text';
 			replacementInput.name = hiddenInput ? hiddenInput.name : selectElement.name.replace('_type', '');
-			replacementInput.required = true;
 			identifierCell.replaceChild(replacementInput, existingAutocomplete);
 			updatePlaceholder(selectElement, replacementInput);
 		}
@@ -726,6 +725,11 @@ function handleDoneButtonClick(event) {
 	let main_input = group.querySelector(`input[name="${fullname}"]`);
 	let compartmentField = group.querySelector(`select[name="${prefix}_comps"]`);
 	let typeField = group.querySelector(`select[name="${fullname}_type"]`);
+	if (typeof reactionRowHasMetabolite === 'function' && !reactionRowHasMetabolite(group)) {
+		showErrorModal('Enter a metabolite before verifying this row.');
+		window.scrollTo(0, 0);
+		return;
+	}
 	if (compartmentField.value === '-') {
 		alert(`Please enter a compartment for ${fullname}`);
 		return;
@@ -805,7 +809,11 @@ function handleDoneAllButtonClick(event) {
 	const prefix = isSubstrates ? 'subs' : 'prod';
 	const fullname = isSubstrates ? 'substrates' : 'products';
 
-	let compartmentFields = container.querySelectorAll(`select[name="${prefix}_comps"]`);
+	const inputsGroupsInConrainer = Array.from(container.querySelectorAll('.inputs-group'));
+	const activeGroups = typeof reactionRowHasMetabolite === 'function'
+		? inputsGroupsInConrainer.filter(reactionRowHasMetabolite)
+		: inputsGroupsInConrainer;
+	let compartmentFields = activeGroups.map((group) => group.querySelector(`select[name="${prefix}_comps"]`)).filter(Boolean);
 
 	// Check all compartment fields
 	for (let i = 0; i < compartmentFields.length; i++) {
@@ -815,8 +823,7 @@ function handleDoneAllButtonClick(event) {
 		}
 	}
 
-	const inputsGroupsInConrainer = Array.from(container.querySelectorAll('.inputs-group'));
-	inputsGroupsInConrainer.forEach((group) => {
+	activeGroups.forEach((group) => {
 		const doneButton = group.querySelector('.done-field-btn');
 		const validStatus = group.querySelector('.valid-status');
 		if (doneButton && validStatus == null) {

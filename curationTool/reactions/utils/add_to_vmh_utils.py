@@ -362,9 +362,9 @@ def check_reactions_vmh(reaction_objs):
         subsystem = reaction.subsystem
         subs_comps = json.loads(reaction.subs_comps)
         prods_comps = json.loads(reaction.prods_comps)
-        subs_mols, subs_errors = any_to_mol(
+        subs_mols, subs_errors, _ = any_to_mol(
             substrates, substrates_types, request=None, side='substrates')
-        prod_mols, prod_errors = any_to_mol(
+        prod_mols, prod_errors, _ = any_to_mol(
             products, products_types, request=None, side='products')
         all_errors = subs_errors + prod_errors
         if any(elem is not None for elem in all_errors):

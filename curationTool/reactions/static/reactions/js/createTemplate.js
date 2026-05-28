@@ -83,8 +83,13 @@ async function createTemplate() {
                 return false; // Prevent modal from closing
             }
 
-            // Collect form data
             const reactionForm = document.getElementById('reactionForm');
+            if (typeof getActiveReactionRows === 'function' && getActiveReactionRows(reactionForm).length === 0) {
+                alert('Enter at least one substrate or one product before creating a template.');
+                return false;
+            }
+
+            // Collect form data
             const formData = new FormData(reactionForm);
             const directionElement = document.getElementById('reactionDirection');
             formData.set('direction', directionElement ? directionElement.value : 'forward');

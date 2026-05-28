@@ -1,4 +1,5 @@
 from rdkit import Chem
+from rdkit.Chem import rdChemReactions
 from urllib.parse import unquote
 import time
 
@@ -75,7 +76,7 @@ def construct_reaction_rxnfile(
     :return: Path to the generated RXN file.
     """
 
-    rxn = Chem.rdChemReactions.ChemicalReaction()
+    rxn = rdChemReactions.ChemicalReaction()
 
     # Add substrates to the reaction, repeated according to stoichiometry
     for mol, stoich, name in zip(
@@ -96,7 +97,7 @@ def construct_reaction_rxnfile(
             rxn.AddProductTemplate(mol_with_name)
 
     # Convert the reaction to an RXN block string
-    rxn_block = Chem.rdChemReactions.ReactionToRxnBlock(rxn)
+    rxn_block = rdChemReactions.ReactionToRxnBlock(rxn)
 
     # Define the path for saving the RXN file
     rxn_file_path = 'temp_rxn_file.rxn'

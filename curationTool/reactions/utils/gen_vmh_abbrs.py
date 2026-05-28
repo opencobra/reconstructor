@@ -47,15 +47,16 @@ def check_met_abbr_exists(abbr):
 
 
 def gen_reaction_abbr(sub_abbr, prod_abbr, reaction):
-    comp = json.loads(reaction.subs_comps)[0]
-    if len(sub_abbr) == 1 and len(prod_abbr) == 1:
-        abbr = (sub_abbr[0]).upper() + comp
+    subs_comps = json.loads(reaction.subs_comps or '[]')
+    prod_comps = json.loads(reaction.prods_comps or '[]')
+    comp = (subs_comps or prod_comps or ['c'])[0]
+    candidates = sub_abbr + prod_abbr
+    if not candidates:
+        raise ValueError('Cannot generate a reaction abbreviation without metabolites.')
+    if len(candidates) == 1:
+        abbr = candidates[0].upper() + comp
     else:
-        if random.random() > 0.5:
-            abbr = sub_abbr[random.choice(range(len(sub_abbr)))].upper() + comp
-        else:
-            abbr = prod_abbr[random.choice(
-                range(len(prod_abbr)))].upper() + comp
+        abbr = random.choice(candidates).upper() + comp
     exists = check_reaction_abbr_exists(abbr)
     while exists:
         abbr = abbr + '_'
