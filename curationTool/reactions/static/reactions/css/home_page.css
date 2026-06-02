@@ -1701,3 +1701,24 @@ footer {
 		max-width: 170px;
 	}
 }
+
+/* Let custom dropdowns escape workspace panels instead of being clipped. */
+.main-container,
+.divs-container,
+.workspace-panels,
+.content-div {
+	overflow: visible;
+}
+
+.content-div {
+	isolation: isolate;
+}
+
+.content-div:hover,
+.content-div:focus-within {
+	z-index: 50;
+}
+
+.content-div[name='atommapping-div'] {
+	overflow: hidden;
+}

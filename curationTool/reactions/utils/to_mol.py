@@ -81,8 +81,11 @@ def vmh_to_mol(abbreviation):
     elif smile:
         if '[*]' in smile:
             return None, f"Metabolite {abbreviation} has a placeholder ([*]) in the SMILES string", name
-        smile = smiles_with_explicit_hydrogens(smile)
-        mol = Chem.MolFromSmiles(smile, sanitize=False, removeHs=False)
+        try:
+            smile = smiles_with_explicit_hydrogens(str(smile))
+            mol = Chem.MolFromSmiles(smile, sanitize=False)
+        except Exception as e:
+            return None, f"SMILES parsing failed for {abbreviation}: {str(e)}", name
         if mol:
             mol.UpdatePropertyCache(strict=False)
         else:
@@ -132,8 +135,7 @@ def pubchem_id_to_mol(pubchem_id):
             except BaseException:
                 pass
             try:
-                mol = Chem.MolFromSmiles(
-                    smiles, sanitize=False, removeHs=False)
+                mol = Chem.MolFromSmiles(smiles, sanitize=False)
             except BaseException:
                 mol = Chem.MolFromSmiles(smiles)
             mol.UpdatePropertyCache(strict=False)
@@ -183,8 +185,7 @@ def swisslipids_to_mol(id):
             except BaseException:
                 pass
             try:
-                mol = Chem.MolFromSmiles(
-                    smiles, sanitize=False, removeHs=False)
+                mol = Chem.MolFromSmiles(smiles, sanitize=False)
             except BaseException:
                 mol = Chem.MolFromSmiles(smiles)
             mol.UpdatePropertyCache(strict=False)

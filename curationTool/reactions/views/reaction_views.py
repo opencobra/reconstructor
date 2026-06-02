@@ -187,10 +187,17 @@ def input_reaction(request):
             'Stoichiometry values must be whole numbers.',
         )
 
-    subs_mols, subs_errors, _ = any_to_mol(
-        substrates_list, substrates_types, request, side='substrates')
-    prod_mols, prod_errors, _ = any_to_mol(
-        products_list, products_types, request, side='products')
+    try:
+        subs_mols, subs_errors, _ = any_to_mol(
+            substrates_list, substrates_types, request, side='substrates')
+        prod_mols, prod_errors, _ = any_to_mol(
+            products_list, products_types, request, side='products')
+    except Exception as e:
+        return _reaction_submission_error(
+            request,
+            form,
+            f'Failed to process metabolites: {str(e)}',
+        )
     subsystem = request.POST.get('subsystem')
     all_errors = subs_errors + prod_errors
     if any(elem is not None for elem in all_errors):
@@ -1156,15 +1163,27 @@ def identical_reaction(request):
         return JsonResponse({'error': 'Invalid stoichiometry values', 'status': 'error'})
 
     # Convert metabolites to RDKit Mol objects
-    subs_mols, subs_errors, _ = any_to_mol(
-        substrates_list, substrates_types, request, side="substrates"
-    )
-    prod_mols, prod_errors, _ = any_to_mol(
-        products_list, products_types, request, side="products"
-    )
+    try:
+        subs_mols, subs_errors, _ = any_to_mol(
+            substrates_list, substrates_types, request, side="substrates"
+        )
+        prod_mols, prod_errors, _ = any_to_mol(
+            products_list, products_types, request, side="products"
+        )
+    except Exception as e:
+        return JsonResponse({
+            'error': f'Failed to process metabolites: {str(e)}',
+            'status': 'error',
+        })
 
     if any(subs_errors) or any(prod_errors):
-        return JsonResponse({'error': 'Failed to process some metabolites', 'status': 'error'})
+        error_message = "\n".join(
+            [error for error in subs_errors + prod_errors if error]
+        )
+        return JsonResponse({
+            'error': error_message or 'Failed to process some metabolites',
+            'status': 'error',
+        })
     # Generate InChIKey-based reaction signature
     subs_inchi_keys = [
         (MolToInchiKey(mol), int(stoich))

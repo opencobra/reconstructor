@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1
+
 # MATLAB Container with MATLAB Engine API
 FROM mathworks/matlab:r2024b
 
@@ -38,10 +40,10 @@ RUN chmod -R 777 /matlab
 
 WORKDIR /matlab/scripts
 
-# Note: vmh_revamped should be accessible in build context
-# If using symlink: ln -s /home/saleh/vmh_revamped vmh_revamped (from project root)
-# Copy VMH revamped code from build context
-COPY --chown=root:root vmh_revamped/ /matlab/toolboxes/vmh_revamped/
+# Copy the VMH update toolbox from its named build context. The repo keeps
+# vmh_revamped as a symlink to ../vmh_revamped, which Docker cannot COPY
+# through from the default build context.
+COPY --from=vmh_db_update_source --chown=root:root / /matlab/toolboxes/vmh_revamped/vmh_db_update/
 
 # Copy any custom MATLAB scripts or toolboxes  
 # COPY ./scripts /matlab/scripts

@@ -1133,3 +1133,50 @@
     flex: 1;
     text-align: center;
 }
+
+/* Keep reaction-form dropdowns usable when they extend beyond panel edges. */
+#reactionFormContainer,
+#reactionForm,
+.reactant-section,
+.reactant-table,
+.reactant-grid,
+.reactant-rows,
+.inputs-group,
+.cell,
+.cell-identifier,
+.cell-type,
+.cell-compartment,
+.reaction-meta,
+.meta-field,
+.meta-input,
+.subsystem-input,
+.organ-input-wrapper,
+.autocomplete-container {
+    overflow: visible;
+}
+
+.reactant-section,
+.reactant-table,
+.inputs-group,
+.meta-field,
+.meta-input {
+    position: relative;
+}
+
+.reactant-section:focus-within,
+.inputs-group:focus-within,
+.meta-field:focus-within {
+    z-index: 80;
+}
+
+#subsystemDropdown,
+.dropdown-content,
+.dropdown-content-templates,
+.organ-dropdown-content,
+.autocomplete-dropdown,
+#geneSuggest,
+#reactionFormContainer .ui.dropdown .menu {
+    z-index: 10000;
+    max-height: min(320px, 50vh);
+    overscroll-behavior: contain;
+}
