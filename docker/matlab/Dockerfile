@@ -12,6 +12,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     git \
     curl \
+    default-mysql-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install MATLAB Engine API for Python
@@ -44,6 +45,7 @@ WORKDIR /matlab/scripts
 # vmh_revamped as a symlink to ../vmh_revamped, which Docker cannot COPY
 # through from the default build context.
 COPY --from=vmh_db_update_source --chown=root:root / /matlab/toolboxes/vmh_revamped/vmh_db_update/
+RUN test -f /matlab/toolboxes/vmh_revamped/vmh_db_update/src/updateVMHFromConstructor.m
 
 # Copy any custom MATLAB scripts or toolboxes  
 # COPY ./scripts /matlab/scripts

@@ -297,7 +297,7 @@ window.vmhPrepCache = new VMHPrepCache({
 				<div class="ws-balance-warning-copy">
 					<div class="ws-balance-warning-title">Balance warning</div>
 					<div class="ws-balance-warning-text">
-						This reaction is unbalanced by ${warning.label}. You can still add it to VMH, but review the stoichiometry and charges before relying on it.
+						This reaction is unbalanced by ${warning.label}. You can still add it to VMH, but please review the details.
 					</div>
 				</div>
 			</div>

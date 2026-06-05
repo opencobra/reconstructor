@@ -5,10 +5,6 @@ services:
     command: gunicorn reactions_project.wsgi:application --config /app/gunicorn.conf.py
     env_file:
       - .env
-    volumes:
-      - ./curationTool/media:/app/curationTool/media
-      - staticfiles:/app/curationTool/staticfiles
-      - ./curationTool:/app/curationTool
     ports:
       - "8001:8000"
     depends_on:
@@ -21,7 +17,18 @@ services:
     environment:
       - MATLAB_HOST=matlab
       - MATLAB_HTTP_PORT=9090
-      
+      - VMH_UPDATE_TMPDIR=/matlab/exchange/vmh_updates
+      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST:-127.0.0.1}
+      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT:-3306}
+      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE:-reconDBtest}
+      - VMH_MYSQL_USER=${VMH_MYSQL_USER:-saleh}
+      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD:-}
+    volumes:
+      - ./curationTool/media:/app/curationTool/media
+      - staticfiles:/app/curationTool/staticfiles
+      - ./curationTool:/app/curationTool
+      - matlab_exchange:/matlab/exchange
+
   db:
     cgroup_parent: reconstructor.slice
     image: postgres:15-alpine
@@ -53,14 +60,24 @@ services:
       # Override paths for MATLAB container (COBRA and VMH installed in image)
       - COBRA_PATH=/matlab/toolboxes/cobratoolbox
       - SCRIPT_DIRECTORIES=/matlab/scripts,/matlab/toolboxes/vmh_revamped/vmh_db_update/src,/matlab/toolboxes/cobratoolbox/src/dataIntegration/metaboAnnotator/buildMetStruct,/matlab/toolboxes/cobratoolbox
+      - VMH_UPDATE_TMPDIR=/matlab/exchange/vmh_updates
+      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST:-127.0.0.1}
+      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT:-3306}
+      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE:-reconDBtest}
+      - VMH_MYSQL_USER=${VMH_MYSQL_USER:-saleh}
+      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD:-}
     # Use host network to ensure consistent MAC address for licensing
     network_mode: "host"
     volumes:
       # Mount your MATLAB scripts (writable so MATLAB can create data directories)
       - ./matlab_scripts:/matlab/scripts
+      # Keep the VMH update toolbox live so MATLAB sees new/changed .m files.
+      - ../vmh_revamped/vmh_db_update:/matlab/toolboxes/vmh_revamped/vmh_db_update:ro
+      # Shared exchange directory for constructor-generated JSON files.
+      - matlab_exchange:/matlab/exchange
       # Mount license file
       - ./licenses:/licenses:ro
-      # Note: COBRA Toolbox and VMH revamped are now installed in the image, not mounted
+      # Note: COBRA Toolbox is installed in the image.
       # Writable directory for MATLAB to create temporary data files
       - matlab_data:/matlab/data
     shm_size: 512M
@@ -76,4 +93,5 @@ services:
 volumes:
   staticfiles:
   matlab_data:
+  matlab_exchange:
   

@@ -15,6 +15,33 @@ import matlab.engine
 app = Flask(__name__)
 matlab_engine = None
 
+
+def to_jsonable(value):
+    """Convert MATLAB Engine return values into JSON-serializable objects."""
+    if value is None or isinstance(value, (str, int, float, bool)):
+        return value
+    if isinstance(value, dict):
+        return {str(k): to_jsonable(v) for k, v in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [to_jsonable(item) for item in value]
+
+    try:
+        if hasattr(value, 'tolist'):
+            return to_jsonable(value.tolist())
+    except Exception:
+        pass
+
+    try:
+        if hasattr(value, '_data'):
+            return [to_jsonable(item) for item in list(value._data)]
+    except Exception:
+        pass
+
+    try:
+        return [to_jsonable(item) for item in value]
+    except Exception:
+        return str(value)
+
 def initialize_matlab():
     """Initialize MATLAB engine and set up paths"""
     global matlab_engine
@@ -135,15 +162,7 @@ def execute_function():
         else:
             result = matlab_function(*args, nargout=nargout, **kwargs)
         
-        # Convert MATLAB arrays to Python lists if needed
-        if result is not None:
-            try:
-                if hasattr(result, 'tolist'):
-                    result = result.tolist()
-                elif isinstance(result, tuple):
-                    result = [r.tolist() if hasattr(r, 'tolist') else r for r in result]
-            except:
-                pass  # Keep result as-is if conversion fails
+        result = to_jsonable(result)
 
         print(
             f"[MATLAB HTTP] Execution completed: function={function_name}, result_summary={str(result)[:200] if result is not None else 'None'}",
@@ -212,13 +231,7 @@ def eval_code():
         else:
             result = matlab_engine.eval(code, nargout=nargout)
         
-        # Convert MATLAB arrays to Python lists if needed
-        if result is not None:
-            try:
-                if hasattr(result, 'tolist'):
-                    result = result.tolist()
-            except:
-                pass
+        result = to_jsonable(result)
 
         print("[MATLAB HTTP] Eval completed", flush=True)
         

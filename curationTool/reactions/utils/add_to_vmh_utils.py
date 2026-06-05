@@ -16,6 +16,19 @@ from reactions.utils.vmh_api import (
 )
 # Function to gather additional reaction details
 
+VMH_UPDATE_JSON_FILENAMES = (
+    'reactionIds.json',
+    'reactionNames.json',
+    'reactionFormulas.json',
+    'reactionDirections.json',
+    'reactionSubsystems.json',
+    'reactionReferences.json',
+    'reactionExternalLinks.json',
+    'reactionGeneInfo.json',
+    'reactionComments.json',
+    'reactionConfidenceScores.json',
+)
+
 
 def gather_reaction_details(reaction_objs):
     """
@@ -89,15 +102,44 @@ def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False,
         'model_id': 8564  # RECON4IMD
     }
     
-    result = matlab_session.execute('updateVMHFromConstructor', json_dir, options)
+    file_paths = [os.path.join(json_dir, filename) for filename in VMH_UPDATE_JSON_FILENAMES]
+    missing_files = [filepath for filepath in file_paths if not os.path.exists(filepath)]
+    if missing_files:
+        return {
+            'status': 'error',
+            'message': 'Missing VMH update JSON file(s): ' + ', '.join(missing_files),
+            'addedMets': [],
+            'addedRxns': [],
+            'updatedRxns': []
+        }
+
+    result = matlab_session.execute(
+        'updateVMHFromConstructor',
+        *file_paths,
+        options,
+        nargout=3
+    )
     
     if result.get('status') == 'success':
-        matlab_result = result.get('result', {})
+        matlab_result = result.get('result', [])
+        if isinstance(matlab_result, dict):
+            added_mets = _flatten_matlab_cell(matlab_result.get('addedMets', []))
+            added_rxns = _flatten_matlab_cell(matlab_result.get('addedRxns', []))
+            updated_rxns = _flatten_matlab_cell(matlab_result.get('updatedRxns', []))
+        elif isinstance(matlab_result, (list, tuple)):
+            added_mets = _flatten_matlab_cell(matlab_result[0] if len(matlab_result) > 0 else [])
+            added_rxns = _flatten_matlab_cell(matlab_result[1] if len(matlab_result) > 1 else [])
+            updated_rxns = _flatten_matlab_cell(matlab_result[2] if len(matlab_result) > 2 else [])
+        else:
+            added_mets = _flatten_matlab_cell(matlab_result)
+            added_rxns = []
+            updated_rxns = []
+
         return {
             'status': 'success',
-            'addedMets': matlab_result.get('addedMets', []),
-            'addedRxns': matlab_result.get('addedRxns', []),
-            'updatedRxns': matlab_result.get('updatedRxns', [])
+            'addedMets': added_mets,
+            'addedRxns': added_rxns,
+            'updatedRxns': updated_rxns
         }
     else:
         return {
@@ -107,6 +149,20 @@ def update_vmh_from_constructor(json_dir, matlab_session, update_existing=False,
             'addedRxns': [],
             'updatedRxns': []
         }
+
+
+def _flatten_matlab_cell(value):
+    """
+    Convert MATLAB cell-array-shaped JSON values into a plain Python list.
+    """
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        items = []
+        for item in value:
+            items.extend(_flatten_matlab_cell(item))
+        return items
+    return [value]
 
 def parse_gene_info(info):
     """
@@ -184,7 +240,8 @@ def prepare_vmh_update_json_files(
     
     if output_dir is None:
         # Create a unique temp directory
-        output_dir = os.path.join(tempfile.gettempdir(), f'vmh_update_{uuid.uuid4().hex}')
+        base_tmp_dir = os.getenv('VMH_UPDATE_TMPDIR') or tempfile.gettempdir()
+        output_dir = os.path.join(base_tmp_dir, f'vmh_update_{uuid.uuid4().hex}')
     
     os.makedirs(output_dir, exist_ok=True)
     

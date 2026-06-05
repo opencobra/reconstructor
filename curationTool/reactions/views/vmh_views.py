@@ -704,10 +704,10 @@ def add_to_vmh(request):
     
     # Call the unified MATLAB function that handles both metabolites and reactions
     matlab_session = MatlabSessionManager()
-    matlab_result = update_vmh_from_constructor(json_dir, matlab_session, update_existing=False, dry_run=False)
-    
-    # Cleanup temporary JSON files
-    cleanup_vmh_update_json_files(json_dir)
+    try:
+        matlab_result = update_vmh_from_constructor(json_dir, matlab_session, update_existing=False, dry_run=False)
+    finally:
+        cleanup_vmh_update_json_files(json_dir)
 
     if matlab_result['status'] == 'success':
         added_mets = matlab_result.get('addedMets', [])

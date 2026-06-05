@@ -71,8 +71,10 @@ class MatlabHTTPClient:
         Returns:
             Dict with 'status' ('success' or 'error'), 'result', and optional 'message'
         """
+        nargout = kwargs.pop('nargout', 1)
+
         print(f"[DEBUG MatlabHTTPClient] Executing MATLAB function: {function_name}", flush=True)
-        print(f"[DEBUG MatlabHTTPClient] Args: {args}, Kwargs: {kwargs}", flush=True)
+        print(f"[DEBUG MatlabHTTPClient] Args: {args}, Kwargs: {kwargs}, nargout: {nargout}", flush=True)
         print(f"[DEBUG MatlabHTTPClient] Sending request to: {self.base_url}/execute", flush=True)
         
         try:
@@ -81,7 +83,8 @@ class MatlabHTTPClient:
                 json={
                     'function': function_name,
                     'args': list(args),
-                    'kwargs': kwargs
+                    'kwargs': kwargs,
+                    'nargout': nargout,
                 },
                 timeout=(5, self.timeout)
             )
