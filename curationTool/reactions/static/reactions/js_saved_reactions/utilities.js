@@ -28,6 +28,9 @@ function validateInputs() {
 	document.querySelectorAll('.ws-input-error').forEach(el => {
 		el.classList.remove('ws-input-error');
 	});
+	document.querySelectorAll('.ws-row-error').forEach(el => {
+		el.classList.remove('ws-row-error');
+	});
 	
 	// Check substrate and product name inputs
 	document.querySelectorAll('.sub-name-input, .prod-name-input').forEach((input) => {
@@ -63,11 +66,29 @@ function validateInputs() {
 		});
 		
 		// Check reaction abbreviation
+		const reactionNameInput = detailPanel.querySelector('.reaction-name-input');
+		if (reactionNameInput && reactionNameInput.value.trim() === '') {
+			allInputsValid = false;
+			reactionNameInput.classList.add('ws-input-error');
+		}
+
 		const reactionAbbrInput = detailPanel.querySelector('.reaction-abbreviation-input');
 		if (reactionAbbrInput && reactionAbbrInput.value.trim() === '') {
 			allInputsValid = false;
 			reactionAbbrInput.classList.add('ws-input-error');
 		}
+
+		detailPanel.querySelectorAll('.ws-availability-status[data-state="conflict"]').forEach((status) => {
+			allInputsValid = false;
+			const row = status.closest('tr');
+			const formSection = status.closest('.ws-form-section');
+			if (row) row.classList.add('ws-row-error');
+			if (formSection) {
+				formSection.querySelectorAll('.reaction-name-input, .reaction-abbreviation-input').forEach((input) => {
+					input.classList.add('ws-input-error');
+				});
+			}
+		});
 	}
 
 	return allInputsValid;

@@ -78,9 +78,31 @@ class Reaction(models.Model):
 class ReactionsAddedVMH(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     user_name = models.CharField(max_length=255)
+    user_full_name = models.CharField(max_length=255, blank=True, default='')
+    user_email = models.EmailField(blank=True, default='')
+    local_reaction = models.ForeignKey(
+        Reaction,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='vmh_addition_records')
     reaction_id = models.CharField(max_length=255)
     reaction_formula = models.TextField()
     reaction_abbr = models.CharField(max_length=255)
+    reaction_name = models.TextField(blank=True, default='')
+    direction = models.CharField(max_length=64, blank=True, default='')
+    subsystem = models.TextField(blank=True, default='')
+    confidence_score = models.CharField(max_length=10, blank=True, default='')
+    vmh_database = models.CharField(max_length=255, blank=True, default='')
+    added_metabolites = models.JSONField(blank=True, default=list)
+    substrate_snapshot = models.JSONField(blank=True, default=list)
+    product_snapshot = models.JSONField(blank=True, default=list)
+    reference_snapshot = models.JSONField(blank=True, default=list)
+    external_link_snapshot = models.JSONField(blank=True, default=list)
+    gene_info_snapshot = models.JSONField(blank=True, default=list)
+    comment_snapshot = models.JSONField(blank=True, default=list)
+    request_snapshot = models.JSONField(blank=True, default=dict)
+    matlab_result = models.JSONField(blank=True, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -90,9 +112,34 @@ class ReactionsAddedVMH(models.Model):
 class MetabolitesAddedVMH(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     user_name = models.CharField(max_length=255)
+    user_full_name = models.CharField(max_length=255, blank=True, default='')
+    user_email = models.EmailField(blank=True, default='')
+    reaction_entry = models.ForeignKey(
+        ReactionsAddedVMH,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='metabolite_records')
+    local_reaction = models.ForeignKey(
+        Reaction,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='vmh_metabolite_addition_records')
+    reaction_abbr = models.CharField(max_length=255, blank=True, default='')
+    reaction_formula = models.TextField(blank=True, default='')
     metabolite_id = models.CharField(max_length=255)
-    metabolite_formula = models.TextField()
+    metabolite_formula = models.TextField(blank=True, default='')
     metabolite_abbr = models.CharField(max_length=255)
+    metabolite_name = models.TextField(blank=True, default='')
+    side = models.CharField(max_length=32, blank=True, default='')
+    compartment = models.CharField(max_length=32, blank=True, default='')
+    stoichiometry = models.CharField(max_length=64, blank=True, default='')
+    source_type = models.CharField(max_length=64, blank=True, default='')
+    source_identifier = models.TextField(blank=True, default='')
+    inchi_key = models.CharField(max_length=255, blank=True, default='')
+    vmh_database = models.CharField(max_length=255, blank=True, default='')
+    submission_snapshot = models.JSONField(blank=True, default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -70,6 +70,7 @@ urlpatterns = [
     path('add_to_vmh/', vmh_views.add_to_vmh, name='add_to_vmh'),
     path('get_subsystems/', vmh_views.get_subsystems, name='get_subsystems'),
     path('prepare_add_to_vmh/', vmh_views.prepare_add_to_vmh, name='prepare_add_to_vmh'),
+    path('check_vmh_availability/', vmh_views.check_vmh_availability, name='check_vmh_availability'),
     path('update_subsystems/', vmh_views.update_subsystems, name='update_subsystems'),
     path('create-formula-abbr/', vmh_views.create_formula_abbr, name='create_formula_abbr'),
     path('check_reaction_vmh/', vmh_views.check_reaction_vmh, name='check_reaction_vmh'),

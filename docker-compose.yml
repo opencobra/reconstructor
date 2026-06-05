@@ -18,11 +18,11 @@ services:
       - MATLAB_HOST=matlab
       - MATLAB_HTTP_PORT=9090
       - VMH_UPDATE_TMPDIR=/matlab/exchange/vmh_updates
-      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST:-127.0.0.1}
-      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT:-3306}
-      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE:-reconDBtest}
-      - VMH_MYSQL_USER=${VMH_MYSQL_USER:-saleh}
-      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD:-}
+      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST}
+      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT}
+      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE}
+      - VMH_MYSQL_USER=${VMH_MYSQL_USER}
+      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD}
     volumes:
       - ./curationTool/media:/app/curationTool/media
       - staticfiles:/app/curationTool/staticfiles
@@ -61,11 +61,11 @@ services:
       - COBRA_PATH=/matlab/toolboxes/cobratoolbox
       - SCRIPT_DIRECTORIES=/matlab/scripts,/matlab/toolboxes/vmh_revamped/vmh_db_update/src,/matlab/toolboxes/cobratoolbox/src/dataIntegration/metaboAnnotator/buildMetStruct,/matlab/toolboxes/cobratoolbox
       - VMH_UPDATE_TMPDIR=/matlab/exchange/vmh_updates
-      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST:-127.0.0.1}
-      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT:-3306}
-      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE:-reconDBtest}
-      - VMH_MYSQL_USER=${VMH_MYSQL_USER:-saleh}
-      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD:-}
+      - VMH_MYSQL_HOST=${VMH_MYSQL_HOST}
+      - VMH_MYSQL_PORT=${VMH_MYSQL_PORT}
+      - VMH_MYSQL_DATABASE=${VMH_MYSQL_DATABASE}
+      - VMH_MYSQL_USER=${VMH_MYSQL_USER}
+      - VMH_MYSQL_PASSWORD=${VMH_MYSQL_PASSWORD}
     # Use host network to ensure consistent MAC address for licensing
     network_mode: "host"
     volumes:

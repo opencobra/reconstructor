@@ -304,6 +304,86 @@ window.vmhPrepCache = new VMHPrepCache({
 		`;
 	}
 
+	function normalizeReactionDirection(direction) {
+		const value = String(direction || '').trim().toLowerCase();
+		return value === 'bidirectional' || value === 'reversible' || value === '<=>' ? '<=>' : '->';
+	}
+
+	function formatVMHStoich(value) {
+		const numericValue = Number(value);
+		if (!Number.isFinite(numericValue)) return String(value || '').trim();
+		return Number.isInteger(numericValue) ? `${numericValue}.0` : String(numericValue);
+	}
+
+	function buildFormulaSideFromRows(rows) {
+		return rows.map((row) => {
+			const abbrInput = row.querySelector('input[name$="AbbrInput"]');
+			const abbr = abbrInput ? abbrInput.value.trim() : '';
+			const stoich = formatVMHStoich(row.dataset.stoich);
+			const comp = row.dataset.comp || '';
+			return `${stoich} ${abbr || '?'}[${comp}]`;
+		}).join(' + ');
+	}
+
+	function buildVMHFormulaFromArrays(subsStoich, subsComps, subsAbbrs, prodsStoich, prodsComps, prodsAbbrs, direction) {
+		const substrateFormula = subsStoich.map((stoich, index) => (
+			`${formatVMHStoich(stoich)} ${subsAbbrs[index] || '?'}[${subsComps[index] || ''}]`
+		)).join(' + ');
+		const productFormula = prodsStoich.map((stoich, index) => (
+			`${formatVMHStoich(stoich)} ${prodsAbbrs[index] || '?'}[${prodsComps[index] || ''}]`
+		)).join(' + ');
+		return `${substrateFormula} ${normalizeReactionDirection(direction)} ${productFormula}`;
+	}
+
+	function updateVMHFormulaPreview(reactionPk) {
+		const preview = document.getElementById(`vmhFormulaPreview-${reactionPk}`);
+		if (!preview) return;
+		const substrateRows = Array.from(document.querySelectorAll(`tr.ws-met-row[data-reaction-id="${reactionPk}"][data-side="substrate"]`));
+		const productRows = Array.from(document.querySelectorAll(`tr.ws-met-row[data-reaction-id="${reactionPk}"][data-side="product"]`));
+		preview.textContent = `${buildFormulaSideFromRows(substrateRows)} ${preview.dataset.direction || '->'} ${buildFormulaSideFromRows(productRows)}`;
+	}
+
+	function availabilityStateFromConflict(inVMH) {
+		return inVMH ? 'conflict' : 'ok';
+	}
+
+	function availabilityLabel(kind, state) {
+		const noun = kind === 'abbr' ? 'Abbr' : 'Name';
+		if (state === 'ok') return `${noun} available`;
+		if (state === 'conflict') return `${noun} already in VMH`;
+		if (state === 'checking') return `Checking ${noun.toLowerCase()}`;
+		return `${noun} needs check`;
+	}
+
+	function availabilityIconHTML(kind, state) {
+		const iconMap = {
+			ok: 'fa-check-circle',
+			conflict: 'fa-exclamation-triangle',
+			stale: 'fa-question-circle',
+			checking: 'fa-spinner fa-spin'
+		};
+		const label = availabilityLabel(kind, state);
+		return `
+			<span class="ws-availability-status ws-availability-${state}" data-kind="${kind}" data-state="${state}" title="${label}">
+				<i class="fas ${iconMap[state] || iconMap.stale}"></i>
+				<span>${label}</span>
+			</span>
+		`;
+	}
+
+	function setAvailabilityStatus(container, kind, state) {
+		const status = container.querySelector(`.ws-availability-status[data-kind="${kind}"]`);
+		if (!status) return;
+		status.className = `ws-availability-status ws-availability-${state}`;
+		status.dataset.state = state;
+		status.title = availabilityLabel(kind, state);
+		status.innerHTML = `<i class="fas ${state === 'ok' ? 'fa-check-circle' : state === 'conflict' ? 'fa-exclamation-triangle' : state === 'checking' ? 'fa-spinner fa-spin' : 'fa-question-circle'}"></i><span>${availabilityLabel(kind, state)}</span>`;
+	}
+
+	function markAvailabilityStale(container, kind) {
+		setAvailabilityStatus(container, kind, 'stale');
+	}
+
 	// Show empty state if no reactions
 	if (reactions_active.length === 0) {
 		const selectAllRow = document.querySelector('.ws-select-all-row');
@@ -578,6 +658,8 @@ window.vmhPrepCache = new VMHPrepCache({
 		prodsAbbr = vmhResponse.prods_abbr;
 		subsNeedNewNames = vmhResponse.subs_need_new_names;
 		prodsNeedNewNames = vmhResponse.prods_need_new_names;
+		subsNeedNewAbbrs = vmhResponse.subs_need_new_abbrs || subsNeedNewNames.map((items) => items.map(() => false));
+		prodsNeedNewAbbrs = vmhResponse.prods_need_new_abbrs || prodsNeedNewNames.map((items) => items.map(() => false));
 		reactionAbbrs = vmhResponse.reaction_abbrs;
 
 		// Check if there's a cached form state to restore
@@ -599,12 +681,25 @@ window.vmhPrepCache = new VMHPrepCache({
 		let prodsAbbrForReaction = prodsAbbr[0];
 		let subsNeedNewNamesForReaction = subsNeedNewNames[0];
 		let prodsNeedNewNamesForReaction = prodsNeedNewNames[0];
+		let subsNeedNewAbbrsForReaction = subsNeedNewAbbrs[0] || subsNeedNewNamesForReaction.map(() => false);
+		let prodsNeedNewAbbrsForReaction = prodsNeedNewAbbrs[0] || prodsNeedNewNamesForReaction.map(() => false);
 		let reactionAbbrForReaction = reactionAbbrs[0];
+		const reactionNameState = availabilityStateFromConflict((vmhResponse.reaction_name_in_vmh || [false])[0]);
+		const reactionAbbrState = availabilityStateFromConflict((vmhResponse.reaction_abbr_in_vmh || [false])[0]);
 		
 		// Use cached form state values if available, otherwise use reaction fields
 		let displayDescription = cachedFormState ? cachedFormState.description : reaction.fields.description;
 		let displayAbbreviation = cachedFormState ? cachedFormState.abbreviation : reaction.fields.short_name;
 		let confidenceScore = cachedFormState ? cachedFormState.confidence_score : (reaction.fields.confidence_score || ' ');
+		const initialVMHFormula = buildVMHFormulaFromArrays(
+			subs_stoich,
+			subs_comps,
+			subsAbbrForReaction,
+			prods_stoich,
+			prods_comps,
+			prodsAbbrForReaction,
+			reaction.fields.direction
+		);
 
 		const listItem = document.createElement('div');
 		listItem.className = 'ws-reaction-card';
@@ -633,19 +728,28 @@ window.vmhPrepCache = new VMHPrepCache({
 				<div class="ws-form-section">
 					<div class="ws-form-row">
 						<div class="ws-form-group ws-form-group-lg">
-							<label class="ws-form-label">Description</label>
+							<div class="ws-field-header">
+								<label class="ws-form-label">Description</label>
+								${availabilityIconHTML('name', reactionNameState)}
+							</div>
 							<input type="text" class="ws-form-input reaction-name-input" 
 								placeholder="Enter reaction description" 
 								value="${displayDescription}" 
 								data-reaction-id="${reaction.pk}">
 						</div>
 						<div class="ws-form-group">
-							<label class="ws-form-label">Abbreviation</label>
+							<div class="ws-field-header">
+								<label class="ws-form-label">Abbreviation</label>
+								${availabilityIconHTML('abbr', reactionAbbrState)}
+							</div>
 							<input type="text" class="ws-form-input reaction-abbreviation-input" 
 								placeholder="e.g., RXN001" 
 								value="${displayAbbreviation}" 
 								data-reaction-id="${reaction.pk}">
 						</div>
+						<button type="button" class="ws-availability-btn ws-reaction-availability-btn" data-check-type="reaction" data-reaction-id="${reaction.pk}" title="Check VMH availability">
+							<i class="fas fa-search"></i>
+						</button>
 					</div>
 				</div>
 
@@ -662,12 +766,16 @@ window.vmhPrepCache = new VMHPrepCache({
 										<th class="ws-col-comp">Comp</th>
 										<th class="ws-col-name">Name</th>
 										<th class="ws-col-abbr">Abbreviation</th>
+										<th class="ws-col-status">Check</th>
 									</tr>
 								</thead>
 								<tbody>
 									${substrates_names.map((name, index) => `
 										<tr class="ws-met-row ${subsInVMHForReaction[index] ? 'ws-met-vmh' : 'ws-met-new'}" 
 											data-reaction-id="${reaction.pk}" 
+											data-side="substrate"
+											data-stoich="${subs_stoich[index]}"
+											data-comp="${subs_comps[index]}"
 											data-tooltip-content="${formatTooltipContent(substrates[index], substrates_types[index], subs_comps[index])}">
 											<td class="ws-col-stoich"><span class="ws-stoich-value">${subs_stoich[index]}</span></td>
 											<td class="ws-col-comp"><span class="ws-comp-badge">${subs_comps[index]}</span></td>
@@ -675,17 +783,23 @@ window.vmhPrepCache = new VMHPrepCache({
 												<div class="ws-name-cell">
 													<input type="text" name="subsNameInput" class="ws-met-input ${subsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
 														placeholder="Name" value="${name}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
-													${subsNeedNewNamesForReaction[index] ? `
-														<span class="ws-warning-icon" title="Name already in VMH">
-															<i class="fas fa-exclamation-triangle"></i>
-														</span>
-													` : ''}
+													${!subsInVMHForReaction[index] ? availabilityIconHTML('name', availabilityStateFromConflict(subsNeedNewNamesForReaction[index])) : ''}
 													${subsInVMHForReaction[index] ? '<span class="ws-vmh-tag">VMH</span>' : ''}
 												</div>
 											</td>
 											<td class="ws-col-abbr">
-												<input type="text" name="subsAbbrInput" class="ws-met-input ${subsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
-													placeholder="Abbr" value="${subsAbbrForReaction[index]}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
+												<div class="ws-name-cell">
+													<input type="text" name="subsAbbrInput" class="ws-met-input ${subsInVMHForReaction[index] ? 'ws-input-readonly' : ''}"
+														placeholder="Abbr" value="${subsAbbrForReaction[index]}" ${subsInVMHForReaction[index] ? 'readonly' : ''}>
+													${!subsInVMHForReaction[index] ? availabilityIconHTML('abbr', availabilityStateFromConflict(subsNeedNewAbbrsForReaction[index])) : ''}
+												</div>
+											</td>
+											<td class="ws-col-status">
+												${!subsInVMHForReaction[index] ? `
+													<button type="button" class="ws-availability-btn" data-check-type="metabolite" title="Check VMH availability">
+														<i class="fas fa-search"></i>
+													</button>
+												` : ''}
 											</td>
 										</tr>
 									`).join('')}
@@ -710,12 +824,16 @@ window.vmhPrepCache = new VMHPrepCache({
 										<th class="ws-col-comp">Comp</th>
 										<th class="ws-col-name">Name</th>
 										<th class="ws-col-abbr">Abbreviation</th>
+										<th class="ws-col-status">Check</th>
 									</tr>
 								</thead>
 								<tbody>
 									${products_names.map((name, index) => `
 										<tr class="ws-met-row ${prodsInVMHForReaction[index] ? 'ws-met-vmh' : 'ws-met-new'}" 
 											data-reaction-id="${reaction.pk}" 
+											data-side="product"
+											data-stoich="${prods_stoich[index]}"
+											data-comp="${prods_comps[index]}"
 											data-tooltip-content="${formatTooltipContent(products[index], products_types[index], prods_comps[index])}">
 											<td class="ws-col-stoich"><span class="ws-stoich-value">${prods_stoich[index]}</span></td>
 											<td class="ws-col-comp"><span class="ws-comp-badge">${prods_comps[index]}</span></td>
@@ -723,17 +841,23 @@ window.vmhPrepCache = new VMHPrepCache({
 												<div class="ws-name-cell">
 													<input type="text" name="prodsNameInput" class="ws-met-input ${prodsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
 														placeholder="Name" value="${name}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
-													${prodsNeedNewNamesForReaction[index] ? `
-														<span class="ws-warning-icon" title="Name already in VMH">
-															<i class="fas fa-exclamation-triangle"></i>
-														</span>
-													` : ''}
+													${!prodsInVMHForReaction[index] ? availabilityIconHTML('name', availabilityStateFromConflict(prodsNeedNewNamesForReaction[index])) : ''}
 													${prodsInVMHForReaction[index] ? '<span class="ws-vmh-tag">VMH</span>' : ''}
 												</div>
 											</td>
 											<td class="ws-col-abbr">
-												<input type="text" name="prodsAbbrInput" class="ws-met-input ${prodsInVMHForReaction[index] ? 'ws-input-readonly' : ''}" 
-													placeholder="Abbr" value="${prodsAbbrForReaction[index]}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
+												<div class="ws-name-cell">
+													<input type="text" name="prodsAbbrInput" class="ws-met-input ${prodsInVMHForReaction[index] ? 'ws-input-readonly' : ''}"
+														placeholder="Abbr" value="${prodsAbbrForReaction[index]}" ${prodsInVMHForReaction[index] ? 'readonly' : ''}>
+													${!prodsInVMHForReaction[index] ? availabilityIconHTML('abbr', availabilityStateFromConflict(prodsNeedNewAbbrsForReaction[index])) : ''}
+												</div>
+											</td>
+											<td class="ws-col-status">
+												${!prodsInVMHForReaction[index] ? `
+													<button type="button" class="ws-availability-btn" data-check-type="metabolite" title="Check VMH availability">
+														<i class="fas fa-search"></i>
+													</button>
+												` : ''}
 											</td>
 										</tr>
 									`).join('')}
@@ -741,6 +865,14 @@ window.vmhPrepCache = new VMHPrepCache({
 							</table>
 						</div>
 					</div>
+				</div>
+
+				<div class="ws-formula-preview" data-reaction-id="${reaction.pk}">
+					<div class="ws-formula-preview-header">
+						<i class="fas fa-project-diagram"></i>
+						<span>VMH formula</span>
+					</div>
+					<code class="ws-formula-code" id="vmhFormulaPreview-${reaction.pk}" data-direction="${normalizeReactionDirection(reaction.fields.direction)}">${initialVMHFormula}</code>
 				</div>
 		`;
 		// Add extra sections - use cached form state if available
@@ -1168,8 +1300,79 @@ window.vmhPrepCache = new VMHPrepCache({
 		`;
 	}
 
+	async function handleVMHAvailabilityCheck(button) {
+		const checkType = button.dataset.checkType;
+		const container = checkType === 'reaction'
+			? button.closest('.ws-form-section')
+			: button.closest('tr.ws-met-row');
+		if (!container) return;
+
+		const nameInput = checkType === 'reaction'
+			? container.querySelector('.reaction-name-input')
+			: container.querySelector('input[name$="NameInput"]');
+		const abbrInput = checkType === 'reaction'
+			? container.querySelector('.reaction-abbreviation-input')
+			: container.querySelector('input[name$="AbbrInput"]');
+
+		const name = nameInput ? nameInput.value.trim() : '';
+		const abbr = abbrInput ? abbrInput.value.trim() : '';
+		if (!name || !abbr) {
+			showWorkspaceToast('Name and abbreviation are required before checking', 'error');
+			return;
+		}
+
+		setAvailabilityStatus(container, 'name', 'checking');
+		setAvailabilityStatus(container, 'abbr', 'checking');
+		button.disabled = true;
+		button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+		try {
+			const response = await fetch(checkVMHAvailabilityUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+				},
+				body: JSON.stringify({
+					type: checkType,
+					name,
+					abbr,
+				}),
+			});
+			const data = await response.json();
+			if (data.status !== 'success') {
+				throw new Error(data.message || 'Availability check failed');
+			}
+
+			setAvailabilityStatus(container, 'name', data.name_in_vmh ? 'conflict' : 'ok');
+			setAvailabilityStatus(container, 'abbr', data.abbr_in_vmh ? 'conflict' : 'ok');
+			nameInput && nameInput.classList.toggle('ws-availability-conflict-input', data.name_in_vmh);
+			abbrInput && abbrInput.classList.toggle('ws-availability-conflict-input', data.abbr_in_vmh);
+
+			if (data.name_in_vmh || data.abbr_in_vmh) {
+				showWorkspaceToast('VMH already has one of these values', 'error');
+			} else {
+				showWorkspaceToast('Name and abbreviation are available', 'success');
+			}
+		} catch (error) {
+			console.error('Availability check failed:', error);
+			setAvailabilityStatus(container, 'name', 'stale');
+			setAvailabilityStatus(container, 'abbr', 'stale');
+			showWorkspaceToast('Could not check VMH availability', 'error');
+		} finally {
+			button.disabled = false;
+			button.innerHTML = '<i class="fas fa-search"></i>';
+		}
+	}
+
 	// 4 – Save & Submit stubs
 	availableDetailEl.addEventListener('click', (e) => {
+		const availabilityBtn = e.target.closest('.ws-availability-btn');
+		if (availabilityBtn) {
+			handleVMHAvailabilityCheck(availabilityBtn);
+			return;
+		}
+
 		// Handle Submit to VMH button
 		if (e.target.id === 'submitVMHBtn' || e.target.closest('#submitVMHBtn')) {
 			const btn = e.target.id === 'submitVMHBtn' ? e.target : e.target.closest('#submitVMHBtn');
@@ -1204,6 +1407,28 @@ window.vmhPrepCache = new VMHPrepCache({
 		
 		const reactionPk = +reactionInput.dataset.reactionId;
 		if (!reactionPk) return;
+
+		if (e.target.classList.contains('reaction-name-input')) {
+			const container = e.target.closest('.ws-form-section');
+			container && markAvailabilityStale(container, 'name');
+			e.target.classList.remove('ws-availability-conflict-input');
+		}
+		if (e.target.classList.contains('reaction-abbreviation-input')) {
+			const container = e.target.closest('.ws-form-section');
+			container && markAvailabilityStale(container, 'abbr');
+			e.target.classList.remove('ws-availability-conflict-input');
+		}
+		if (e.target.matches('input[name$="NameInput"]:not([readonly])')) {
+			const row = e.target.closest('tr.ws-met-row');
+			row && markAvailabilityStale(row, 'name');
+			e.target.classList.remove('ws-availability-conflict-input');
+		}
+		if (e.target.matches('input[name$="AbbrInput"]:not([readonly])')) {
+			const row = e.target.closest('tr.ws-met-row');
+			row && markAvailabilityStale(row, 'abbr');
+			e.target.classList.remove('ws-availability-conflict-input');
+			updateVMHFormulaPreview(reactionPk);
+		}
 
 		// Debounce the cache update
 		clearTimeout(saveTimeout);

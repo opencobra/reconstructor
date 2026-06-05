@@ -304,7 +304,7 @@ function updateVMHModalStatus(state, data = {}) {
 							<div class="vmh-result-item" onclick="this.classList.toggle('expanded')">
 								<div style="display: flex; align-items: center; gap: 8px; flex: 1;">
 									<span class="vmh-result-abbr">${abbr}</span>
-									<span class="vmh-result-id">(ID: ${id})</span>
+									<span class="vmh-result-id">(local record: ${id})</span>
 								</div>
 								<i class="fas fa-chevron-down" style="font-size: 10px; color: #999;"></i>
 								<div class="vmh-result-formula">${formula}</div>
@@ -322,7 +322,7 @@ function updateVMHModalStatus(state, data = {}) {
 							<div class="vmh-result-item" onclick="this.classList.toggle('expanded')">
 								<div style="display: flex; align-items: center; gap: 8px; flex: 1;">
 									<span class="vmh-result-abbr">${abbr}</span>
-									<span class="vmh-result-id">(ID: ${id})</span>
+									${id ? `<span class="vmh-result-id">(ID: ${id})</span>` : ''}
 								</div>
 								<i class="fas fa-chevron-down" style="font-size: 10px; color: #999;"></i>
 								<div class="vmh-result-formula">Formula: ${formula}<br>InChIKey: ${inchiKey}</div>
@@ -379,7 +379,7 @@ function addToVMH() {
 	setButtonState(true);
 
 	if (!validateInputs()) {
-		displayValidationMessage(true, 'Fill in all non-VMH metabolite names');
+		displayValidationMessage(true, 'Fix required fields and VMH conflicts before submitting');
 		setButtonState(false);
 		
 		// Show inline error message in workspace details

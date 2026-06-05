@@ -30,6 +30,13 @@ VMH_UPDATE_JSON_FILENAMES = (
 )
 
 
+def get_vmh_target_database():
+    """
+    Return the VMH MySQL database that MATLAB writes to.
+    """
+    return os.getenv('VMH_MYSQL_DATABASE', '')
+
+
 def gather_reaction_details(reaction_objs):
     """
     Gathers additional details for reactions, such as direction, references, external links, gene info, comments, and confidence scores.
@@ -459,9 +466,11 @@ def check_names_abbrs_vmh(names_abbr_list):
 
 
 def make_request_names_abbrs(name, abbr):
-    found_abbr = find_metabolite_by_abbreviation(abbr)
+    name = (name or '').strip()
+    abbr = (abbr or '').strip()
+    found_abbr = find_metabolite_by_abbreviation(abbr) if abbr else None
     abbr_found = bool(found_abbr and (found_abbr.get("abbreviation") or "").lower() == abbr.lower())
-    name_found = bool(find_metabolite_by_full_name(name))
+    name_found = bool(find_metabolite_by_full_name(name)) if name else False
     return name_found, abbr_found
 
 

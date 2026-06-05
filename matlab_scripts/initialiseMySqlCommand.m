@@ -11,7 +11,7 @@ else
     infile = '';
 end
 
-database = getenvDefault('VMH_MYSQL_DATABASE', 'reconDBtest');
+database = getenvRequired('VMH_MYSQL_DATABASE');
 host = getenvDefault('VMH_MYSQL_HOST', '127.0.0.1');
 port = getenvDefault('VMH_MYSQL_PORT', '3306');
 user = getenvDefault('VMH_MYSQL_USER', 'saleh');
@@ -38,6 +38,13 @@ function value = getenvDefault(name, defaultValue)
 value = getenv(name);
 if isempty(value)
     value = defaultValue;
+end
+end
+
+function value = getenvRequired(name)
+value = getenv(name);
+if isempty(value)
+    error('Required environment variable %s is not set.', name);
 end
 end
 

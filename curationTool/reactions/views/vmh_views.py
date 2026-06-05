@@ -35,7 +35,7 @@ from reactions.models import (
     Workspace
 )
 from reactions.reaction_info import construct_vmh_formula
-from reactions.utils.search_vmh import search_metabolites_vmh, is_name_in_vmh
+from reactions.utils.search_vmh import search_metabolites_vmh
 from reactions.utils.utils import capitalize_first_letter
 from reactions.utils.gen_vmh_abbrs import gen_metabolite_abbr
 from reactions.utils.search_vmh import get_from_vmh
@@ -49,6 +49,9 @@ from reactions.utils.add_to_vmh_utils import (
     prepare_vmh_update_json_files,
     cleanup_vmh_update_json_files,
     update_vmh_from_constructor,
+    make_request_names_abbrs,
+    check_names_abbrs_vmh,
+    get_vmh_target_database,
 )
 # Use HTTP-based MATLAB client
 try:
@@ -58,6 +61,91 @@ except Exception as e:
     MatlabSessionManager = None
 
 from reactions.utils.utils import reactions_to_json
+
+
+def _json_list(value):
+    if not value:
+        return []
+    if isinstance(value, list):
+        return value
+    try:
+        data = json.loads(value)
+        return data if isinstance(data, list) else []
+    except (TypeError, json.JSONDecodeError):
+        return []
+
+
+def _json_dict(value):
+    if isinstance(value, dict):
+        return value
+    try:
+        data = json.loads(value)
+        return data if isinstance(data, dict) else {}
+    except (TypeError, json.JSONDecodeError):
+        return {}
+
+
+def _list_value(values, index, default=''):
+    try:
+        value = values[index]
+    except (IndexError, TypeError):
+        return default
+    return default if value is None else value
+
+
+def _build_metabolite_snapshot(
+        reaction_obj,
+        side,
+        submitted_info,
+        submitted_abbrs,
+        found_flags,
+        added_mets):
+    is_substrate = side == 'substrate'
+    source_ids = _json_list(reaction_obj.substrates if is_substrate else reaction_obj.products)
+    source_types = _json_list(reaction_obj.substrates_types if is_substrate else reaction_obj.products_types)
+    compartments = _json_list(reaction_obj.subs_comps if is_substrate else reaction_obj.prods_comps)
+    stoichs = _json_list(reaction_obj.subs_sch if is_substrate else reaction_obj.prods_sch)
+    formulas = _json_list(reaction_obj.metabolite_formulas)
+    inchi_keys = _json_list(reaction_obj.metabolite_inchi_keys)
+    side_offset = 0 if is_substrate else len(_json_list(reaction_obj.substrates))
+
+    snapshot = []
+    for idx, info in enumerate(submitted_info):
+        abbr = _list_value(submitted_abbrs, idx, info.get('abbreviation', ''))
+        formula_index = side_offset + idx
+        entry = {
+            'side': side,
+            'name': info.get('name', ''),
+            'abbreviation': abbr,
+            'compartment': _list_value(compartments, idx),
+            'stoichiometry': str(_list_value(stoichs, idx)),
+            'source_type': _list_value(source_types, idx),
+            'source_identifier': str(_list_value(source_ids, idx)),
+            'formula': _list_value(formulas, formula_index),
+            'inchi_key': _list_value(inchi_keys, formula_index),
+            'already_in_vmh_before_submission': bool(_list_value(found_flags, idx, False)),
+            'was_added_to_vmh': abbr in added_mets,
+        }
+        snapshot.append(entry)
+    return snapshot
+
+
+def _check_reaction_identity(name, abbr):
+    name = (name or '').strip()
+    abbr = (abbr or '').strip()
+    name_in_vmh, abbr_in_vmh = check_names_abbrs_vmh([(name, abbr)])
+    return {
+        'name_in_vmh': bool(name and name_in_vmh.get(name)),
+        'abbr_in_vmh': bool(abbr and abbr_in_vmh.get(abbr)),
+    }
+
+
+def _check_metabolite_identity(name, abbr):
+    name_in_vmh, abbr_in_vmh = make_request_names_abbrs(name, abbr)
+    return {
+        'name_in_vmh': bool(name_in_vmh),
+        'abbr_in_vmh': bool(abbr_in_vmh),
+    }
 
 def get_metabolite_abbrs(reaction_objs, attr_key, attr_type_key, attr_name_key):
     """
@@ -266,25 +354,43 @@ def prepare_add_to_vmh(request):
         )
         subs_need_new_names = [[] for _ in reaction_ids]
         prods_need_new_names = [[] for _ in reaction_ids]
+        subs_need_new_abbrs = [[] for _ in reaction_ids]
+        prods_need_new_abbrs = [[] for _ in reaction_ids]
 
         for idx, in_vmh_list in enumerate(subs_in_vmh):
+            substrate_names = json.loads(reaction_objs[idx].substrates_names)
             for j, sub_in_vmh in enumerate(in_vmh_list):
                 if not sub_in_vmh:
-                    need_new_name = is_name_in_vmh(json.loads(
-                        reaction_objs[idx].substrates_names)[j])
-                    subs_need_new_names[idx].append(need_new_name)
+                    name_found, abbr_found = make_request_names_abbrs(
+                        substrate_names[j],
+                        subs_abbr[idx][j]
+                    )
+                    subs_need_new_names[idx].append(name_found)
+                    subs_need_new_abbrs[idx].append(abbr_found)
                 else:
                     subs_need_new_names[idx].append(False)
+                    subs_need_new_abbrs[idx].append(False)
         for idx, in_vmh_list in enumerate(prods_in_vmh):
+            product_names = json.loads(reaction_objs[idx].products_names)
             for j, prod_in_vmh in enumerate(in_vmh_list):
                 if prod_in_vmh:
                     prods_need_new_names[idx].append(False)
+                    prods_need_new_abbrs[idx].append(False)
                 else:
-                    need_new_name = is_name_in_vmh(json.loads(
-                        reaction_objs[idx].products_names)[j])
-                    prods_need_new_names[idx].append(need_new_name)
+                    name_found, abbr_found = make_request_names_abbrs(
+                        product_names[j],
+                        prods_abbr[idx][j]
+                    )
+                    prods_need_new_names[idx].append(name_found)
+                    prods_need_new_abbrs[idx].append(abbr_found)
 
         reaction_abbrs = ['' for _ in reaction_ids]
+        reaction_name_in_vmh = []
+        reaction_abbr_in_vmh = []
+        for reaction in reaction_objs:
+            identity = _check_reaction_identity(reaction.description, reaction.short_name)
+            reaction_name_in_vmh.append(identity['name_in_vmh'])
+            reaction_abbr_in_vmh.append(identity['abbr_in_vmh'])
 
         return JsonResponse({
             'status': 'success',
@@ -294,7 +400,11 @@ def prepare_add_to_vmh(request):
             'prods_abbr': prods_abbr,
             'subs_need_new_names': subs_need_new_names,
             'prods_need_new_names': prods_need_new_names,
+            'subs_need_new_abbrs': subs_need_new_abbrs,
+            'prods_need_new_abbrs': prods_need_new_abbrs,
             'reaction_abbrs': reaction_abbrs,
+            'reaction_name_in_vmh': reaction_name_in_vmh,
+            'reaction_abbr_in_vmh': reaction_abbr_in_vmh,
         })
     except Exception as e:
         return JsonResponse({'status': 'error',
@@ -511,6 +621,40 @@ def create_formula_abbr(request):
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
+
+@require_POST
+def check_vmh_availability(request):
+    """
+    Check whether a proposed reaction or metabolite name/abbreviation is free in VMH.
+    """
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON data.'}, status=400)
+
+    item_type = (data.get('type') or '').strip().lower()
+    name = (data.get('name') or '').strip()
+    abbr = (data.get('abbr') or '').strip()
+
+    if item_type not in {'reaction', 'metabolite'}:
+        return JsonResponse({'status': 'error', 'message': 'Invalid availability check type.'}, status=400)
+
+    if item_type == 'reaction':
+        identity = _check_reaction_identity(name, abbr)
+    else:
+        identity = _check_metabolite_identity(name, abbr)
+
+    return JsonResponse({
+        'status': 'success',
+        'type': item_type,
+        'name': name,
+        'abbr': abbr,
+        'name_in_vmh': identity['name_in_vmh'],
+        'abbr_in_vmh': identity['abbr_in_vmh'],
+        'name_ok': bool(name and not identity['name_in_vmh']),
+        'abbr_ok': bool(abbr and not identity['abbr_in_vmh']),
+    })
+
 def add_to_vmh(request):
     """
     Submit reactions and metabolites to VMH.
@@ -712,27 +856,56 @@ def add_to_vmh(request):
     if matlab_result['status'] == 'success':
         added_mets = matlab_result.get('addedMets', [])
         added_rxns = matlab_result.get('addedRxns', [])
+        target_database = get_vmh_target_database()
+        matlab_summary = {
+            'addedMets': added_mets,
+            'addedRxns': added_rxns,
+            'updatedRxns': matlab_result.get('updatedRxns', []),
+        }
         added_balance_warnings = [
             warning for warning in balance_warnings
             if warning['abbreviation'] in added_rxns
         ]
         
-        # Build met_added_info from MATLAB result
-        met_added_info = {abbr: abbr for abbr in added_mets}
-        
-        # Log metabolites added to VMH
-        for abbr in added_mets:
-            MetabolitesAddedVMH.objects.create(
-                user=user,
-                user_name=user_name,
-                metabolite_id='',  # ID assigned by MATLAB/VMH
-                metabolite_formula='',  # Formula handled by MATLAB
-                metabolite_abbr=abbr,
-            )
+        metabolite_snapshots_by_abbr = {}
+        reaction_metabolite_snapshots = []
+        for idx, reaction_obj in enumerate(reaction_objs):
+            substrate_snapshot = _build_metabolite_snapshot(
+                reaction_obj,
+                'substrate',
+                reactions_new_subs_info[idx],
+                subs_abbr[idx],
+                reactions_subs_found[idx],
+                added_mets)
+            product_snapshot = _build_metabolite_snapshot(
+                reaction_obj,
+                'product',
+                reactions_new_prods_info[idx],
+                prods_abbr[idx],
+                reactions_prods_found[idx],
+                added_mets)
+            combined_snapshot = substrate_snapshot + product_snapshot
+            reaction_metabolite_snapshots.append({
+                'substrates': substrate_snapshot,
+                'products': product_snapshot,
+                'added': [met for met in combined_snapshot if met['was_added_to_vmh']],
+            })
+            for met in combined_snapshot:
+                if met['was_added_to_vmh'] and met['abbreviation'] not in metabolite_snapshots_by_abbr:
+                    metabolite_snapshots_by_abbr[met['abbreviation']] = met
+
+        met_added_info = {
+            abbr: [
+                '',
+                metabolite_snapshots_by_abbr.get(abbr, {}).get('formula', ''),
+                metabolite_snapshots_by_abbr.get(abbr, {}).get('inchi_key', '')
+            ]
+            for abbr in added_mets
+        }
         
         # Build rxn_added_info from MATLAB result
         rxn_added_info = {
-            abbr: ['', reaction_formulas[idx]] 
+            abbr: [reaction_objs[idx].pk, reaction_formulas[idx]]
             for idx, abbr in enumerate(reaction_identifiers) 
             if abbr in added_rxns
         }
@@ -742,13 +915,59 @@ def add_to_vmh(request):
         for idx, reaction_obj in enumerate(reaction_objs):
             abbr = reaction_identifiers[idx]
             if abbr in added_rxns:
-                ReactionsAddedVMH.objects.create(
+                snapshots = reaction_metabolite_snapshots[idx]
+                added_mets_for_reaction = snapshots['added']
+                reaction_entry = ReactionsAddedVMH.objects.create(
                     user=user,
                     user_name=user_name,
+                    user_full_name=user.full_name or user_name or '',
+                    user_email=user.email or '',
+                    local_reaction=reaction_obj,
                     reaction_id='',  # ID assigned by MATLAB/VMH
                     reaction_formula=reaction_formulas[idx],
                     reaction_abbr=abbr,
+                    reaction_name=reaction_names[idx] or '',
+                    direction=reaction_directions[idx] or '',
+                    subsystem=reaction_subsystems[idx] or '',
+                    confidence_score=str(
+                        reaction_confidence_scores[idx]
+                        if reaction_confidence_scores[idx] is not None
+                        else ''
+                    ),
+                    vmh_database=target_database,
+                    added_metabolites=added_mets_for_reaction,
+                    substrate_snapshot=snapshots['substrates'],
+                    product_snapshot=snapshots['products'],
+                    reference_snapshot=reaction_references[idx] or [],
+                    external_link_snapshot=reaction_external_links[idx] or [],
+                    gene_info_snapshot=reaction_gene_info[idx] or [],
+                    comment_snapshot=reaction_comments[idx] or [],
+                    request_snapshot=reactions[idx],
+                    matlab_result=matlab_summary,
                 )
+                for met in added_mets_for_reaction:
+                    MetabolitesAddedVMH.objects.create(
+                        user=user,
+                        user_name=user_name,
+                        user_full_name=user.full_name or user_name or '',
+                        user_email=user.email or '',
+                        reaction_entry=reaction_entry,
+                        local_reaction=reaction_obj,
+                        reaction_abbr=abbr,
+                        reaction_formula=reaction_formulas[idx],
+                        metabolite_id='',  # ID assigned by MATLAB/VMH
+                        metabolite_formula=met.get('formula', ''),
+                        metabolite_abbr=met.get('abbreviation', ''),
+                        metabolite_name=met.get('name', ''),
+                        side=met.get('side', ''),
+                        compartment=met.get('compartment', ''),
+                        stoichiometry=met.get('stoichiometry', ''),
+                        source_type=met.get('source_type', ''),
+                        source_identifier=met.get('source_identifier', ''),
+                        inchi_key=met.get('inchi_key', ''),
+                        vmh_database=target_database,
+                        submission_snapshot=met,
+                    )
                 reaction_obj.vmh_found = True
                 reaction_obj.save(update_fields=['vmh_found'])
                 workspace.reactions.remove(reaction_obj)

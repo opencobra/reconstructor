@@ -134,8 +134,9 @@
 
 .ws-form-row {
 	display: grid;
-	grid-template-columns: 2fr 1fr;
+	grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr) 40px;
 	gap: 16px;
+	align-items: end;
 }
 
 .ws-form-group {
@@ -154,6 +155,14 @@
 	color: #64748b;
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
+}
+
+.ws-field-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	min-height: 18px;
 }
 
 .ws-form-input {
@@ -283,6 +292,7 @@
 .ws-col-comp { width: 50px; text-align: center; }
 .ws-col-name { min-width: 140px; }
 .ws-col-abbr { min-width: 100px; }
+.ws-col-status { width: 44px; text-align: center; }
 
 .ws-stoich-value {
 	display: inline-block;
@@ -341,6 +351,114 @@
 	color: #f59e0b;
 	font-size: 14px;
 	cursor: help;
+}
+
+.ws-availability-status {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 18px;
+	height: 18px;
+	border-radius: 50%;
+	font-size: 13px;
+}
+
+.ws-availability-status span {
+	display: none;
+}
+
+.ws-availability-ok {
+	color: #059669;
+	background: #d1fae5;
+}
+
+.ws-availability-conflict {
+	color: #b45309;
+	background: #fef3c7;
+}
+
+.ws-availability-stale {
+	color: #64748b;
+	background: #e2e8f0;
+}
+
+.ws-availability-checking {
+	color: #2563eb;
+	background: #dbeafe;
+}
+
+.ws-availability-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	padding: 0;
+	border: 1px solid #cbd5e1;
+	border-radius: 6px;
+	background: #ffffff;
+	color: #475569;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.ws-availability-btn:hover:not(:disabled) {
+	border-color: #3b82f6;
+	color: #1d4ed8;
+	background: #eff6ff;
+}
+
+.ws-availability-btn:disabled {
+	cursor: wait;
+	opacity: 0.7;
+}
+
+.ws-reaction-availability-btn {
+	align-self: end;
+}
+
+.ws-availability-conflict-input {
+	border-color: #f59e0b !important;
+	background: #fffbeb !important;
+}
+
+.ws-formula-preview {
+	margin-bottom: 24px;
+	padding: 14px 16px;
+	background: #f8fafc;
+	border: 1px solid #dbe3ea;
+	border-left: 4px solid #2563eb;
+	border-radius: 8px;
+}
+
+.ws-formula-preview-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	margin-bottom: 8px;
+	font-size: 12px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #475569;
+}
+
+.ws-formula-preview-header i {
+	color: #2563eb;
+}
+
+.ws-formula-code {
+	display: block;
+	white-space: normal;
+	overflow-wrap: anywhere;
+	font-size: 13px;
+	line-height: 1.45;
+	color: #0f172a;
+	background: #ffffff;
+	border: 1px solid #e2e8f0;
+	border-radius: 6px;
+	padding: 10px 12px;
 }
 
 /* Annotations Section */
