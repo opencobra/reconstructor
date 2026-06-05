@@ -42,7 +42,7 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - ./docker/postgres_data:/var/lib/postgresql/data
+      - ${POSTGRES_DATA_DIR:-./docker/postgres_data}:/var/lib/postgresql/data
 
   matlab:
     cgroup_parent: reconstructor.slice

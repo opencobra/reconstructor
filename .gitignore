@@ -11,3 +11,4 @@ staticfiles/
 temp_mol.mol
 .env
 .codex
+docker/postgres_data/

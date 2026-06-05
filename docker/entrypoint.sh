@@ -8,17 +8,13 @@ if [ -n "$POSTGRES_HOST" ]; then
   done
 fi
 
-# Check if database has existing tables (from backup restore)
-if python manage.py showmigrations --plan | grep -q "^\[X\]"; then
-    echo "Database appears to have existing migrations, skipping migration..."
-else
-    # Try normal migration first
-    if ! python manage.py migrate --noinput; then
-        echo "Migration failed, trying --fake-initial for restored database..."
-        python manage.py migrate --fake-initial --noinput
-    fi
+echo "Applying Django migrations..."
+if ! python manage.py migrate --noinput; then
+    echo "Migration failed, trying --fake-initial for restored database..."
+    python manage.py migrate --fake-initial --noinput
 fi
 
+echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 exec "$@"
