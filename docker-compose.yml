@@ -70,7 +70,12 @@ services:
       # Mount your MATLAB scripts (writable so MATLAB can create data directories)
       - ./matlab_scripts:/matlab/scripts
       # Keep the VMH update toolbox live so MATLAB sees new/changed .m files.
-      - ../vmh_revamped/vmh_db_update:/matlab/toolboxes/vmh_revamped/vmh_db_update:ro
+      - type: bind
+        source: ${VMH_DB_UPDATE_HOST_PATH:-../vmh_revamped/vmh_db_update}
+        target: /matlab/toolboxes/vmh_revamped/vmh_db_update
+        read_only: true
+        bind:
+          create_host_path: false
       # Shared exchange directory for constructor-generated JSON files.
       - matlab_exchange:/matlab/exchange
       # Mount license file

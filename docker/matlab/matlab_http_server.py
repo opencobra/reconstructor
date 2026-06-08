@@ -91,6 +91,24 @@ def initialize_matlab():
         matlab_engine.eval(f"global CBTDIR; CBTDIR = '{cobra_path}';", nargout=0)
         print("global CBTDIR set", flush=True)
 
+    matlab_engine.eval("rehash toolboxcache;", nargout=0)
+    required_functions = [
+        function_name.strip()
+        for function_name in os.getenv(
+            'REQUIRED_MATLAB_FUNCTIONS',
+            'updateVMHFromConstructor'
+        ).split(',')
+        if function_name.strip()
+    ]
+    for function_name in required_functions:
+        function_path = matlab_engine.eval(f"which('{function_name}')", nargout=1)
+        if not function_path:
+            raise RuntimeError(
+                f"Required MATLAB function '{function_name}' was not found on the MATLAB path. "
+                "Check SCRIPT_DIRECTORIES and the VMH toolbox bind mount."
+            )
+        print(f"Verified MATLAB function: {function_name} -> {function_path}", flush=True)
+
     print("MATLAB Engine initialized and ready!", flush=True)
 
 @app.route('/health', methods=['GET'])

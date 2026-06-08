@@ -18,14 +18,16 @@ user = getenvDefault('VMH_MYSQL_USER', 'saleh');
 password = getenv('VMH_MYSQL_PASSWORD');
 extraArgs = getenv('VMH_MYSQL_EXTRA_ARGS');
 
-parts = {'mysql'};
+parts = {};
+if ~isempty(password)
+    % MYSQL_PWD avoids the mysql client warning that can pollute captured output.
+    parts{end + 1} = ['MYSQL_PWD=', shellQuote(password)];
+end
+parts{end + 1} = 'mysql';
 if ~isempty(infile)
     parts{end + 1} = infile;
 end
-parts = [parts, {'--protocol=tcp', '-h', shellQuote(host), '-P', shellQuote(port), '-u', shellQuote(user)}];
-if ~isempty(password)
-    parts{end + 1} = ['--password=', shellQuote(password)];
-end
+parts = [parts, {'--table', '--protocol=tcp', '-h', shellQuote(host), '-P', shellQuote(port), '-u', shellQuote(user)}];
 if ~isempty(extraArgs)
     parts{end + 1} = extraArgs;
 end
