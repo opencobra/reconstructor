@@ -1,6 +1,6 @@
 body {
-	min-height: 100%;
 	margin: 0;
+	padding-top: var(--top-menu-height);
 	font-family: 'Poppins', sans-serif !important;
 	/* background-color: #e7f7ff !important;  */
 }
@@ -15,8 +15,10 @@ body {
    HEADER STYLES
    ============================================ */
 .top-menu {
-	position: sticky;
+	position: fixed;
 	top: 0;
+	left: 0;
+	width: 100%;
 	z-index: 100;
 	display: flex;
 	justify-content: space-between;
@@ -269,9 +271,7 @@ body {
 .main-container {
 	display: flex;
 	flex-direction: row;
-	min-height: 120%; /* Allow it to auto-adjust based on content */
-	max-height: auto;
-	overflow: hidden; /* Ensures it contains floated children if any */
+	margin-left: 150px;
 }
 
 .main-content {
@@ -1026,6 +1026,8 @@ body {
 	padding: 10px;
 	box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
 	width: 100%;
+	margin-left: 150px;
+	box-sizing: border-box;
 	font-size: 14px; /* Font size adjustment */
 	color: #333; /* Text color */
 
@@ -1503,10 +1505,10 @@ footer {
 	background: #b1e5ff;
 	box-shadow: inset -1px 0 0 #86bfdc;
 	z-index: 10;
-	position: sticky;
+	position: fixed;
 	top: var(--top-menu-height);
+	left: 0;
 	height: calc(100vh - var(--top-menu-height));
-	align-self: flex-start;
 }
 
 /* Tighten margins so items fill the panel */
