@@ -1,13 +1,19 @@
 document.addEventListener('DOMContentLoaded', function () {
   const table = document.getElementById('reactionList');
   const tbody = table.querySelector('tbody');
-  const originalRows = Array.from(tbody.querySelectorAll('tr')); // Store initial order
+  const originalRows = Array.from(tbody.querySelectorAll('tr'));
+  const sortIcon = document.getElementById('sortOrderToggle');
+
+  // false = descending (default: latest first for date, Z-A for others)
+  // true  = ascending  (oldest first for date, A-Z for others)
+  let sortAscending = false;
 
   const getValue = (row, key) => {
     switch (key) {
-      case 'flag':
+      case 'flag': {
         const icon = row.querySelector('.flag-icon');
-        return icon?.getAttribute('data-flag-name')?.toLowerCase() || 'zzz'; // 'zzz' pushes nulls to bottom
+        return icon?.getAttribute('data-flag-name')?.toLowerCase() || 'zzz';
+      }
       case 'subsystem':
         return row.children[3]?.textContent.trim().toLowerCase() || 'zzz';
       case 'substrates':
@@ -19,26 +25,37 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   };
 
-  document.getElementById('sortBy').addEventListener('change', () => {
+  function applySort() {
     const sortKey = document.getElementById('sortBy').value;
+    let rows;
 
-    // Reset to original order if no sort selected
     if (!sortKey) {
-      tbody.innerHTML = '';
-      originalRows.forEach((row) => tbody.appendChild(row.cloneNode(true)));
-      return;
+      rows = sortAscending ? [...originalRows] : [...originalRows].reverse();
+    } else {
+      rows = [...originalRows].sort((a, b) => {
+        const cmp = getValue(a, sortKey).localeCompare(getValue(b, sortKey));
+        return sortAscending ? cmp : -cmp;
+      });
     }
 
-    const sortedRows = [...tbody.querySelectorAll('tr')].sort((a, b) => {
-      const aVal = getValue(a, sortKey);
-      const bVal = getValue(b, sortKey);
-      return aVal.localeCompare(bVal);
-    });
-
     tbody.innerHTML = '';
+    rows.forEach((row) => tbody.appendChild(row.cloneNode(true)));
 
-    sortedRows.forEach((row) => tbody.appendChild(row));
+    if (typeof rebindCheckboxListeners === 'function') rebindCheckboxListeners();
 
-    rebindCheckboxListeners();
+    sortIcon.classList.toggle('sort-asc', sortAscending);
+  }
+
+  // Default: latest first
+  applySort();
+
+  document.getElementById('sortBy').addEventListener('change', () => {
+    sortAscending = false;
+    applySort();
+  });
+
+  sortIcon.addEventListener('click', () => {
+    sortAscending = !sortAscending;
+    applySort();
   });
 });

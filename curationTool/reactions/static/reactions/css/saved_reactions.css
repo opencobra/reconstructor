@@ -180,6 +180,17 @@
 .sort-control i {
 	color: #6c757d;
 	font-size: 14px;
+	cursor: pointer;
+	transition: color 0.15s, transform 0.2s;
+}
+
+.sort-control i:hover {
+	color: #1976d2;
+}
+
+.sort-control i.sort-asc {
+	transform: scaleY(-1);
+	color: #1976d2;
 }
 
 /* Toolbar Select */
