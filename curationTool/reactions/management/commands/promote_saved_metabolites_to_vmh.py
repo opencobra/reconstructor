@@ -1,12 +1,9 @@
 import json
-import re
 from collections import defaultdict
 from typing import Dict, Optional, Set
 
 import urllib3
 from django.core.management.base import BaseCommand
-from rdkit import Chem
-from rdkit.Chem.rdMolDescriptors import CalcMolFormula  # pylint: disable=no-name-in-module
 from tqdm import tqdm
 
 from reactions.models import Reaction, SavedMetabolite
@@ -17,8 +14,9 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Command(BaseCommand):
     help = (
-        "Promote Saved metabolites that now exist in VMH by converting reaction "
-        "entries from type 'Saved' to type 'VMH'."
+        "Promote Saved metabolites that now exist in VMH (matched by EXACT "
+        "fullName via the VMH API) by converting reaction entries from "
+        "type 'Saved' to type 'VMH'."
     )
 
     def add_arguments(self, parser):
@@ -48,82 +46,39 @@ class Command(BaseCommand):
             return list(default)
 
     @staticmethod
-    def _canonical_inchikey(smiles: str) -> str:
-        if not smiles:
-            return ""
-        try:
-            mol = Chem.MolFromSmiles(smiles)
-            if not mol:
-                return ""
-            return Chem.MolToInchiKey(mol) or ""
-        except Exception:
-            return ""
-
-    @staticmethod
-    def _inchikey_filter(rows: list, query_key: str) -> list:
-        return [r for r in rows if Command._canonical_inchikey(r.get("smile") or "") == query_key]
-
-    @staticmethod
-    def _to_result(row: Dict, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
-        abbr = row.get("abbreviation", "")
-        if not abbr:
+    def _exact_name_row(rows: list, name: str) -> Optional[Dict]:
+        target = (name or "").strip()
+        if not target:
             return None
-        return {
-            "abbr": abbr,
-            "name": row.get("fullName") or saved_met.name or abbr,
-            "url": vmh_metabolite_url(abbr),
-        }
+        for row in rows:
+            if (row.get("fullName") or "").strip() == target:
+                return row
+        return None
 
     def _resolve_saved_metabolite(self, saved_met: SavedMetabolite) -> Optional[Dict[str, str]]:
-        explicit_smiles = ""
-        if saved_met.smiles:
-            try:
-                mol = Chem.MolFromSmiles(saved_met.smiles, sanitize=False)
-                if mol:
-                    explicit_smiles = Chem.MolToSmiles(Chem.AddHs(mol), allHsExplicit=True)
-            except Exception:
-                pass
+        name = (saved_met.name or "").strip()
+        if not name:
+            return None
 
-        query_key = self._canonical_inchikey(saved_met.smiles or "")
+        try:
+            rows = search_metabolites_new({"fullName": name})
+        except Exception as exc:
+            self.stderr.write(f"VMH search failed for '{name}' (id={saved_met.id}): {exc}")
+            return None
 
-        # Step 1: InChI key regex
-        inchi_key = saved_met.inchi_key or ""
-        if inchi_key:
-            rows = search_metabolites_new({"inchiKeyRegex": f"^{re.escape(inchi_key)}$"})
-            exact = [r for r in rows if (r.get("inchiKey") or "").upper() == inchi_key.upper()]
-            if exact:
-                return self._to_result(exact[0], saved_met)
+        row = self._exact_name_row(rows, name)
+        if not row:
+            return None
 
-        # Step 2: SMILES regex
-        if explicit_smiles:
-            rows = search_metabolites_new({"smileRegex": f"^{re.escape(explicit_smiles)}$"})
-            exact = [r for r in rows if (r.get("smile") or "") == explicit_smiles]
-            if exact:
-                return self._to_result(exact[0], saved_met)
+        abbr = row.get("abbreviation") or ""
+        if not abbr:
+            return None
 
-        # Step 3: name search + InChI comparison (only if exactly 1 match)
-        if saved_met.name and query_key:
-            rows = search_metabolites_new({"fullName": saved_met.name})
-            matched = self._inchikey_filter(rows, query_key)
-            if len(matched) == 1:
-                return self._to_result(matched[0], saved_met)
-
-        # Step 4: charged formula regex + InChI comparison (only if exactly 1 match)
-        charged_formula = ""
-        if saved_met.smiles:
-            try:
-                mol = Chem.MolFromSmiles(saved_met.smiles)
-                if mol:
-                    charged_formula = CalcMolFormula(mol)
-            except Exception:
-                pass
-        if charged_formula and query_key:
-            rows = search_metabolites_new({"chargedFormulaRegex": f"^{re.escape(charged_formula)}$"})
-            matched = self._inchikey_filter(rows, query_key)
-            if len(matched) == 1:
-                return self._to_result(matched[0], saved_met)
-
-        return None
+        return {
+            "abbr": abbr,
+            "name": row.get("fullName") or name,
+            "url": vmh_metabolite_url(abbr),
+        }
 
     def _remaining_saved_ids(self) -> Set[str]:
         remaining: Set[str] = set()
@@ -149,14 +104,13 @@ class Command(BaseCommand):
         saved_lookup = {
             str(saved_met.id): saved_met
             for saved_met in SavedMetabolite.objects.select_related("owner").only(
-                "id", "inchi_key", "inchi", "smiles", "vmh_abbr", "name", "owner__id", "owner__name"
+                "id", "name", "vmh_abbr", "owner__id", "owner__name"
             )
         }
         promotion_cache: Dict[str, Optional[Dict[str, str]]] = {}
         promoted_saved_ids: Set[str] = set()
-        # per-user tracking: user_label -> list of (name, inchi_key) for unmatched
-        user_matched: Dict[str, Set[str]] = defaultdict(set)   # user_label -> set of saved_ids matched
-        user_unmatched: Dict[str, list] = defaultdict(list)    # user_label -> [(name, inchi_key)]
+        user_matched: Dict[str, Set[str]] = defaultdict(set)
+        user_unmatched: Dict[str, list] = defaultdict(list)
 
         reactions_updated = 0
         replacements_count = 0
@@ -228,7 +182,7 @@ class Command(BaseCommand):
                         saved_met.vmh_abbr = promoted["abbr"]
                         saved_met.save(update_fields=["vmh_abbr"])
                 else:
-                    user_unmatched[user_label].append((saved_met.name or "", saved_met.inchi_key or ""))
+                    user_unmatched[user_label].append((saved_met.name or "", saved_id))
                 return promoted
 
             for idx, (met_id, met_type) in enumerate(zip(substrates, subs_types)):
@@ -309,5 +263,5 @@ class Command(BaseCommand):
             self.stdout.write(f"\n  {user_label}: {matched_count} matched, {len(unmatched)} unmatched")
             if unmatched:
                 self.stdout.write("    Unmatched saved metabolites:")
-                for name, inchi_key in unmatched:
-                    self.stdout.write(f"      - {name}  [{inchi_key}]")
+                for name, saved_id in unmatched:
+                    self.stdout.write(f"      - id={saved_id}  {name}")
