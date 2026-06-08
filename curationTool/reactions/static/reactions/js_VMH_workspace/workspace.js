@@ -416,7 +416,7 @@ window.vmhPrepCache = new VMHPrepCache({
 					<span>Unbalanced</span>
 				</span>
 			` : ''}
-			<button class="ws-remove-btn" data-remove-pk="${r.pk}" title="Remove from workspace" onclick="event.stopPropagation();">
+			<button class="ws-remove-btn" data-remove-pk="${r.pk}" title="Remove from workspace">
 				<i class="fas fa-times"></i>
 			</button>
 		`;
@@ -532,7 +532,7 @@ window.vmhPrepCache = new VMHPrepCache({
 	availableListEl.addEventListener('click', async (e) => {
 		const removeBtn = e.target.closest('.ws-remove-btn');
 		if (!removeBtn) return;
-		e.stopPropagation();
+		e.stopImmediatePropagation();
 		const pk = removeBtn.dataset.removePk;
 		removeBtn.disabled = true;
 		try {
