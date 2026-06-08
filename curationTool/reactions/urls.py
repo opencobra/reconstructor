@@ -77,6 +77,7 @@ urlpatterns = [
     path('get_from_vmh/', vmh_views.get_from_vmh, name='get_from_vmh'),
     
     path('send_to_workspace/', vmh_views.send_to_workspace, name='send_to_workspace'),
+    path('remove_from_workspace/', vmh_views.remove_from_workspace, name='remove_from_workspace'),
     path('VMH_Workspace/', vmh_views.vmh_workspace, name='VMH_Workspace'),
     path('save_reaction_draft/', vmh_views.save_reaction_draft, name='save_reaction_draft'),
 

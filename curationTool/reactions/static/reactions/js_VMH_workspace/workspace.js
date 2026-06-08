@@ -46,7 +46,7 @@ class VMHPrepCache {
 		this.storageKey = 'vmh_prep_cache';
 		this.useSessionStorage = options.useSessionStorage !== false;
 		
-		// Try to restore cache from sessionStorage on initialization
+		// Try to restore cache from localStorage on initialization
 		this._restoreFromStorage();
 	}
 
@@ -151,7 +151,7 @@ class VMHPrepCache {
 	}
 
 	/**
-	 * Persist cache to sessionStorage for page refreshes
+	 * Persist cache to localStorage for page refreshes
 	 * @private
 	 */
 	_persistToStorage() {
@@ -162,21 +162,21 @@ class VMHPrepCache {
 			this.cache.forEach((value, key) => {
 				serializable[key] = value;
 			});
-			sessionStorage.setItem(this.storageKey, JSON.stringify(serializable));
+			localStorage.setItem(this.storageKey, JSON.stringify(serializable));
 		} catch (e) {
-			console.warn('[VMHPrepCache] Failed to persist cache to sessionStorage:', e);
+			console.warn('[VMHPrepCache] Failed to persist cache to localStorage:', e);
 		}
 	}
 
 	/**
-	 * Restore cache from sessionStorage
+	 * Restore cache from localStorage
 	 * @private
 	 */
 	_restoreFromStorage() {
 		if (!this.useSessionStorage) return;
 		
 		try {
-			const stored = sessionStorage.getItem(this.storageKey);
+			const stored = localStorage.getItem(this.storageKey);
 			if (stored) {
 				const parsed = JSON.parse(stored);
 				Object.entries(parsed).forEach(([key, entry]) => {
@@ -185,10 +185,10 @@ class VMHPrepCache {
 						this.cache.set(key, entry);
 					}
 				});
-				console.debug(`[VMHPrepCache] Restored ${this.cache.size} entries from sessionStorage`);
+				console.debug(`[VMHPrepCache] Restored ${this.cache.size} entries from localStorage`);
 			}
 		} catch (e) {
-			console.warn('[VMHPrepCache] Failed to restore cache from sessionStorage:', e);
+			console.warn('[VMHPrepCache] Failed to restore cache from localStorage:', e);
 		}
 	}
 
@@ -220,9 +220,9 @@ class VMHPrepCache {
 
 // Create global cache instance
 window.vmhPrepCache = new VMHPrepCache({
-	maxAge: 10 * 60 * 1000, // 10 minutes
-	maxSize: 50,
-	useSessionStorage: true
+	maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days — "preprocess once, never again"
+	maxSize: 500,
+	useSessionStorage: true  // option name kept; now backed by localStorage (see _persistToStorage)
 });
 
 (function () {
@@ -416,6 +416,9 @@ window.vmhPrepCache = new VMHPrepCache({
 					<span>Unbalanced</span>
 				</span>
 			` : ''}
+			<button class="ws-remove-btn" data-remove-pk="${r.pk}" title="Remove from workspace" onclick="event.stopPropagation();">
+				<i class="fas fa-times"></i>
+			</button>
 		`;
 		availableListEl.appendChild(li);
 	});
@@ -525,12 +528,94 @@ window.vmhPrepCache = new VMHPrepCache({
 		});
 	}
 
+	// Remove-from-workspace handler (delegated)
+	availableListEl.addEventListener('click', async (e) => {
+		const removeBtn = e.target.closest('.ws-remove-btn');
+		if (!removeBtn) return;
+		e.stopPropagation();
+		const pk = removeBtn.dataset.removePk;
+		removeBtn.disabled = true;
+		try {
+			const resp = await fetch(removeFromWorkspaceUrl, {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'X-CSRFToken': csrfToken,
+					'X-Requested-With': 'XMLHttpRequest',
+				},
+				body: JSON.stringify({ userID, reactionId: pk }),
+			});
+			const data = await resp.json();
+			if (data.status === 'success') {
+				removeReactionFromList(pk);
+			} else {
+				showWorkspaceToast('Failed to remove reaction', 'error');
+				removeBtn.disabled = false;
+			}
+		} catch {
+			showWorkspaceToast('Failed to remove reaction', 'error');
+			removeBtn.disabled = false;
+		}
+	});
+
+	// Preprocess All — fetch and cache VMH prep data for every uncached reaction
+	async function preprocessAllReactions() {
+		const btn = document.getElementById('wsPreprocessAllBtn');
+		const uncached = reactions_active.filter((r) => !window.vmhPrepCache.has(r.pk));
+
+		if (uncached.length === 0) {
+			showWorkspaceToast('All reactions are already preprocessed', 'success');
+			btn.classList.add('ws-preprocess-done');
+			btn.innerHTML = '<i class="fas fa-check"></i> All preprocessed';
+			return;
+		}
+
+		btn.disabled = true;
+		let processed = 0;
+		let failed = 0;
+		const total = uncached.length;
+
+		for (const reaction of uncached) {
+			btn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ${processed + failed + 1} / ${total}`;
+			try {
+				const response = await callPrepareAddToVMH([reaction.pk]);
+				if (response && response.status === 'success') {
+					window.vmhPrepCache.set(reaction.pk, response);
+					processed++;
+				} else {
+					failed++;
+				}
+			} catch {
+				failed++;
+			}
+		}
+
+		btn.disabled = false;
+		if (failed === 0) {
+			btn.classList.add('ws-preprocess-done');
+			btn.innerHTML = '<i class="fas fa-check"></i> All preprocessed';
+			showWorkspaceToast(`Preprocessed ${processed} reaction${processed !== 1 ? 's' : ''}`, 'success');
+		} else {
+			btn.innerHTML = '<i class="fas fa-bolt"></i> Preprocess All';
+			showWorkspaceToast(
+				`Preprocessed ${processed}, ${failed} could not be cached`,
+				processed > 0 ? 'success' : 'error'
+			);
+		}
+	}
+
+	const preprocessBtn = document.getElementById('wsPreprocessAllBtn');
+	if (preprocessBtn) {
+		preprocessBtn.addEventListener('click', preprocessAllReactions);
+	}
+
 	// 2 – on click → render editable form (click on the reaction name, not checkbox)
 	availableListEl.addEventListener('click', async (e) => {
 		// Only respond to clicks on the item itself or the reaction name, not the checkbox
 		const clickedItem = e.target.closest('.item');
 		if (!clickedItem) return;
 		if (e.target.classList.contains('ws-reaction-checkbox') || e.target.classList.contains('ws-checkmark') || e.target.classList.contains('ws-checkbox-container')) return;
+		if (e.target.closest('.ws-remove-btn')) return;
 		
 		const pk = +clickedItem.dataset.pk;
 		const rxn = reactions_active.find((r) => r.pk === pk);

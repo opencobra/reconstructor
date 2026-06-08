@@ -986,6 +986,20 @@ def add_to_vmh(request):
     
     
 @require_POST
+def remove_from_workspace(request):
+    """Remove a single reaction from the user's Workspace."""
+    data = json.loads(request.body)
+    user_id = data.get('userID')
+    reaction_id = data.get('reactionId')
+    user = get_object_or_404(User, pk=user_id)
+    workspace, _ = Workspace.objects.get_or_create(user=user)
+    reaction = get_object_or_404(Reaction, pk=reaction_id)
+    workspace.reactions.remove(reaction)
+    workspace.save()
+    return JsonResponse({'status': 'success'})
+
+
+@require_POST
 def send_to_workspace(request):
     """
     Handles the request to add selected reactions to the user's Workspace.

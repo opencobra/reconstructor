@@ -1163,6 +1163,69 @@
 	font-size: 13px;
 	color: #555;
 	font-weight: 500;
+	flex: 1;
+}
+
+/* Preprocess All button */
+.ws-preprocess-btn {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 4px 10px;
+	background: #fff;
+	color: #555;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	font-size: 12px;
+	font-weight: 500;
+	cursor: pointer;
+	transition: all 0.15s ease;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.ws-preprocess-btn:hover:not(:disabled) {
+	background: #f0f7ff;
+	border-color: #1976d2;
+	color: #1976d2;
+}
+
+.ws-preprocess-btn:disabled {
+	opacity: 0.6;
+	cursor: not-allowed;
+}
+
+.ws-preprocess-btn.ws-preprocess-done {
+	border-color: #4caf50;
+	color: #2e7d32;
+	background: #f1f8e9;
+}
+
+/* Remove-from-workspace button on list items */
+.ws-remove-btn {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	width: 22px;
+	height: 22px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	border-radius: 3px;
+	color: #bbb;
+	font-size: 12px;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: color 0.15s, background 0.15s;
+}
+
+#wsAvailableReactionList .item:hover .ws-remove-btn {
+	display: flex;
+}
+
+.ws-remove-btn:hover {
+	color: #d32f2f;
+	background: #fdecea;
 }
 
 /* Custom Checkbox Styling */

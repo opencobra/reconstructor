@@ -104,6 +104,9 @@
 										<span class="ws-checkmark"></span>
 									</label>
 									<span class="ws-select-all-label">Select All</span>
+									<button id="wsPreprocessAllBtn" class="ws-preprocess-btn" title="Fetch and cache VMH data for all reactions so clicking them is instant">
+										<i class="fas fa-bolt"></i> Preprocess All
+									</button>
 								</div>
 								<ul id="wsAvailableReactionList" class="ui middle aligned selection list"></ul>
 							</div>
@@ -155,6 +158,7 @@
 			const addToVMHUrl = "{% url 'add_to_vmh' %}";
 			const prepAddToVMHUrl = "{% url 'prepare_add_to_vmh' %}";
 			const checkVMHAvailabilityUrl = "{% url 'check_vmh_availability' %}";
+			const removeFromWorkspaceUrl = "{% url 'remove_from_workspace' %}";
 			const csrfToken = '{{ csrf_token }}';
 			const userID = '{{ userID }}';
 			const editReactionURL = "{% url 'edit_reaction_info' %}";
