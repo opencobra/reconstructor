@@ -34,7 +34,6 @@ var button_to_div = {
 
             this.bindButtons();
             this.initializeDragAndDrop();
-            this.setupAboutLink();
         },
 
         panelList() {
@@ -289,15 +288,6 @@ var button_to_div = {
             });
         },
 
-        setupAboutLink() {
-            const aboutButton = document.getElementById('item about-item');
-            if (!aboutButton) return;
-            aboutButton.addEventListener('click', function () {
-                if (typeof aboutUrl === 'string') {
-                    window.open(aboutUrl, '_blank', 'noopener');
-                }
-            });
-        },
     };
 
     document.addEventListener('DOMContentLoaded', function () {

@@ -8,6 +8,7 @@ body {
 :root {
 	--panel-gap: 20px;
 	--panel-default-width: calc(50% - (var(--panel-gap) / 2));
+	--top-menu-height: 88px;
 }
 
 /* ============================================
@@ -1502,6 +1503,10 @@ footer {
 	background: #b1e5ff;
 	box-shadow: inset -1px 0 0 #86bfdc;
 	z-index: 10;
+	position: sticky;
+	top: var(--top-menu-height);
+	height: calc(100vh - var(--top-menu-height));
+	align-self: flex-start;
 }
 
 /* Tighten margins so items fill the panel */
@@ -1532,14 +1537,6 @@ footer {
 .side-buttons .fluid.ui.button span,
 .side-buttons .ui.fluid.button span {
 	display: block;
-}
-
-/* Bottom utility buttons (Stats, About) */
-.side-buttons .bottom {
-	margin-top: auto;
-	padding: 6px 0;
-	border-top: 1px solid rgba(24, 82, 112, 0.25);
-	width: 100%;
 }
 
 /* ============================================
@@ -1687,6 +1684,10 @@ footer {
 }
 
 @media (max-width: 1200px) {
+	:root {
+		--top-menu-height: 92px;
+	}
+
 	.top-menu {
 		min-height: 92px;
 	}

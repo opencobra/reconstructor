@@ -306,6 +306,13 @@ function buildReactantRow(containerId, inputName, numberName) {
 		handleMetaboliteTypeChange(this);
 	});
 
+	mainInput.addEventListener('keydown', function (event) {
+		if (event.key === 'Enter') {
+			event.preventDefault();
+			doneButton.click();
+		}
+	});
+
 	return {
 		row,
 		mainInput,
@@ -698,6 +705,16 @@ function attachEventListenersToDoneButtons() {
 	const doneButtons = document.querySelectorAll('.done-field-btn');
 	doneButtons.forEach((button) => {
 		button.addEventListener('click', handleDoneButtonClick);
+		const identifierInput = button.closest('.inputs-group')?.querySelector('.cell-identifier input[type="text"]');
+		if (identifierInput && !identifierInput.dataset.enterListenerAttached) {
+			identifierInput.dataset.enterListenerAttached = 'true';
+			identifierInput.addEventListener('keydown', function (event) {
+				if (event.key === 'Enter') {
+					event.preventDefault();
+					button.click();
+				}
+			});
+		}
 	});
 }
 function attachEventListenersToDoneAllButtons() {
