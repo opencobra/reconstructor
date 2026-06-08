@@ -8,7 +8,7 @@ Flow:
 2. Django calls the MATLAB HTTP service.
 3. MATLAB runs `updateVMHFromConstructor`.
 4. `updateVMHFromConstructor` calls `initialiseMySqlCommand`.
-5. `/matlab/scripts/initialiseMySqlCommand.m` builds the MySQL command from environment variables.
+5. `/matlab/toolboxes/vmh_revamped/vmh_db_update/src/initialiseMySqlCommand.m` builds the MySQL command from environment variables.
 
 The target database is controlled by:
 

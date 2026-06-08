@@ -60,7 +60,7 @@ def initialize_matlab():
     for script_directory in script_directories:
         if script_directory and Path(script_directory).exists():
             print(f"Adding path: {script_directory}", flush=True)
-            matlab_engine.addpath(script_directory, nargout=0)
+            matlab_engine.addpath(script_directory, '-end', nargout=0)
     
     # Initialize COBRA Toolbox
     if cobra_path and Path(cobra_path).exists():
