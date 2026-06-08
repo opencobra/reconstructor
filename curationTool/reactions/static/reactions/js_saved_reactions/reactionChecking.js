@@ -2,27 +2,21 @@
 var checkedReactions = []; // Store IDs of checked reactions
 window.checkedReactions = checkedReactions; // Expose to window for graph visualization
 
-document.addEventListener('DOMContentLoaded', function () {
-    const checkboxes = document.querySelectorAll('.reaction-checkbox');
-    checkboxes.forEach(function(checkbox) {
-        checkbox.addEventListener('change', function() {
-            const reactionId = this.getAttribute('data-reaction-id');
-            if (this.checked) {
-                // Add the reaction ID to the array
-                if (!checkedReactions.includes(reactionId)) {
-                    checkedReactions.push(reactionId);
-                }
-            } else {
-                // Remove the reaction ID from the array
-                const index = checkedReactions.indexOf(reactionId);
-                if (index > -1) {
-                    checkedReactions.splice(index, 1);
-                }
-            }
-            // Keep window reference in sync (same array, but just to be safe)
-            window.checkedReactions = checkedReactions;
-        });
-    });
+// Use event delegation so this survives table rebuilds (e.g. after sort)
+document.addEventListener('change', function (e) {
+    if (!e.target.classList.contains('reaction-checkbox')) return;
+    const reactionId = e.target.getAttribute('data-reaction-id');
+    if (e.target.checked) {
+        if (!checkedReactions.includes(reactionId)) {
+            checkedReactions.push(reactionId);
+        }
+    } else {
+        const index = checkedReactions.indexOf(reactionId);
+        if (index > -1) {
+            checkedReactions.splice(index, 1);
+        }
+    }
+    window.checkedReactions = checkedReactions;
 });
 
 document.getElementById("applyMassConfidence").addEventListener("click", async function () {
