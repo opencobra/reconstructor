@@ -38,8 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
       });
     }
 
-    tbody.innerHTML = '';
-    rows.forEach((row) => tbody.appendChild(row.cloneNode(true)));
+    rows.forEach((row) => tbody.appendChild(row));
 
     if (typeof rebindCheckboxListeners === 'function') rebindCheckboxListeners();
 
