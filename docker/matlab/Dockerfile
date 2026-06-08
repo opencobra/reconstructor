@@ -41,11 +41,8 @@ RUN chmod -R 777 /matlab
 
 WORKDIR /matlab/scripts
 
-# Copy the VMH update toolbox from its named build context. The repo keeps
-# vmh_revamped as a symlink to ../vmh_revamped, which Docker cannot COPY
-# through from the default build context.
-COPY --from=vmh_db_update_source --chown=root:root / /matlab/toolboxes/vmh_revamped/vmh_db_update/
-RUN test -f /matlab/toolboxes/vmh_revamped/vmh_db_update/src/updateVMHFromConstructor.m
+# The VMH update toolbox is mounted at runtime by docker-compose.yml so the
+# container sees local MATLAB changes without rebuilding this large image.
 
 # Copy any custom MATLAB scripts or toolboxes  
 # COPY ./scripts /matlab/scripts

@@ -49,8 +49,6 @@ services:
     build:
       context: .
       dockerfile: docker/matlab/Dockerfile
-      additional_contexts:
-        vmh_db_update_source: ../vmh_revamped/vmh_db_update
     mem_limit: 2g
     env_file:
       - .env
