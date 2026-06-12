@@ -42,6 +42,8 @@
     var GroupView = {
         activeGroupId: null,
         pickerReactions: [],
+        pendingSelection: false,
+        loadingReactionId: null,
 
         rail: function () { return document.getElementById(RAIL_ID); },
 
@@ -149,9 +151,17 @@
 
         /** Select a reaction card → load it into the detail panels (FR-002). */
         selectCard: function (reactionId, card) {
+            if (this.pendingSelection || this.loadingReactionId !== null) {
+                return;
+            }
+            this.pendingSelection = true;
             var self = this;
             this.guardUnsaved().then(function (proceed) {
-                if (!proceed) return;
+                if (!proceed) {
+                    self.pendingSelection = false;
+                    return;
+                }
+                self.setOpeningCard(card, reactionId);
                 if (typeof window.loadReactionById !== 'function') {
                     // Fallback: navigate (still reuses the proven load path).
                     window.location.href = '/?reaction_id=' + reactionId;
@@ -168,7 +178,41 @@
                     .catch(function (err) {
                         console.error('Failed to open reaction; navigating instead', err);
                         window.location.href = '/?reaction_id=' + reactionId;
+                    })
+                    .finally(function () {
+                        self.clearOpeningCard();
                     });
+            }).catch(function (err) {
+                console.error('Could not switch reactions', err);
+                self.clearOpeningCard();
+            });
+        },
+
+        setOpeningCard: function (card, reactionId) {
+            this.loadingReactionId = reactionId;
+            var rail = this.rail();
+            if (rail) {
+                rail.classList.add('is-loading-reaction');
+                rail.querySelectorAll('.reaction-card.is-opening').forEach(function (c) {
+                    c.classList.remove('is-opening');
+                    c.removeAttribute('aria-busy');
+                });
+            }
+            if (card) {
+                card.classList.add('is-opening');
+                card.setAttribute('aria-busy', 'true');
+            }
+        },
+
+        clearOpeningCard: function () {
+            this.pendingSelection = false;
+            this.loadingReactionId = null;
+            var rail = this.rail();
+            if (!rail) return;
+            rail.classList.remove('is-loading-reaction');
+            rail.querySelectorAll('.reaction-card.is-opening').forEach(function (card) {
+                card.classList.remove('is-opening');
+                card.removeAttribute('aria-busy');
             });
         },
 

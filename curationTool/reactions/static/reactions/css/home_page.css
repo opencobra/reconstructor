@@ -1949,6 +1949,59 @@ footer {
 	box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);
 }
 
+.group-rail.is-loading-reaction .reaction-card {
+	cursor: progress;
+}
+
+.reaction-card.is-opening {
+	border-color: #1976d2;
+	box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.18), 0 10px 22px rgba(15, 23, 42, 0.12);
+	pointer-events: none;
+}
+
+.reaction-card.is-opening::before {
+	content: '';
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+	border-radius: inherit;
+	background: rgba(255, 255, 255, 0.76);
+}
+
+.reaction-card.is-opening::after {
+	content: 'Opening...';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 2;
+	transform: translate(-50%, -50%);
+	padding-left: 22px;
+	color: #1976d2;
+	font-size: 0.78rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.reaction-card.is-opening .reaction-card-title::after {
+	content: '';
+	position: absolute;
+	right: 24px;
+	top: 11px;
+	z-index: 3;
+	width: 13px;
+	height: 13px;
+	border: 2px solid rgba(25, 118, 210, 0.22);
+	border-top-color: #1976d2;
+	border-radius: 50%;
+	animation: reaction-card-spin 0.75s linear infinite;
+}
+
+@keyframes reaction-card-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+
 .reaction-card.active {
 	border-color: #1976d2;
 	box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.25);
