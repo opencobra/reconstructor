@@ -199,7 +199,7 @@ var button_to_div = {
                 handle: '.panel-drag-handle',
                 draggable: '.content-div',
                 ghostClass: 'workspace-panel-ghost',
-                filter: '.panel-resize-handle, .panel-reset-button, .panel-reset-button *',
+                filter: '.panel-resize-handle, .panel-reset-button, .panel-reset-button *, .reactants-view-toggle, .reactants-view-toggle *',
                 preventOnFilter: false,
                 onStart: (evt) => evt.item.classList.add('is-dragging'),
                 onEnd: (evt) => {

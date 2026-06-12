@@ -122,6 +122,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                     setLoggedInStatusBasedOnUrl(reactionStatusInfo);
                     DisplayTag(reactionData.Organs);
                 }
+                if (window.ReactantsFormDirty) {
+                    ReactantsFormDirty.captureBaseline();
+                }
             })
             .catch(error => {
                 console.error('Error fetching reaction data:', error);
@@ -237,6 +240,5 @@ function initResponsiveHeaders() {
         observer.observe(container, { attributes: true, subtree: true, attributeFilter: ['style'] });
     }
 }
-
 
 

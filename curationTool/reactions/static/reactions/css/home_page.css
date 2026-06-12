@@ -659,6 +659,23 @@ body {
 	background: linear-gradient(180deg, #86efac, #22c55e);
 }
 
+#submitBtn-form.reactants-update-disabled,
+#submitBtn-form:disabled {
+	background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+	color: #64748b !important;
+	border-color: #cbd5e1 !important;
+	box-shadow: none;
+	cursor: not-allowed;
+	opacity: 0.78;
+}
+
+#submitBtn-form.reactants-update-disabled:hover,
+#submitBtn-form:disabled:hover {
+	background: linear-gradient(180deg, #e2e8f0, #cbd5e1);
+	transform: none;
+	box-shadow: none;
+}
+
 #saveReactionButton.action-btn {
 	background: linear-gradient(180deg, #92d5f7, #53c0f7);
 	color: #042f1a !important;
@@ -2528,6 +2545,63 @@ footer {
 	line-height: 1.5;
 	margin-bottom: 16px;
 	white-space: pre-line;
+}
+
+.reaction-update-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+}
+
+.reaction-update-warning {
+	margin: 0;
+	color: #334155;
+}
+
+.reaction-update-equations {
+	display: grid;
+	grid-template-columns: 64px minmax(0, 1fr);
+	gap: 6px 10px;
+	padding: 10px 12px;
+	border: 1px solid #e2e8f0;
+	border-radius: 10px;
+	background: #f8fafc;
+}
+
+.reaction-update-label {
+	font-weight: 700;
+	color: #64748b;
+}
+
+.reaction-update-equation {
+	min-width: 0;
+	color: #0f172a;
+	font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+	overflow-wrap: anywhere;
+}
+
+.reaction-update-diff-title {
+	font-size: 0.78rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: #64748b;
+}
+
+.reaction-update-diff-list {
+	max-height: min(260px, 36vh);
+	overflow-y: auto;
+	margin: 0;
+	padding-left: 18px;
+}
+
+.reaction-update-diff-list li {
+	margin-bottom: 6px;
+	color: #334155;
+}
+
+.reaction-update-diff-list strong {
+	color: #0f172a;
 }
 
 .confirm-modal-field {

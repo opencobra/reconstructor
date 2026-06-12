@@ -27,6 +27,10 @@ function displayDivs(reactionData) {
     updateStatusDots('productsDiv', reactionData.prod_found, reactionData.prod_miriams);
     displayReactionMessage(reactionData);
     displayreactioninfo(reactionData);
+    // Keep the Reactants compact view (if active) in sync with the loaded rows.
+    if (window.ReactantsCompactView) {
+        window.ReactantsCompactView.refresh();
+    }
 }
 
 /**
@@ -90,6 +94,9 @@ function loadReactionById(reactionId) {
             }
             if (window.OpenReactionState) {
                 OpenReactionState.setDirty(reactionId, false);
+            }
+            if (window.ReactantsFormDirty) {
+                ReactantsFormDirty.captureBaseline();
             }
             return reactionData;
         });

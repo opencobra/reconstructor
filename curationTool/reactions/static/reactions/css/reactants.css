@@ -1180,3 +1180,428 @@
     max-height: min(320px, 50vh);
     overscroll-behavior: contain;
 }
+
+/* ============================================================
+   Reactants compact (equation) view — reactantsCompactView.js
+   ============================================================ */
+
+/* Header toggle next to the "Reactants" title */
+.div-header-title {
+    flex: 0 0 auto;
+}
+
+.reactants-view-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-left: 14px;
+    cursor: pointer;
+    user-select: none;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+.reactants-view-toggle input {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.reactants-view-toggle .rv-slider {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    border-radius: 999px;
+    background: #cbd5e1;
+    transition: background 0.18s ease;
+    flex: 0 0 auto;
+}
+
+.reactants-view-toggle .rv-slider::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.25);
+    transition: transform 0.18s ease;
+}
+
+.reactants-view-toggle input:checked + .rv-slider {
+    background: #7c3aed;
+}
+
+.reactants-view-toggle input:checked + .rv-slider::after {
+    transform: translateX(16px);
+}
+
+.reactants-view-toggle input:focus-visible + .rv-slider {
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.35);
+}
+
+/* Compact equation body */
+#reactantsCompactView {
+    padding: 6px 2px 4px;
+}
+
+.compact-equation {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.compact-side {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.compact-side-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.compact-side-title {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.compact-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 9px;
+    border: 1px solid #ddd6fe;
+    border-radius: 8px;
+    background: #f5f3ff;
+    color: #6d28d9;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.compact-add-btn:hover {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+}
+
+.compact-add-btn:active {
+    transform: translateY(1px);
+}
+
+.compact-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.9;
+}
+
+.compact-arrow {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #7c3aed;
+    padding: 2px 0;
+    letter-spacing: 1px;
+}
+
+.metab-token {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 5px;
+    border-radius: 8px;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #1e293b;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+}
+
+.metab-token:hover {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+}
+
+.compact-token-edit:focus-visible,
+.compact-token-remove:focus-visible,
+.compact-stoich-input:focus-visible,
+.compact-add-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3);
+}
+
+.metab-token.metab-token-not-found {
+    background: #fef2f2;
+    border-color: #fecaca;
+    color: #b91c1c;
+}
+
+.compact-stoich-input {
+    width: 3.4ch;
+    min-width: 32px;
+    height: 30px;
+    padding: 3px 2px;
+    border: 1px solid #cbd5e1;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #0f172a;
+    font-size: 0.86rem;
+    font-weight: 700;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.compact-stoich-input::-webkit-outer-spin-button,
+.compact-stoich-input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.compact-token-edit {
+    min-height: 30px;
+    padding: 4px 6px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.compact-token-edit:hover {
+    background: rgba(124, 58, 237, 0.1);
+}
+
+.compact-token-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+}
+
+.compact-token-remove:hover {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.compact-plus {
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.compact-empty {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+/* Editable meta (Subsystem / Organ / Direction) */
+.compact-meta {
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #e2e8f0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.compact-meta-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+}
+
+.compact-meta-label {
+    flex: 0 0 90px;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: #94a3b8;
+}
+
+.compact-meta-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 420px;
+    position: relative;
+    display: block;
+}
+
+.compact-meta-control {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 0.9rem;
+    color: #1e293b;
+    line-height: 1.35;
+}
+
+.compact-meta-control:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.16);
+}
+
+.compact-meta-control::placeholder {
+    color: #94a3b8;
+}
+
+.compact-meta-dropdown {
+    position: absolute;
+    display: none;
+    width: 100%;
+    top: calc(100% + 4px);
+    left: 0;
+    z-index: 10000;
+    max-height: min(240px, 42vh);
+    overflow-y: auto;
+    border: 1px solid #e4e7ec;
+    border-radius: 0 0 12px 12px;
+    background: #ffffff;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    overscroll-behavior: contain;
+}
+
+.compact-meta-option {
+    display: block;
+    width: 100%;
+    padding: 10px 14px;
+    border: 0;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 0.86rem;
+    text-align: center;
+    cursor: pointer;
+}
+
+.compact-meta-option:nth-child(odd) {
+    background: #f9f9f9;
+}
+
+.compact-meta-option:nth-child(even) {
+    background: #ececec;
+}
+
+.compact-meta-option:hover,
+.compact-meta-option:focus-visible {
+    outline: none;
+    background: #ddd;
+}
+
+/* Hover tooltip */
+.compact-token-tip {
+    position: fixed;
+    z-index: 6000;
+    background: #0f172a;
+    color: #f8fafc;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35);
+    pointer-events: none;
+    min-width: 170px;
+}
+
+.compact-token-tip .ctt-row {
+    display: flex;
+    gap: 10px;
+}
+
+.compact-token-tip .ctt-key {
+    flex: 0 0 52px;
+    color: #94a3b8;
+    font-weight: 600;
+}
+
+.compact-token-tip .ctt-val {
+    flex: 1 1 auto;
+}
+
+/* Quick-edit modal fields (reuses .confirm-modal* chrome) */
+.compact-edit-modal {
+    width: 420px;
+}
+
+.compact-edit-fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 16px;
+    margin: 6px 0 4px;
+}
+
+.compact-edit-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.compact-edit-field:first-child {
+    grid-column: 1 / -1;
+}
+
+.compact-edit-field label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-weight: 700;
+    color: #64748b;
+}
+
+.compact-edit-field input,
+.compact-edit-field select {
+    padding: 9px 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.92rem;
+    background: #ffffff;
+    color: #1e293b;
+}
+
+.compact-edit-field input:focus,
+.compact-edit-field select:focus {
+    outline: none;
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
+}
+
+@media (max-width: 700px) {
+    .compact-meta-field {
+        align-items: stretch;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .compact-meta-label {
+        flex-basis: auto;
+    }
+
+    .compact-meta-input {
+        max-width: none;
+        width: 100%;
+    }
+}

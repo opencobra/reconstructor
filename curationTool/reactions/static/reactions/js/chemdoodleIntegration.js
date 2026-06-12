@@ -111,6 +111,8 @@ function saveDrawing() {
         let textField = getIdentifierInput(currentlyDrawingSelect);
         if (textField) {
             textField.value = encodedMolFile; // Save the encoded molecule data in the input field
+            textField.dispatchEvent(new Event('input', { bubbles: true }));
+            textField.dispatchEvent(new Event('change', { bubbles: true }));
         }
 
         // Remove the "Start Drawing" button and replace it with the "Edit Drawing" button
@@ -184,5 +186,4 @@ function clearDrawingSketcher() {
     let molFile = decodeURIComponent(emptyMolFile);
     iframe.contentWindow.loadMoleculeIntoSketcher(molFile);
 }
-
 

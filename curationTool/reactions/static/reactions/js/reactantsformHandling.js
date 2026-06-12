@@ -13,6 +13,430 @@ document.getElementById('submitBtn-form').addEventListener('click', function(eve
     }
 })();
 
+var ReactantsFormDirty = (function () {
+    const CLEAN_TITLE = 'No reaction changes to update';
+    const EMPTY_LABEL = 'empty';
+    let baseline = null;
+    let currentDirty = false;
+    let evaluateTimer = null;
+    let observer = null;
+
+    function params() {
+        return new URLSearchParams(window.location.search);
+    }
+
+    function isEditMode() {
+        return params().get('action') === 'edit';
+    }
+
+    function text(value) {
+        return String(value == null ? '' : value).trim();
+    }
+
+    function normalizeStoich(value) {
+        const raw = text(value);
+        if (!raw) return '';
+        const numberValue = Number(raw);
+        return Number.isFinite(numberValue) ? String(numberValue) : raw;
+    }
+
+    function normalizeDirectionValue(value) {
+        if (typeof normalizeReactionDirection === 'function') {
+            return normalizeReactionDirection(value);
+        }
+        return text(value).toLowerCase() === 'bidirectional' ? 'bidirectional' : 'forward';
+    }
+
+    function getIdentifierValue(group, fieldName) {
+        const autocomplete = group.querySelector('.autocomplete-container');
+        if (autocomplete) {
+            const hidden = autocomplete.querySelector('input[type="hidden"]');
+            const visible = autocomplete.querySelector('.autocomplete-input');
+            return text((hidden && hidden.value) || (visible && visible.value));
+        }
+
+        const fileInput = group.querySelector('.cell-identifier input[type="file"]');
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            return text(fileInput.files[0].name);
+        }
+
+        const input = group.querySelector('.cell-identifier input[name="' + fieldName + '"]');
+        return text(input && input.value);
+    }
+
+    function readRows(containerId, side) {
+        const container = document.getElementById(containerId);
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.inputs-group')).map(function (group) {
+            const stoichInput = group.querySelector('input[name="' + side.stoich + '"]');
+            const compartmentSelect = group.querySelector('select[name="' + side.compartment + '"]');
+            const typeSelect = group.querySelector('select[name="' + side.type + '"]');
+            return {
+                identifier: getIdentifierValue(group, side.field),
+                stoichiometry: normalizeStoich(stoichInput && stoichInput.value),
+                compartment: text(compartmentSelect && compartmentSelect.value),
+                inputType: text(typeSelect && typeSelect.value),
+            };
+        });
+    }
+
+    function readOrgans() {
+        const container = document.getElementById('organTags');
+        if (!container) return [];
+        return Array.from(container.querySelectorAll('.tag'))
+            .map(function (tag) {
+                return text(tag.firstChild ? tag.firstChild.textContent : tag.textContent.replace('×', ''));
+            })
+            .filter(Boolean);
+    }
+
+    function collectState() {
+        const directionEl = document.getElementById('reactionDirection');
+        const subsystemEl = document.getElementById('subsystemField');
+        return {
+            substrates: readRows('substratesDiv', {
+                field: 'substrates',
+                stoich: 'subs_sch',
+                compartment: 'subs_comps',
+                type: 'substrates_type',
+            }),
+            products: readRows('productsDiv', {
+                field: 'products',
+                stoich: 'prod_sch',
+                compartment: 'prod_comps',
+                type: 'products_type',
+            }),
+            direction: normalizeDirectionValue(directionEl ? directionEl.value : 'forward'),
+            subsystem: text(subsystemEl && subsystemEl.value),
+            organs: readOrgans(),
+        };
+    }
+
+    function stateKey(state) {
+        return JSON.stringify(state || null);
+    }
+
+    function setOpenReactionDirty(value) {
+        if (window.OpenReactionState) {
+            OpenReactionState.setDirty(undefined, !!value);
+        }
+    }
+
+    function updateButton() {
+        const submitBtn = document.getElementById('submitBtn-form');
+        if (!submitBtn) return;
+
+        if (submitBtn.dataset.submitting === 'true') {
+            submitBtn.disabled = true;
+            submitBtn.classList.remove('reactants-update-disabled');
+            submitBtn.removeAttribute('aria-disabled');
+            submitBtn.removeAttribute('title');
+            return;
+        }
+
+        if (!isEditMode()) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('reactants-update-disabled');
+            submitBtn.removeAttribute('aria-disabled');
+            submitBtn.removeAttribute('title');
+            return;
+        }
+
+        if (currentDirty) {
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('reactants-update-disabled');
+            submitBtn.setAttribute('aria-disabled', 'false');
+            submitBtn.removeAttribute('title');
+        } else {
+            submitBtn.disabled = true;
+            submitBtn.classList.add('reactants-update-disabled');
+            submitBtn.setAttribute('aria-disabled', 'true');
+            submitBtn.setAttribute('title', CLEAN_TITLE);
+        }
+    }
+
+    function evaluateNow() {
+        evaluateTimer = null;
+        if (!isEditMode()) {
+            baseline = null;
+            currentDirty = false;
+            updateButton();
+            return false;
+        }
+        if (!baseline) {
+            currentDirty = false;
+            updateButton();
+            return false;
+        }
+        currentDirty = stateKey(collectState()) !== stateKey(baseline);
+        setOpenReactionDirty(currentDirty);
+        updateButton();
+        return currentDirty;
+    }
+
+    function scheduleEvaluate() {
+        if (evaluateTimer) {
+            clearTimeout(evaluateTimer);
+        }
+        evaluateTimer = setTimeout(evaluateNow, 0);
+    }
+
+    function captureBaseline() {
+        if (!isEditMode()) {
+            baseline = null;
+            currentDirty = false;
+            setOpenReactionDirty(false);
+            updateButton();
+            return;
+        }
+        baseline = collectState();
+        currentDirty = false;
+        setOpenReactionDirty(false);
+        updateButton();
+    }
+
+    function labelValue(value) {
+        const normalized = text(value);
+        return normalized || EMPTY_LABEL;
+    }
+
+    function rowTerm(row) {
+        if (!row) return EMPTY_LABEL;
+        const stoich = row.stoichiometry && row.stoichiometry !== '1'
+            ? row.stoichiometry + ' '
+            : '';
+        const identifier = labelValue(row.identifier);
+        const compartment = row.compartment ? '[' + row.compartment + ']' : '';
+        return stoich + identifier + compartment;
+    }
+
+    function equationFor(state) {
+        const substrates = state.substrates.length ? state.substrates.map(rowTerm).join(' + ') : EMPTY_LABEL;
+        const products = state.products.length ? state.products.map(rowTerm).join(' + ') : EMPTY_LABEL;
+        const arrow = state.direction === 'bidirectional' ? '<=>' : '->';
+        return substrates + ' ' + arrow + ' ' + products;
+    }
+
+    function fieldLabel(key) {
+        const labels = {
+            identifier: 'metabolite identifier',
+            stoichiometry: 'stoichiometry',
+            compartment: 'compartment',
+            inputType: 'input type',
+        };
+        return labels[key] || key;
+    }
+
+    function pushDiff(diffs, label, beforeValue, afterValue) {
+        diffs.push({
+            label: label,
+            before: labelValue(beforeValue),
+            after: labelValue(afterValue),
+        });
+    }
+
+    function rowKey(row) {
+        return ['identifier', 'stoichiometry', 'compartment', 'inputType']
+            .map(function (key) { return row ? row[key] : ''; })
+            .join('\u0001');
+    }
+
+    function rowsEqual(beforeRow, afterRow) {
+        return rowKey(beforeRow) === rowKey(afterRow);
+    }
+
+    function alignRows(beforeRows, afterRows) {
+        const removeCost = 1;
+        const addCost = 1;
+        const changeCost = 1.5;
+        const m = beforeRows.length;
+        const n = afterRows.length;
+        const dp = Array.from({ length: m + 1 }, function () {
+            return Array(n + 1).fill(0);
+        });
+        const op = Array.from({ length: m + 1 }, function () {
+            return Array(n + 1).fill(null);
+        });
+
+        for (let i = m - 1; i >= 0; i -= 1) {
+            dp[i][n] = removeCost + dp[i + 1][n];
+            op[i][n] = 'remove';
+        }
+        for (let j = n - 1; j >= 0; j -= 1) {
+            dp[m][j] = addCost + dp[m][j + 1];
+            op[m][j] = 'add';
+        }
+
+        for (let i = m - 1; i >= 0; i -= 1) {
+            for (let j = n - 1; j >= 0; j -= 1) {
+                if (rowsEqual(beforeRows[i], afterRows[j])) {
+                    dp[i][j] = dp[i + 1][j + 1];
+                    op[i][j] = 'match';
+                    continue;
+                }
+
+                const remove = removeCost + dp[i + 1][j];
+                const add = addCost + dp[i][j + 1];
+                const change = changeCost + dp[i + 1][j + 1];
+                let bestCost = change;
+                let bestOp = 'change';
+
+                if (remove < bestCost) {
+                    bestCost = remove;
+                    bestOp = 'remove';
+                }
+                if (add < bestCost) {
+                    bestCost = add;
+                    bestOp = 'add';
+                }
+
+                dp[i][j] = bestCost;
+                op[i][j] = bestOp;
+            }
+        }
+
+        const operations = [];
+        let i = 0;
+        let j = 0;
+        while (i < m || j < n) {
+            const action = op[i][j];
+            if (action === 'match') {
+                operations.push({ type: 'match', beforeIndex: i, afterIndex: j });
+                i += 1;
+                j += 1;
+            } else if (action === 'change') {
+                operations.push({ type: 'change', beforeIndex: i, afterIndex: j });
+                i += 1;
+                j += 1;
+            } else if (action === 'remove') {
+                operations.push({ type: 'remove', beforeIndex: i });
+                i += 1;
+            } else if (action === 'add') {
+                operations.push({ type: 'add', afterIndex: j });
+                j += 1;
+            } else {
+                break;
+            }
+        }
+        return operations;
+    }
+
+    function pushRowFieldDiffs(diffs, beforeRow, afterRow, rowLabel) {
+        ['identifier', 'stoichiometry', 'compartment', 'inputType'].forEach(function (key) {
+            if (beforeRow[key] !== afterRow[key]) {
+                pushDiff(diffs, rowLabel + ' ' + fieldLabel(key), beforeRow[key], afterRow[key]);
+            }
+        });
+    }
+
+    function compareRows(diffs, beforeRows, afterRows, singularLabel) {
+        alignRows(beforeRows, afterRows).forEach(function (operation) {
+            if (operation.type === 'match') {
+                return;
+            }
+
+            if (operation.type === 'remove') {
+                const beforeRow = beforeRows[operation.beforeIndex];
+                pushDiff(diffs, singularLabel + ' ' + (operation.beforeIndex + 1), rowTerm(beforeRow), 'removed');
+                return;
+            }
+
+            if (operation.type === 'add') {
+                const afterRow = afterRows[operation.afterIndex];
+                pushDiff(diffs, singularLabel + ' ' + (operation.afterIndex + 1), 'not present', rowTerm(afterRow));
+                return;
+            }
+
+            if (operation.type === 'change') {
+                const beforeRow = beforeRows[operation.beforeIndex];
+                const afterRow = afterRows[operation.afterIndex];
+                const rowLabel = singularLabel + ' ' + (operation.beforeIndex + 1);
+                pushRowFieldDiffs(diffs, beforeRow, afterRow, rowLabel);
+            }
+        });
+    }
+
+    function diffStates(beforeState, afterState) {
+        const diffs = [];
+        compareRows(diffs, beforeState.substrates, afterState.substrates, 'Substrate');
+        compareRows(diffs, beforeState.products, afterState.products, 'Product');
+        if (beforeState.direction !== afterState.direction) {
+            pushDiff(diffs, 'Direction', beforeState.direction, afterState.direction);
+        }
+        if (beforeState.subsystem !== afterState.subsystem) {
+            pushDiff(diffs, 'Subsystem', beforeState.subsystem, afterState.subsystem);
+        }
+        if (stateKey(beforeState.organs) !== stateKey(afterState.organs)) {
+            pushDiff(diffs, 'Organs', beforeState.organs.join(', '), afterState.organs.join(', '));
+        }
+        return diffs;
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement('div');
+        div.textContent = value == null ? '' : String(value);
+        return div.innerHTML;
+    }
+
+    function confirmationHtml() {
+        const beforeState = baseline || collectState();
+        const afterState = collectState();
+        const diffs = diffStates(beforeState, afterState);
+        const diffItems = diffs.length
+            ? diffs.map(function (diff) {
+                return '<li><strong>' + escapeHtml(diff.label) + ':</strong> ' +
+                    escapeHtml(diff.before) + ' → ' + escapeHtml(diff.after) + '</li>';
+            }).join('')
+            : '<li>No Reactants field changes detected.</li>';
+
+        return '' +
+            '<div class="reaction-update-summary">' +
+                '<p class="reaction-update-warning">This updates the saved reaction and cannot be undone.</p>' +
+                '<div class="reaction-update-equations">' +
+                    '<div class="reaction-update-label">Before</div>' +
+                    '<div class="reaction-update-equation">' + escapeHtml(equationFor(beforeState)) + '</div>' +
+                    '<div class="reaction-update-label">After</div>' +
+                    '<div class="reaction-update-equation">' + escapeHtml(equationFor(afterState)) + '</div>' +
+                '</div>' +
+                '<div class="reaction-update-diff-title">Changed fields</div>' +
+                '<ul class="reaction-update-diff-list">' + diffItems + '</ul>' +
+            '</div>';
+    }
+
+    function bind() {
+        const container = document.getElementById('reactionFormContainer');
+        if (container) {
+            container.addEventListener('input', scheduleEvaluate, true);
+            container.addEventListener('change', scheduleEvaluate, true);
+        }
+
+        const observed = ['substratesDiv', 'productsDiv', 'organTags']
+            .map(function (id) { return document.getElementById(id); })
+            .filter(Boolean);
+        if (window.MutationObserver && observed.length) {
+            observer = new MutationObserver(scheduleEvaluate);
+            observed.forEach(function (el) {
+                observer.observe(el, { childList: true, subtree: true });
+            });
+        }
+        updateButton();
+    }
+
+    document.addEventListener('DOMContentLoaded', bind);
+
+    return {
+        captureBaseline: captureBaseline,
+        collectState: collectState,
+        confirmationHtml: confirmationHtml,
+        hasChanges: function () { return evaluateNow(); },
+        isEditMode: isEditMode,
+        refreshButton: updateButton,
+        scheduleEvaluate: scheduleEvaluate,
+    };
+})();
+
+window.ReactantsFormDirty = ReactantsFormDirty;
+
 function normalizeReactionDirection(direction) {
     const value = (direction || '').toString().trim().toLowerCase();
     if (value === 'forward' || value === '->' || value === '=>' || value === '=') {
@@ -174,40 +598,58 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
 
     var submitBtn = document.getElementById('submitBtn-form');
     const stopLoadingState = function () {
-        submitBtn.disabled = false;
+        delete submitBtn.dataset.submitting;
+        if (window.ReactantsFormDirty && ReactantsFormDirty.isEditMode()) {
+            ReactantsFormDirty.refreshButton();
+        } else {
+            submitBtn.disabled = false;
+        }
         hideLoader();
     };
 
-    submitBtn.disabled = true;
-    showLoader();
+    const parsedUrl = new URL(window.location.href);
+    const params = new URLSearchParams(parsedUrl.search);
+    const reactionId = params.get('reaction_id');
+    const action = params.get('action');
+    const editing = action === 'edit';
 
-    currentUrl = window.location.href;
-    editing = false
-    if (currentUrl.includes('edit')) {
-        editing = true
+    if (editing) {
+        if (window.ReactantsFormDirty && !ReactantsFormDirty.hasChanges()) {
+            ReactantsFormDirty.refreshButton();
+            return;
+        }
         // Context-aware confirm: saving a clone vs. updating an existing reaction.
         var inClone = !!(window.CloneReaction && CloneReaction.cloneId);
         var confirmOpts = inClone
             ? {
                 title: 'Save clone',
-                message: 'Save your changes as this new clone? The original reaction is not affected.',
+                messageHtml: ReactantsFormDirty
+                    ? ReactantsFormDirty.confirmationHtml().replace(
+                        'This updates the saved reaction and cannot be undone.',
+                        'Save these changes to this clone? The original reaction is not affected.'
+                    )
+                    : undefined,
+                message: ReactantsFormDirty ? undefined : 'Save your changes as this new clone? The original reaction is not affected.',
                 confirmText: 'Save clone',
                 cancelText: 'Keep editing',
             }
             : {
                 title: 'Update reaction',
-                message: 'Update this saved reaction with your current changes?',
+                messageHtml: ReactantsFormDirty ? ReactantsFormDirty.confirmationHtml() : undefined,
+                message: ReactantsFormDirty ? undefined : 'This updates the saved reaction and cannot be undone.',
                 confirmText: 'Update reaction',
                 cancelText: 'Cancel',
+                danger: true,
             };
         var userConfirmed = await Notify.confirm(confirmOpts);
         if (!userConfirmed) {
-            stopLoadingState();
             return; // Exit the function and do not submit form
         }
     }
 
-    var loadingIndicator = document.getElementById('loadingIndicator');
+    submitBtn.dataset.submitting = 'true';
+    submitBtn.disabled = true;
+    showLoader();
 
     var divElement = document.getElementById("organTags");
     var organTags = Array.from(divElement.getElementsByClassName('tag'))
@@ -304,14 +746,6 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     formData.append('skipAtomMapping', skipAtomMapping);
     formData.append('nameData', JSON.stringify(nameData));
     formData.append('organs', JSON.stringify(organTags));
-    const url = window.location.href;
-    const parsedUrl = new URL(url);
-    
-    // Extract query parameters
-    const params = new URLSearchParams(parsedUrl.search);
-    const reactionId = params.get('reaction_id');
-    // Get the value of reaction_id
-    const action = params.get('action');
     formData.append('action', action);
 
     if (action === 'edit') {
@@ -344,8 +778,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         if (data.status === 'error') {
             showErrorModal(data.message);
             window.scrollTo(0, 0);
-            submitBtn.disabled = false;
-            loadingIndicator.style.display = 'none';
+            stopLoadingState();
             return;
         }
         else if (action !== 'edit' && data.reaction_id) { // reactionId is taken from the response
@@ -387,8 +820,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         const errorMessage = 'An unexpected error occurred.';
         showErrorModal(errorMessage);
         window.scrollTo(0, 0);
-        submitBtn.disabled = false;
-        loadingIndicator.style.display = 'none';
+        stopLoadingState();
     });
 });    
 

@@ -17,9 +17,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Share selected metabolites
-// Ensure this runs after the DOM is loaded.
-document.getElementById('shareSelectedBtn').addEventListener('click', shareSelectedMetabolites);
+    // Share selected metabolites. This script is reused across pages/modal variants,
+    // so optional controls need guards.
+    const shareSelectedBtn = document.getElementById('shareSelectedBtn');
+    if (shareSelectedBtn) {
+        shareSelectedBtn.addEventListener('click', shareSelectedMetabolites);
+    }
 
 });
 async function shareSelectedMetabolites() {
@@ -443,16 +446,27 @@ async function deleteMetabolite(metaboliteId) {
 }
 
 // New metabolite creation
-document.getElementById('createNewMetaboliteBtn').addEventListener('click', function() {
-    document.getElementById('newMetaboliteForm').style.display = 'block';
-    this.style.display = 'none';
-});
+const createNewMetaboliteBtn = document.getElementById('createNewMetaboliteBtn');
+if (createNewMetaboliteBtn) {
+    createNewMetaboliteBtn.addEventListener('click', function() {
+        const form = document.getElementById('newMetaboliteForm');
+        if (form) form.style.display = 'block';
+        this.style.display = 'none';
+    });
+}
 
 async function createNewMetabolite() {
+    const nameInput = document.getElementById('newMetaboliteName');
+    const abbrInput = document.getElementById('newMetaboliteAbbr');
+    const molFileInput = document.getElementById('newMetaboliteMolFile');
+    if (!nameInput || !abbrInput || !molFileInput) {
+        Notify.error('The new metabolite form is not available on this page.');
+        return;
+    }
     const formData = new FormData();
-    formData.append('name', document.getElementById('newMetaboliteName').value);
-    formData.append('vmh_abbr', document.getElementById('newMetaboliteAbbr').value);
-    formData.append('mol_file', document.getElementById('newMetaboliteMolFile').files[0]);
+    formData.append('name', nameInput.value);
+    formData.append('vmh_abbr', abbrInput.value);
+    formData.append('mol_file', molFileInput.files[0]);
     formData.append('user_id', sessionStorage.getItem('userID'));
 
     const response = await fetch('/create_metabolite/', {
@@ -473,11 +487,16 @@ async function createNewMetabolite() {
 }
 
 function cancelNewMetabolite() {
-    document.getElementById('newMetaboliteForm').style.display = 'none';
-    document.getElementById('createNewMetaboliteBtn').style.display = 'block';
-    document.getElementById('newMetaboliteName').value = '';
-    document.getElementById('newMetaboliteAbbr').value = '';
-    document.getElementById('newMetaboliteMolFile').value = '';
+    const form = document.getElementById('newMetaboliteForm');
+    const createBtn = document.getElementById('createNewMetaboliteBtn');
+    const nameInput = document.getElementById('newMetaboliteName');
+    const abbrInput = document.getElementById('newMetaboliteAbbr');
+    const molFileInput = document.getElementById('newMetaboliteMolFile');
+    if (form) form.style.display = 'none';
+    if (createBtn) createBtn.style.display = 'block';
+    if (nameInput) nameInput.value = '';
+    if (abbrInput) abbrInput.value = '';
+    if (molFileInput) molFileInput.value = '';
 }
 
 async function generateAbbreviation(button) {

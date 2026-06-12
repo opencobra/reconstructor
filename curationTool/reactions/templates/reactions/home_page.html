@@ -44,6 +44,56 @@
 					</div>
 				</div>
 			</div>
+			<!-- Compact-view quick-edit modal (reactantsCompactView.js). Styled like the Notify confirm modal. -->
+			<div id="compactEditOverlay" class="confirm-modal-overlay">
+				<div class="confirm-modal compact-edit-modal" role="dialog" aria-modal="true" aria-labelledby="compactEditTitle">
+					<div class="confirm-modal-header">
+						<i class="confirm-modal-icon fas fa-pen" aria-hidden="true"></i>
+						<h3 class="confirm-modal-title" id="compactEditTitle">Edit metabolite</h3>
+					</div>
+					<div class="compact-edit-fields">
+						<div class="compact-edit-field">
+							<label for="compactEditIdentifier">Metabolite identifier</label>
+							<input type="text" id="compactEditIdentifier" autocomplete="off" />
+						</div>
+						<div class="compact-edit-field">
+							<label for="compactEditType">Input type</label>
+							<select id="compactEditType">
+								<option value="VMH">VMH</option>
+								<option value="ChEBI ID">ChEBI ID</option>
+								<option value="ChEBI Name">ChEBI Name</option>
+								<option value="SwissLipids">SwissLipids</option>
+								<option value="PubChem ID">PubChem ID</option>
+								<option value="MDL Mol file">MDL Mol file</option>
+								<option value="Draw">Draw</option>
+								<option value="Saved">My Metabolites</option>
+							</select>
+						</div>
+						<div class="compact-edit-field">
+							<label for="compactEditStoich">Stoichiometry</label>
+							<input type="number" id="compactEditStoich" min="1" value="1" />
+						</div>
+						<div class="compact-edit-field">
+							<label for="compactEditCompartment">Compartment</label>
+							<select id="compactEditCompartment">
+								<option value="c">c</option>
+								<option value="e">e</option>
+								<option value="g">g</option>
+								<option value="m">m</option>
+								<option value="l">l</option>
+								<option value="n">n</option>
+								<option value="r">r</option>
+								<option value="x">x</option>
+								<option value="-">-</option>
+							</select>
+						</div>
+					</div>
+					<div class="confirm-modal-actions">
+						<button type="button" class="confirm-modal-cancel ui button" id="compactEditCancel">Cancel</button>
+						<button type="button" class="confirm-modal-confirm ui button" id="compactEditSave">Save</button>
+					</div>
+				</div>
+			</div>
 			<div id="savedMetabolitesModal" class="ui modal">
 				<div class="header">
 					<h2>Manage Saved Metabolites</h2>
@@ -353,8 +403,66 @@
 				</div>
 				<div class="divs-container workspace-panels" id="workspacePanels">
 					<div class="content-div workspace-panel is-visible" name="reactants-div" style="display: flex">
-						<div class="div-header">Reactants</div>
+						<div class="div-header">
+							<span class="div-header-title">Reactants</span>
+							<label class="reactants-view-toggle" id="reactantsViewToggle" style="display: none" title="Switch between the full editor and a compact equation view">
+								<input type="checkbox" id="reactantsCompactToggle" />
+								<span class="rv-slider" aria-hidden="true"></span>
+								<span class="rv-label">Compact</span>
+							</label>
+						</div>
 						<div id="reactionFormContainer" class="container">
+							<!-- Compact (equation) presentation of the reaction; populated by reactantsCompactView.js -->
+							<div id="reactantsCompactView" style="display: none">
+								<div class="compact-equation">
+									<div class="compact-side">
+										<div class="compact-side-header">
+											<span class="compact-side-title">Substrates</span>
+											<button type="button" class="compact-add-btn" id="compactAddSubstrate" title="Add substrate">
+												<i class="fas fa-plus" aria-hidden="true"></i>
+												<span>Add</span>
+											</button>
+										</div>
+										<div class="compact-line compact-substrates" id="compactSubstrates"></div>
+									</div>
+									<div class="compact-arrow" id="compactArrow">--&gt;</div>
+									<div class="compact-side">
+										<div class="compact-side-header">
+											<span class="compact-side-title">Products</span>
+											<button type="button" class="compact-add-btn" id="compactAddProduct" title="Add product">
+												<i class="fas fa-plus" aria-hidden="true"></i>
+												<span>Add</span>
+											</button>
+										</div>
+										<div class="compact-line compact-products" id="compactProducts"></div>
+									</div>
+								</div>
+								<div class="compact-meta" id="compactMeta">
+									<label class="compact-meta-field" for="compactSubsystemInput">
+										<span class="compact-meta-label">Subsystem</span>
+										<span class="compact-meta-input">
+											<input type="text" class="compact-meta-control" id="compactSubsystemInput" autocomplete="off" placeholder="Subsystem" />
+											<span class="compact-meta-dropdown" id="compactSubsystemDropdown"></span>
+										</span>
+									</label>
+									<label class="compact-meta-field" for="compactOrganInput">
+										<span class="compact-meta-label">Organ</span>
+										<span class="compact-meta-input">
+											<input type="text" class="compact-meta-control" id="compactOrganInput" autocomplete="off" placeholder="Liver, Brain" />
+											<span class="compact-meta-dropdown" id="compactOrganDropdown"></span>
+										</span>
+									</label>
+									<label class="compact-meta-field" for="compactDirectionSelect">
+										<span class="compact-meta-label">Direction</span>
+										<span class="compact-meta-input">
+											<select class="compact-meta-control" id="compactDirectionSelect">
+												<option value="forward">Forward (-&gt;)</option>
+												<option value="bidirectional">Bidirectional (&lt;=&gt;)</option>
+											</select>
+										</span>
+									</label>
+								</div>
+							</div>
 							<div class="reactants-toolbar">
 								<div class="toolbar-group">
 									<button class="ui violet button ghost-button" id="getrxnfromvmhrhea">
@@ -468,7 +576,7 @@
 													<input type="text" id="substrates" name="substrates" />
 												</div>
 												<div class="cell cell-compartment">
-													<select id="compartment" name="subs_comps">
+													<select id="subsCompartment" name="subs_comps">
 														<option value="c">c</option>
 														<option value="e">e</option>
 														<option value="g">g</option>
@@ -597,7 +705,7 @@
 													<input type="text" id="products" name="products" />
 												</div>
 												<div class="cell cell-compartment">
-													<select id="compartment" name="prod_comps">
+													<select id="prodCompartment" name="prod_comps">
 														<option value="c">c</option>
 														<option value="e">e</option>
 														<option value="g">g</option>
@@ -1088,6 +1196,7 @@
 		<script src="{% static 'reactions/js/shareEditTemplate.js' %}"></script>
 		<script src="{% static 'reactions/js/ReactantsinputFieldManagement.js' %}"></script>
 		<script src="{% static 'reactions/js/reactantsdisplay.js' %}"></script>
+		<script src="{% static 'reactions/js/reactantsCompactView.js' %}"></script>
 		<script src="{% static 'reactions/js/chemdoodleIntegration.js' %}"></script>
 		<script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
 		<script src="{% static 'reactions/js/Creatediv.js' %}"></script>

@@ -14,6 +14,7 @@ document.addEventListener('DOMContentLoaded', function () {
     ];
     
     const organList = [...new Set(organList_old)];
+    window.ReactantsOrganList = organList;
 
     // Placeholder text for the div
     organTagsContainer.setAttribute('data-placeholder', 'Type or select organs...');
@@ -39,6 +40,11 @@ document.addEventListener('DOMContentLoaded', function () {
             if (tags.length > 0) {
                 const lastTag = tags[tags.length - 1];
                 organTagsContainer.removeChild(lastTag);
+                organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+                organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+                if (window.ReactantsCompactView) {
+                    window.ReactantsCompactView.refresh();
+                }
             }
         }
     });
@@ -64,6 +70,11 @@ document.addEventListener('DOMContentLoaded', function () {
         closeBtn.textContent = '×';
         closeBtn.addEventListener('click', function() {
             organTagsContainer.removeChild(tag); // Remove the tag when close button is clicked
+            organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+            organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.ReactantsCompactView) {
+                window.ReactantsCompactView.refresh();
+            }
         });
 
         tag.appendChild(closeBtn);
@@ -86,6 +97,11 @@ document.addEventListener('DOMContentLoaded', function () {
         selection.addRange(range);
 
         organTagsContainer.focus(); // Refocus the input area
+        organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+        organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+        if (window.ReactantsCompactView) {
+            window.ReactantsCompactView.refresh();
+        }
     }
 
     // Render the dropdown options
@@ -107,17 +123,35 @@ document.addEventListener('DOMContentLoaded', function () {
 
 
 function DisplayTag(tags) {
-    if (!tags) {
+    const organTagsContainer = document.getElementById('organTags');
+    if (!organTagsContainer) {
         return;
     }
-    const organTagsContainer = document.getElementById('organTags');
+    organTagsContainer.innerHTML = '';
 
-    let str = tags;
-    let result = str
-    .slice(1, -1)  // Remove the surrounding brackets
-    .split(',')     // Split the string by commas
-    .map(item => item.replace(/[^\w\s]/g, ''));
-    if (result.length === 1 && result[0] === '') {
+    if (!tags) {
+        organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+        organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+        if (window.ReactantsCompactView) {
+            window.ReactantsCompactView.refresh();
+        }
+        return;
+    }
+
+    let result = Array.isArray(tags)
+        ? tags
+        : String(tags)
+            .slice(1, -1)  // Remove the surrounding brackets
+            .split(',');     // Split the string by commas
+    result = result
+        .map(item => String(item).replace(/[^\w\s]/g, '').trim())
+        .filter(Boolean);
+    if (!result.length) {
+        organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+        organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+        if (window.ReactantsCompactView) {
+            window.ReactantsCompactView.refresh();
+        }
         return; // Prevent empty tags
     }
     result.forEach(tagText => {
@@ -127,6 +161,7 @@ function DisplayTag(tags) {
 
         const tag = document.createElement('span');
         tag.className = 'tag';
+        tag.contentEditable = false;
         tag.textContent = tagText;
 
         const closeBtn = document.createElement('span');
@@ -137,10 +172,19 @@ function DisplayTag(tags) {
 
         closeBtn.addEventListener('click', function() {
             organTagsContainer.removeChild(tag);
+            organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+            organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+            if (window.ReactantsCompactView) {
+                window.ReactantsCompactView.refresh();
+            }
         });
 
         tag.appendChild(closeBtn);
         organTagsContainer.appendChild(tag);
     });
+    organTagsContainer.dispatchEvent(new Event('input', { bubbles: true }));
+    organTagsContainer.dispatchEvent(new Event('change', { bubbles: true }));
+    if (window.ReactantsCompactView) {
+        window.ReactantsCompactView.refresh();
+    }
 }
-

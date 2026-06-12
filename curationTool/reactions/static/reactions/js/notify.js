@@ -142,8 +142,14 @@
             var confirmBtn = overlay.querySelector('.confirm-modal-confirm');
 
             titleEl.textContent = opts.title || (isPrompt ? 'Enter a value' : 'Please confirm');
-            msgEl.textContent = opts.message || '';
-            msgEl.style.display = opts.message ? '' : 'none';
+            if (opts.messageHtml) {
+                msgEl.innerHTML = opts.messageHtml;
+                msgEl.style.whiteSpace = 'normal';
+            } else {
+                msgEl.textContent = opts.message || '';
+                msgEl.style.whiteSpace = 'pre-line';
+            }
+            msgEl.style.display = (opts.message || opts.messageHtml) ? '' : 'none';
             cancelBtn.textContent = opts.cancelText || 'Cancel';
             confirmBtn.textContent = opts.confirmText || (isPrompt ? 'OK' : 'Confirm');
 

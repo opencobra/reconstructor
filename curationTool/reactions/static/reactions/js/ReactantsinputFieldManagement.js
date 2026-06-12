@@ -9,6 +9,8 @@ document.getElementById('subsystemField').addEventListener('keyup', function (ev
 		element.textContent = match;
 		element.addEventListener('click', function () {
 			document.getElementById('subsystemField').value = this.textContent; // Fill input field on click
+			document.getElementById('subsystemField').dispatchEvent(new Event('input', { bubbles: true }));
+			document.getElementById('subsystemField').dispatchEvent(new Event('change', { bubbles: true }));
 			dropdown.style.display = 'none'; // Hide the dropdown after selection
 		});
 		dropdown.appendChild(element);
@@ -53,7 +55,6 @@ function updatePlaceholder(selectElement, inputElement) {
 				placeholderText = ''; // No placeholder for these types
 				break;
 		}
-		console.log('Setting placeholder to:', placeholderText);
 		inputElement.placeholder = placeholderText;
 	});
 
@@ -87,7 +88,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (e.target.name === 'subs_sch') {
 				updateAtomChargeCounters();
 			}
+			invalidateVerificationOnReactantEdit(e);
 		});
+		substratesDiv.addEventListener('change', invalidateVerificationOnReactantEdit);
 	}
 	
 	if (productsDiv) {
@@ -95,7 +98,9 @@ document.addEventListener('DOMContentLoaded', function () {
 			if (e.target.name === 'prod_sch') {
 				updateAtomChargeCounters();
 			}
+			invalidateVerificationOnReactantEdit(e);
 		});
+		productsDiv.addEventListener('change', invalidateVerificationOnReactantEdit);
 	}
 });
 // Adds a new substrate field to the reaction form when the 'Add Substrate' button is clicked.
@@ -121,6 +126,7 @@ document.getElementById('applyAllSubsComps').addEventListener('click', function 
 	substrateCompsSelects.forEach(function (select) {
 		if (!select.disabled) {
 			select.value = selectedValue;
+			select.dispatchEvent(new Event('change', { bubbles: true }));
 		}
 	});
 });
@@ -139,6 +145,7 @@ document.getElementById('applyAllSubsType').addEventListener('click', function (
 				if (identifierInput) {
 					updatePlaceholder(select, identifierInput);
 				}
+				select.dispatchEvent(new Event('change', { bubbles: true }));
 			}
 		} catch (error) {
 			console.error('Error processing select element at index:', index, error);
@@ -152,6 +159,7 @@ document.getElementById('applyAllProdsComps').addEventListener('click', function
 	productCompsSelects.forEach(function (select) {
 		if (!select.disabled) {
 			select.value = selectedValue;
+			select.dispatchEvent(new Event('change', { bubbles: true }));
 		}
 	});
 });
@@ -171,11 +179,11 @@ document.getElementById('applyAllProdsType').addEventListener('click', function 
 				if (identifierInput) {
 					updatePlaceholder(select, identifierInput);
 				}
+				select.dispatchEvent(new Event('change', { bubbles: true }));
 			}
 		} catch (error) {
 			console.error('Error processing select element at index:', index, error);
 		}
-		mi;
 	});
 });
 
@@ -183,6 +191,43 @@ function removeField(button) {
 	let inputsGroup = button.closest('.inputs-group');
 	inputsGroup.remove();
 	updateAtomChargeCounters();
+	if (window.ReactantsFormDirty) {
+		ReactantsFormDirty.scheduleEvaluate();
+	}
+}
+
+function invalidateRowVerification(group) {
+	if (!group) return;
+	group.querySelectorAll('.valid-status').forEach(function (el) { el.remove(); });
+	delete group.dataset.atomCounts;
+	delete group.dataset.charge;
+	const statusDot = group.querySelector('.status-dot');
+	if (statusDot) {
+		statusDot.style.display = 'none';
+		statusDot.className = 'status-dot';
+		statusDot.onclick = null;
+		statusDot.style.cursor = 'default';
+	}
+	const doneButton = group.querySelector('.done-field-btn');
+	if (doneButton) {
+		doneButton.style.display = '';
+	}
+	const nameField = group.querySelector('.substrates-name, .products-name');
+	if (nameField) {
+		nameField.disabled = false;
+		nameField.value = '';
+	}
+	updateAtomChargeCounters();
+}
+
+function invalidateVerificationOnReactantEdit(event) {
+	const target = event.target;
+	if (!target || !target.closest) return;
+	const shouldInvalidate = target.matches(
+		'.cell-identifier input, select[name="subs_comps"], select[name="prod_comps"], select[name="substrates_type"], select[name="products_type"]'
+	);
+	if (!shouldInvalidate) return;
+	invalidateRowVerification(target.closest('.inputs-group'));
 }
 
 function toggleRotation(event) {
@@ -333,6 +378,9 @@ function addField(containerId, inputName, numberName) {
 	toggleFileInput(row, selectInputType.value);
 	attachEventListenersToSelects();
 	attachEventListenersToDoneButtons();
+	if (window.ReactantsFormDirty) {
+		ReactantsFormDirty.scheduleEvaluate();
+	}
 }
 
 // Adds a field to the specified container with pre-filled data for substrates or products.
@@ -586,6 +634,8 @@ function initAutocomplete(searchInput, hiddenInput, dropdown, metabolites) {
 				searchInput.value = m.name;
 				// Store the metabolite id in the hidden input (this is what will be submitted)
 				hiddenInput.value = m.id;
+				searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+				hiddenInput.dispatchEvent(new Event('change', { bubbles: true }));
 				dropdown.innerHTML = ''; // Clear the dropdown
 			});
 
