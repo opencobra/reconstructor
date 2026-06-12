@@ -191,7 +191,15 @@ if _additional_static_dir.exists():
     STATICFILES_DIRS.append(str(_additional_static_dir))
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# In development, serve static files live from the source tree. The manifest
+# storage hashes filenames and caches the manifest in memory at server start, so
+# edits to CSS/JS would otherwise require `collectstatic` + a server restart to
+# appear. In production keep the compressed, hashed manifest storage.
+if DEBUG:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+    WHITENOISE_AUTOREFRESH = True
+else:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

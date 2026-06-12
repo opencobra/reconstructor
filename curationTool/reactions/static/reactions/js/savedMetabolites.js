@@ -22,27 +22,39 @@ document.addEventListener('DOMContentLoaded', function () {
 document.getElementById('shareSelectedBtn').addEventListener('click', shareSelectedMetabolites);
 
 });
-function shareSelectedMetabolites() {
+async function shareSelectedMetabolites() {
     const selectedCheckboxes = document.querySelectorAll('.share-checkbox:checked');
     if (selectedCheckboxes.length === 0) {
-        alert('Please select at least one metabolite to share.');
+        Notify.error('Please select at least one metabolite to share.');
         return;
     }
-    
+
     // Show the warning/confirmation dialog.
-    if (!confirm('Warning: Sharing these metabolites will allow the recipient to make changes that affect your copy. Continue?')) {
+    const proceed = await Notify.confirm({
+        title: 'Share metabolites',
+        message: 'Sharing these metabolites will allow the recipient to make changes that affect your copy. Continue?',
+        confirmText: 'Share',
+        cancelText: 'Cancel',
+        danger: true,
+    });
+    if (!proceed) {
         return;
     }
-    
+
     // Prompt for the target username.
-    const targetUsername = prompt('Enter the username to share with:');
+    const targetUsername = await Notify.prompt({
+        title: 'Share with',
+        message: 'Enter the username to share with:',
+        placeholder: 'Username',
+        confirmText: 'Share',
+    });
     if (!targetUsername) {
-        alert('Username is required.');
+        Notify.error('Username is required.');
         return;
     }
     const sharingUser = sessionStorage.getItem('userID');
     if (!sharingUser) {
-        alert('Please log in to share metabolites.');
+        Notify.error('Please log in to share metabolites.');
         return;
     }
     // Gather selected metabolite IDs.
@@ -402,7 +414,7 @@ async function deleteMetabolite(metaboliteId) {
             data.reactions.forEach(r => {
                 message += `• ${r.short_name || 'Reaction ' + r.id}\n`;
             });
-            const isConfirmed = confirm(message);
+            const isConfirmed = await Notify.confirm({ title: 'Delete metabolite', message: message, confirmText: 'Delete', cancelText: 'Cancel', danger: true });
             if (isConfirmed) {
                 const confirmResponse = await fetch(`/delete_metabolite/${metaboliteId}/?confirm=true`, {
                     method: 'DELETE',

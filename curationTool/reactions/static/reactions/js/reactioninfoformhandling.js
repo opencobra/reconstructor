@@ -3,6 +3,22 @@ var infoType = '';
 var extLinkType = '';
 var refType = '';
 
+/**
+ * Clear only the pending session gene-info bucket. Previously this function was
+ * referenced (after flushing staged gene info into a reaction) but never defined,
+ * so the bucket was never cleared and leaked into every reaction subsequently
+ * opened. Now it targets the session's gene_info only, leaving login intact.
+ */
+function clearSession() {
+	if (typeof clearGeneSessionUrl === 'undefined') return Promise.resolve();
+	return fetch(clearGeneSessionUrl, {
+		method: 'POST',
+		headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': csrfToken },
+	}).catch(function (error) {
+		console.error('Failed to clear gene-info session:', error);
+	});
+}
+
 // Event listener for divs with class 'info-div'
 document.querySelectorAll('.content-div').forEach(function (div) {
 	div.addEventListener('click', function () {
@@ -56,18 +72,35 @@ function getGeneInputValue() {
 	return (el.value || '').trim();
 }
 
+function setAddInfoButtonLoading(button, isLoading) {
+	if (!button) return;
+	if (isLoading) {
+		if (!button.dataset.originalHtml) button.dataset.originalHtml = button.innerHTML;
+		button.disabled = true;
+		button.classList.add('is-loading');
+		button.setAttribute('aria-busy', 'true');
+		button.innerHTML = '<span class="add-info-spinner" aria-hidden="true"></span><span>Adding...</span>';
+		return;
+	}
+	button.disabled = false;
+	button.classList.remove('is-loading');
+	button.setAttribute('aria-busy', 'false');
+	if (button.dataset.originalHtml) button.innerHTML = button.dataset.originalHtml;
+}
+
 function setupSubmitHandler(submitButtonId, Infotextid) {
 	const submitButton = document.getElementById(submitButtonId);
 	const newSubmitButton = submitButton.cloneNode(true);
 	submitButton.parentNode.replaceChild(newSubmitButton, submitButton);
 
 	newSubmitButton.addEventListener('click', function () {
+		if (newSubmitButton.disabled) return;
 		const userID = sessionStorage.getItem('userID');
 		const urlParams = new URLSearchParams(window.location.search);
 		const reactionId = urlParams.get('reaction_id');
 
-		if (!userID) return alert('Please log in.');
-		if (!reactionId && infoType !== 'Gene Info') return alert('Please create and save a reaction first.');
+		if (!userID) return Notify.error('Please log in.');
+		if (!reactionId && infoType !== 'Gene Info') return Notify.error('Please create and save a reaction first.');
 
 		const data = {
 			userID,
@@ -79,13 +112,16 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 
 		if (infoType !== 'Gene Info') {
 			data.infoText = document.getElementById(Infotextid).value;
-			return submitData(data, Infotextid);
+			setAddInfoButtonLoading(newSubmitButton, true);
+			return submitData(data, Infotextid)
+				.finally(() => setAddInfoButtonLoading(newSubmitButton, false));
 		}
 
 		// GENE INFO path
 		const geneinfo = getGeneInputValue();
-		if (!geneinfo) return alert('Please enter a gene symbol/ID or GPR expression.');
+		if (!geneinfo) return Notify.error('Please enter a gene symbol/ID or GPR expression.');
 
+		setAddInfoButtonLoading(newSubmitButton, true);
 		fetch('gene_parsing/', {
 			method: 'POST',
 			headers: {
@@ -112,32 +148,32 @@ function setupSubmitHandler(submitButtonId, Infotextid) {
 			.then((response) => {
 				if (response.processed_string) {
 					data.infoText = response.processed_string;
-					AddOrganLocation(data, Infotextid);
-				} else {
-					// 200 but no processed_string: show server error if any
-					alert(response.error || 'Gene info not added');
+					return AddOrganLocation(data, Infotextid);
 				}
+				throw new Error(response.error || 'Gene info not added');
 			})
 			.catch((err) => {
 				console.error('gene_parsing error:', err);
-				alert(err.message || 'Gene info not added');
-			});
-
-		// optional: AI suggestions
-		fetch(getAIresponse, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-			body: JSON.stringify({ key: geneinfo, temperature: 0.5 }),
-		})
-			.then((r) => r.json())
-			.then((resp) => {
-				if (resp.status !== 'success') {
-					if (resp.reason !== 'permission_denied') alert(resp.error_message || 'Failed to get predictions');
-					return;
-				}
-				displayGenePredictions(resp.predictions);
+				Notify.error(err.message || 'Gene info not added');
 			})
-			.catch((err) => console.error('Error fetching gene predictions:', err));
+			.finally(() => setAddInfoButtonLoading(newSubmitButton, false));
+
+		// AI suggestions are intentionally disabled here. Add Info should only
+		// validate and save gene info, not call /get_ai_response/.
+		// fetch(getAIresponse, {
+		// 	method: 'POST',
+		// 	headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
+		// 	body: JSON.stringify({ key: geneinfo, temperature: 0.5 }),
+		// })
+		// 	.then((r) => r.json())
+		// 	.then((resp) => {
+		// 		if (resp.status !== 'success') {
+		// 			if (resp.reason !== 'permission_denied') Notify.error(resp.error_message || 'Failed to get predictions');
+		// 			return;
+		// 		}
+		// 		displayGenePredictions(resp.predictions);
+		// 	})
+		// 	.catch((err) => console.error('Error fetching gene predictions:', err));
 	});
 }
 
@@ -230,7 +266,7 @@ function displayGenePredictions(predictions) {
 
 function AddOrganLocation(data, Infotextid) {
 	const url = '/gene_details_view/';
-	fetch(url, {
+	return fetch(url, {
 		method: 'POST',
 		headers: {
 			'X-Requested-With': 'XMLHttpRequest',
@@ -248,14 +284,15 @@ function AddOrganLocation(data, Infotextid) {
 		.then((data) => {
 			if (data.error) {
 				console.error('Error from Django:', data.error);
-				return;
+				throw new Error(data.error);
 			}
 
 			const results = data;
-			submitData(results, Infotextid);
+			return submitData(results, Infotextid);
 		})
 		.catch((error) => {
 			console.error('There was a problem with the fetch operation:', error);
+			Notify.error(error.message || 'Gene details could not be added.');
 		});
 }
 
@@ -264,8 +301,8 @@ function submitData(data, Infotextid) {
 	if (infotype === 'Reference' || infotype === 'External Link') {
 		// assert that both extLinkType and refType cannot be empty string (strip whitespace)
 		if (data.extLinkType.trim() === '' && data.refType.trim() === '') {
-			alert('Select type from dropdown');
-			return;
+			Notify.error('Select type from dropdown');
+			return Promise.resolve();
 		}
 	}
 	if (data.infoType === 'Reference') {
@@ -285,7 +322,7 @@ function submitData(data, Infotextid) {
 			}
 		});
 	}
-	fetch(addInfo2Reaction, {
+	return fetch(addInfo2Reaction, {
 		method: 'POST',
 		body: JSON.stringify(data),
 		headers: {
@@ -298,7 +335,7 @@ function submitData(data, Infotextid) {
 		.then((obj) => {
 			if (obj.status === 200) {
 				// Refactored to use POST request instead of GET
-				fetch(getReactionDetails, {
+				return fetch(getReactionDetails, {
 					method: 'POST',
 					body: JSON.stringify(data.reactionId), // Corrected to pass reactionId as an object
 					headers: {
@@ -330,21 +367,27 @@ function submitData(data, Infotextid) {
 					})
 					.catch((error) => {
 						console.error('Error fetching reaction details:', error);
+					})
+					.finally(() => {
+						showToast('Info added successfully');
+						if (Infotextid !== 'geneInfoInput') {
+							document.getElementById(Infotextid).value = '';
+						} else {
+							//remove children of geneInfoInput
+							var geneInfoInput = document.getElementById('geneInfoInput');
+							while (geneInfoInput.firstChild) {
+								geneInfoInput.removeChild(geneInfoInput.firstChild);
+							}
+						}
 					});
-				showToast('Info added successfully');
-				if (Infotextid !== 'geneInfoInput') {
-					document.getElementById(Infotextid).value = '';
-				} else {
-					//remove children of geneInfoInput
-					var geneInfoInput = document.getElementById('geneInfoInput');
-					while (geneInfoInput.firstChild) {
-						geneInfoInput.removeChild(geneInfoInput.firstChild);
-					}
-				}
 			} else {
 				console.error('Error:', obj.body);
-				alert(obj.body.message);
+				Notify.error(obj.body.message);
 			}
+		})
+		.catch((error) => {
+			console.error('Error adding info:', error);
+			Notify.error(error.message || 'Info could not be added.');
 		});
 }
 
@@ -563,7 +606,13 @@ function applySubcellularLocation(location) {
 }
 
 async function deleteGeneInfoFromSession(itemToDelete) {
-	const confirmation = confirm('Are you sure you want to delete this gene info from the session?');
+	const confirmation = await Notify.confirm({
+		title: 'Delete gene info',
+		message: 'Are you sure you want to delete this gene info?',
+		confirmText: 'Delete',
+		cancelText: 'Cancel',
+		danger: true,
+	});
 	if (!confirmation) {
 		return;
 	}
@@ -614,14 +663,14 @@ async function deleteItem(reactionId, tabId, itemToDelete, rowElement) {
 		if (response.ok && data.status === 'success') {
 			// Remove the row element from the DOM if deletion was successful
 			rowElement.remove();
-			alert(data.message);
+			Notify.success(data.message);
 		} else {
 			// Handle errors returned by the server
-			alert(`Error: ${data.message}`);
+			Notify.error(`Error: ${data.message}`);
 		}
 	} catch (error) {
 		console.error('Error:', error);
-		alert('An unexpected error occurred. Please try again.');
+		Notify.error('An unexpected error occurred. Please try again.');
 	}
 }
 

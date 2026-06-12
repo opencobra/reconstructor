@@ -83,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadFlags();
                 document.getElementById('closeCreateFlagModalCustom').click();
             } else {
-                alert(data.message);
+                Notify.error(data.message);
             }
         } catch (error) {
             console.error('Error creating flag:', error);

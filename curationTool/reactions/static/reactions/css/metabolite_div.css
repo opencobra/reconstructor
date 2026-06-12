@@ -1,3 +1,30 @@
+/* Scroll the metabolite list INSIDE the panel instead of letting the cards spill
+   out the bottom.
+
+   Root cause: the panel show/hide logic sets an inline `display:block` on the
+   content-div, which overrides the stylesheet's `.is-visible { display:flex }`.
+   With no flex context, `.panel-content { flex:1 }` is inert and the list grows
+   to its full content height. We re-assert flex on the VISIBLE metabolite panel
+   (scoped + !important to beat the inline display:block) — only while it carries
+   `.is-visible`, so hiding it via inline `display:none` still works. */
+.content-div.is-visible[name="metaboliteinfo-div"] {
+    display: flex !important;
+}
+
+/* Give the container a definite height: its inline height when resized, else
+   capped to the viewport — so the flex child below has something to size against. */
+.content-div[name="metaboliteinfo-div"] {
+    max-height: calc(100vh - 140px);
+}
+
+/* The metabolite list flex-fills the panel height and scrolls within it. */
+.content-div[name="metaboliteinfo-div"] .metabolite-panel-content {
+    flex: 1 1 auto;
+    min-height: 0;          /* allow shrinking below content height so it scrolls */
+    overflow: hidden auto;  /* y scrolls; x hidden (content fits horizontally) */
+    padding-right: 4px;
+}
+
 .metabolite {
     border: 1px solid #ddd;
     padding: 15px;
@@ -53,7 +80,9 @@
 
 .metabolite-info-grid {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    /* minmax(0, 1fr) lets columns shrink below their content so long values
+       (SMILES/InChI) truncate instead of overflowing the metabolite card. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin: 10px 0;
     background: #f9f9f9;
@@ -62,10 +91,53 @@
 }
 
 .info-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0; /* allow the value to truncate within the grid track */
     font-size: 0.9em;
     color: #333;
     background: white;
     padding: 5px 8px;
     border-radius: 5px;
     border: 1px solid #ddd;
+}
+
+.info-item .info-label {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+.info-item .info-value {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.info-item .info-copy {
+    flex: 0 0 auto;
+    border: none;
+    background: transparent;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 3px 5px;
+    border-radius: 5px;
+    font-size: 0.9em;
+    line-height: 1;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.info-item .info-copy:hover {
+    color: #2563eb;
+    background: #eef2ff;
+}
+
+.info-item .info-copy.copied {
+    color: #16a34a;
+}
+
+.info-item .info-copy.copy-failed {
+    color: #dc2626;
 }

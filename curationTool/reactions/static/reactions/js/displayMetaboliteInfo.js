@@ -96,16 +96,22 @@ function fillMetaboliteInfoTab(data, targetContainer) {
         toggleDiv.appendChild(toggleButton);
         metaboliteDiv.appendChild(toggleDiv);
 
-        // **Compact Info Table**
+        // **Compact Info Table** — values truncate (…) and carry a copy button
+        // that copies the full, untruncated text.
         const infoTable = document.createElement('div');
         infoTable.classList.add('metabolite-info-grid');
-        infoTable.innerHTML = `
-            <div class="info-item"><strong>Charged Formula:</strong> ${data.metabolite_formulas[index] || 'N/A'}</div>
-            <div class="info-item"><strong>SMILES:</strong> ${data.metabolite_smiles[index] || 'N/A'}</div>
-            <div class="info-item"><strong>InChI:</strong> ${data.metabolite_inchis[index] || 'N/A'}</div>
-            <div class="info-item"><strong>InChI Key:</strong> ${data.metabolite_inchi_keys[index] || 'N/A'}</div>
-            <div class="info-item"><strong>Molecular Weight:</strong> ${data.metabolite_mol_weights[index] || 'N/A'} g/mol</div>
-        `;
+        const molWeight = data.metabolite_mol_weights[index];
+        const infoFields = [
+            ['Charged Formula', data.metabolite_formulas[index]],
+            ['SMILES', data.metabolite_smiles[index]],
+            ['InChI', data.metabolite_inchis[index]],
+            ['InChI Key', data.metabolite_inchi_keys[index]],
+            // Display includes the unit; copy the bare numeric value.
+            ['Molecular Weight', (molWeight != null && molWeight !== '') ? `${molWeight} g/mol` : null, molWeight],
+        ];
+        infoFields.forEach(function (field) {
+            infoTable.appendChild(createMetaboliteInfoItem(field[0], field[1], field[2]));
+        });
         metaboliteDiv.appendChild(infoTable);
 
         // Stereo count (if exists)
@@ -127,7 +133,89 @@ function fillMetaboliteInfoTab(data, targetContainer) {
     });
 }
 
+/**
+ * Build one metabolite info row: a label, a single-line value that truncates
+ * with an ellipsis (full text on hover), and a copy button that copies the full
+ * untruncated value. `copyValue` overrides what is copied when the displayed
+ * text differs from the raw value (e.g. molecular weight shows a unit).
+ */
+function createMetaboliteInfoItem(label, displayValue, copyValue) {
+    const hasValue = displayValue != null && displayValue !== '';
+    const shown = hasValue ? String(displayValue) : 'N/A';
 
+    const item = document.createElement('div');
+    item.className = 'info-item';
+
+    const labelEl = document.createElement('strong');
+    labelEl.className = 'info-label';
+    labelEl.textContent = label + ':';
+    item.appendChild(labelEl);
+
+    const valueEl = document.createElement('span');
+    valueEl.className = 'info-value';
+    valueEl.textContent = shown;
+    valueEl.title = shown; // hover reveals the full value
+    item.appendChild(valueEl);
+
+    if (hasValue) {
+        const toCopy = String(copyValue != null ? copyValue : displayValue);
+        const copyBtn = document.createElement('button');
+        copyBtn.type = 'button';
+        copyBtn.className = 'info-copy';
+        copyBtn.title = 'Copy ' + label;
+        copyBtn.setAttribute('aria-label', 'Copy ' + label);
+        copyBtn.innerHTML = '<i class="fas fa-copy" aria-hidden="true"></i>';
+        copyBtn.addEventListener('click', function () {
+            copyMetaboliteValue(toCopy, copyBtn);
+        });
+        item.appendChild(copyBtn);
+    }
+    return item;
+}
+
+/** Copy `text` to the clipboard and give brief in-place feedback on the button. */
+function copyMetaboliteValue(text, btn) {
+    const feedback = function (ok) {
+        const icon = btn ? btn.querySelector('i') : null;
+        if (icon) {
+            const prev = icon.className;
+            icon.className = ok ? 'fas fa-check' : 'fas fa-times';
+            btn.classList.add(ok ? 'copied' : 'copy-failed');
+            setTimeout(function () {
+                icon.className = prev;
+                btn.classList.remove('copied', 'copy-failed');
+            }, 1200);
+        }
+        if (typeof Notify !== 'undefined') {
+            if (ok) Notify.success('Copied to clipboard');
+            else Notify.error('Could not copy');
+        }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(function () { feedback(true); })
+            .catch(function () { fallbackCopyText(text, feedback); });
+    } else {
+        fallbackCopyText(text, feedback);
+    }
+}
+
+function fallbackCopyText(text, feedback) {
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        document.body.removeChild(ta);
+        if (feedback) feedback(ok);
+    } catch (e) {
+        if (feedback) feedback(false);
+    }
+}
 
 function toggleStructure() {
     const buttons = document.querySelectorAll('.toggle-button');

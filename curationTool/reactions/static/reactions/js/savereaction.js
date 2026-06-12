@@ -16,7 +16,7 @@ async function checkAndSaveReaction() {
     const userId = sessionStorage.getItem('userID');
 
     if (!reactionId) {
-        alert('Reaction not created.');
+        Notify.error('Reaction not created.');
         return;
     }
     try {
@@ -33,7 +33,7 @@ async function checkAndSaveReaction() {
         const data = await response.json();
 
         if (data.is_reaction_saved) {
-            alert('Reaction is already saved.');
+            Notify.info('Reaction is already saved.');
         } else {
             var modal = document.getElementById('saveReactionModal');
             modal.style.display = 'block';
@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Ensure only valid numbers are sent (1-4) OR null
         if (confidenceScore !== null && (confidenceScore < 1 || confidenceScore > 4)) {
-            alert("Confidence Score must be between 1 and 4.");
+            Notify.error("Confidence Score must be between 1 and 4.");
             return;
         }
 
@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function () {
     
         if (userID && reactionId) {
             if (!shortName) {
-                alert('Please enter a short name for the reaction.');
+                Notify.error('Please enter a short name for the reaction.');
                 shortNameInput.setCustomValidity('Please enter a short name for the reaction.');
                 shortNameInput.reportValidity();
                 return; // Prevent form submission
@@ -118,9 +118,12 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             const nameExists = await reactionNameExists(shortName, userID);
             if (nameExists) {
-                const userConfirmation = confirm(
-                    'Reaction name already exists. Are you sure you want to continue? \nYou will have two reactions with the same name.'
-                );
+                const userConfirmation = await Notify.confirm({
+                    title: 'Name already exists',
+                    message: 'A reaction with this name already exists. Continue anyway?\nYou will have two reactions with the same name.',
+                    confirmText: 'Continue',
+                    cancelText: 'Cancel',
+                });
                 if (!userConfirmation) {
                     return; // Prevent form submission and keep the modal open
                 }
@@ -136,18 +139,18 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    alert("Reaction saved successfully!");
+                    Notify.success("Reaction saved successfully!");
                     document.getElementById('saveReactionModal').style.display = 'none';
                     document.getElementById('modalBackground').style.display = 'none';
                 } else {
-                    alert("Error: " + (data.message || "Failed to save the reaction."));
+                    Notify.error("Error: " + (data.message || "Failed to save the reaction."));
                 }
             })
             .catch(error => console.error('Error:', error));
         } else if (!reactionId) {
-            alert("Create the reaction first.");
+            Notify.error("Create the reaction first.");
         } else {
-            alert("Please log in.");
+            Notify.error("Please log in.");
         }
     });
 

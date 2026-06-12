@@ -11,7 +11,8 @@ from .views import (
     vmh_views,
     ai_views,
     utility_views,
-    graph_views)
+    graph_views,
+    group_views)
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -89,6 +90,7 @@ urlpatterns = [
     path('check-session/', utility_views.check_session_data, name='check_session'),
     path('delete-gene-info/', utility_views.delete_gene_info_from_session, name='delete_gene_info_from_session'),
     path('clear-session/', utility_views.clear_session, name='clear_session'),
+    path('clear-gene-info-session/', utility_views.clear_gene_info_session, name='clear_gene_info_session'),
     path('save-formula/', utility_views.save_formula, name='save_formula'),
     path('parse_formula_with_compartments/', utility_views.parse_formula_with_compartments, name='parse_formula_with_compartments'),
     path('get_pubmed_info/<str:pmid>/', utility_views.get_pubmed_info, name='get_pubmed_info'),
@@ -96,5 +98,16 @@ urlpatterns = [
     path('get_doi_info/<path:doi>/', utility_views.get_doi_info, name='get_doi_info'),
 
     path('get_graph_info/', graph_views.get_graph_info, name='get_graph_info'),
+
+    # Multi-reaction tabbed workspace (feature 001-multi-reaction-tabbed)
+    path('groups/', group_views.list_groups, name='list_groups'),
+    path('groups/contents/', group_views.group_contents, name='group_contents'),
+    path('groups/saved/', group_views.saved_reactions_for_group, name='saved_reactions_for_group'),
+    path('groups/create/', group_views.create_group, name='create_group'),
+    path('groups/rename/', group_views.rename_group, name='rename_group'),
+    path('groups/delete/', group_views.delete_group, name='delete_group'),
+    path('groups/add/', group_views.add_to_group, name='add_to_group'),
+    path('groups/remove/', group_views.remove_from_group, name='remove_from_group'),
+    path('groups/discard_clone/', group_views.discard_clone, name='discard_clone'),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

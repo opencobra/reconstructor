@@ -288,11 +288,24 @@ var button_to_div = {
             });
         },
 
+        /**
+         * Re-sync the panels to the currently active open reaction
+         * (001-multi-reaction-tabbed, FR-002). The detail panels always show the
+         * single active group member; after the selection changes (see
+         * loadReactionById), this keeps the side-button highlight in step.
+         */
+        refresh() {
+            refreshSideButtons();
+        },
+
     };
 
     document.addEventListener('DOMContentLoaded', function () {
         WorkspacePanels.init();
     });
+
+    // Expose so the group view / tabs can re-scope panels to the active reaction.
+    window.WorkspacePanels = WorkspacePanels;
 })();
 
 function refreshSideButtons() {

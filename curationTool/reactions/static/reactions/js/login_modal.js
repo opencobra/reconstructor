@@ -54,12 +54,12 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
 
               document.getElementById('taskModal').style.display = 'block';
           } else {
-              alert(data.message);
+              Notify.error(data.message);
           }
       })
       .catch(error => {
           console.error('Error:', error);
-          alert("Failed to fetch user details.");
+          Notify.error("Failed to fetch user details.");
       });
   }
 });

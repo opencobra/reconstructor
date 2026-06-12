@@ -57,6 +57,27 @@ def clear_session(request):
     else:
         return JsonResponse(
             {'status': 'error', 'message': 'Invalid request method.'}, status=405)
+
+
+@csrf_exempt
+def clear_gene_info_session(request):
+    """
+    Clear ONLY the pending gene-info bucket from the session, leaving the rest
+    of the session (e.g. the logged-in userID) intact.
+
+    The gene panel stages gene info in `session['gene_info']` while creating a
+    brand-new reaction, and flushes it into the reaction once one exists. That
+    bucket used to be sticky (its JS clear was a no-op), so it leaked into every
+    reaction subsequently opened. Switching the open reaction in the tabbed
+    workspace (001-multi-reaction-tabbed) calls this first so no stale gene info
+    bleeds across reactions (FR-003 / US4 isolation).
+    """
+    if request.method == 'POST':
+        request.session.pop('gene_info', None)
+        request.session.modified = True
+        return JsonResponse({'status': 'success'})
+    return JsonResponse(
+        {'status': 'error', 'message': 'Invalid request method.'}, status=405)
 @csrf_exempt
 def delete_gene_info_from_session(request):
     """

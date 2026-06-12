@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function () {
   manageTemplateBtn.addEventListener('click', function () {
     userID = sessionStorage.getItem('userID');
     if (!userID) {
-        alert('Please log in to manage templates.');
+        Notify.error('Please log in to manage templates.');
         return;
     }
     $('#manageTemplatesModal').modal('show');
@@ -52,15 +52,15 @@ document.addEventListener('DOMContentLoaded', function () {
       const userID = sessionStorage.getItem('userID');
 
       if (!userID) {
-          alert('Please log in before sharing templates.');
+          Notify.error('Please log in before sharing templates.');
           return;
       }
       if (!selectedTemplates.length) {
-          alert('Please select at least one template to share.');
+          Notify.error('Please select at least one template to share.');
           return;
       }
       if (!shareWithUser) {
-          alert('Please enter the username of the user to share with.');
+          Notify.error('Please enter the username of the user to share with.');
           return;
       }
 
@@ -81,14 +81,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
           const data = await response.json();
           if (response.ok && data.status === 'success') {
-              alert('Templates shared with ' + shareWithUser + ' successfully');
+              Notify.success('Templates shared with ' + shareWithUser + ' successfully');
               $('#shareTemplateModal').modal('hide');
           } else {
-              alert(`Error sharing templates: ${data.message || 'Unknown error'}`);
+              Notify.error(`Error sharing templates: ${data.message || 'Unknown error'}`);
           }
       } catch (error) {
           console.error('Error:', error);
-          alert('An error occurred while sharing the templates.');
+          Notify.error('An error occurred while sharing the templates.');
       }
   });
 });
@@ -162,7 +162,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Save Changes
     submitTemplateChangesBtn.addEventListener('click', async function () {
         if (!selectedTemplate) {
-            alert('Please select a template to edit.');
+            Notify.error('Please select a template to edit.');
             return;
         }
 
@@ -170,7 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const newDesc = descInput.value.trim();
 
         if (!newName) {
-            alert('Template name is required.');
+            Notify.error('Template name is required.');
             return;
         }
 
@@ -191,27 +191,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await response.json();
             if (response.ok && data.status === 'success') {
-                alert('Template updated successfully!');
+                Notify.success('Template updated successfully!');
                 resetTemplateList();
                 loadTemplates();
                 nameInput.value = '';
                 descInput.value = '';
             } else {
-                alert(`Error: ${data.message || 'Failed to update template'}`);
+                Notify.error(`Error: ${data.message || 'Failed to update template'}`);
             }
         } catch (error) {
             console.error('Error updating template:', error);
-            alert('An error occurred while updating the template.');
+            Notify.error('An error occurred while updating the template.');
         }
     });
     // Delete Template
     deleteTemplateBtn.addEventListener('click', async function () {
         if (!selectedTemplate) {
-            alert('Please select a template to delete.');
+            Notify.error('Please select a template to delete.');
             return;
         }
 
-        const confirmed = confirm(`Are you sure you want to delete the template "${selectedTemplate}"?`);
+        const confirmed = await Notify.confirm({
+            title: 'Delete template',
+            message: `Are you sure you want to delete the template "${selectedTemplate}"?`,
+            confirmText: 'Delete',
+            cancelText: 'Cancel',
+            danger: true,
+        });
         if (!confirmed) return;
 
         try {
@@ -230,15 +236,15 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const data = await response.json();
             if (response.ok && data.status === 'success') {
-                alert('Template deleted successfully!');
+                Notify.success('Template deleted successfully!');
                 resetTemplateList();
                 loadTemplates();
             } else {
-                alert(`Error deleting template: ${data.message || 'Unknown error'}`);
+                Notify.error(`Error deleting template: ${data.message || 'Unknown error'}`);
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred while deleting the template.');
+            Notify.error('An error occurred while deleting the template.');
         }
     });
 });

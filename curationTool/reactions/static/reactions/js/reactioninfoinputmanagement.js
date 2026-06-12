@@ -136,32 +136,39 @@ async function fetchParsedGeneInfo(info) {
 
 
 function deleteRow(reactionID, item, tabId, rowElement) {
-    const confirmation = confirm("Are you sure you want to delete this item?");
-    if (!confirmation) {
-        return; // Exit if the user cancels the deletion
-    }
-
-    const url = deleteInfo
-    const body = JSON.stringify({ reaction_id: reactionID, item_to_delete: item, tab_id: tabId });
-
-    fetch(url, {
-        method: 'POST',
-        headers: {
-            'X-CSRFToken': csrfToken,
-            'Content-Type': 'application/json',
-        },
-        body: body,
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.error) {
-            console.error('Error deleting row:', data.message);
-        } else {
-            // remove row
-            rowElement.remove();
+    Notify.confirm({
+        title: 'Delete item',
+        message: 'Are you sure you want to delete this item?',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        danger: true,
+    }).then(function (confirmation) {
+        if (!confirmation) {
+            return; // Exit if the user cancels the deletion
         }
-    })
-    .catch(error => console.error('Error:', error));
+
+        const url = deleteInfo
+        const body = JSON.stringify({ reaction_id: reactionID, item_to_delete: item, tab_id: tabId });
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+                'Content-Type': 'application/json',
+            },
+            body: body,
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error deleting row:', data.message);
+            } else {
+                // remove row
+                rowElement.remove();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
 }
 
 

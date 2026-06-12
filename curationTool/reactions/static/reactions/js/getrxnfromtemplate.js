@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.getElementById('applyTemplate').addEventListener('click', async function () {
         const selectedValue = reactionField.value;
         if (!templateList.includes(selectedValue)) {
-            alert('Please select a valid template from the dropdown.');
+            Notify.error('Please select a valid template from the dropdown.');
             return;
         }
 

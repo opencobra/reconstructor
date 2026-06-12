@@ -748,7 +748,7 @@ function handleDoneButtonClick(event) {
 		return;
 	}
 	if (compartmentField.value === '-') {
-		alert(`Please enter a compartment for ${fullname}`);
+		Notify.error(`Please enter a compartment for ${fullname}`);
 		return;
 	}
 	button.disabled = true;
@@ -787,12 +787,12 @@ function handleDoneButtonClick(event) {
 			} else {
 				// NEW: Warn the user if a saved metabolite exists
 				if (data.saved_exists) {
-					alert(
+					Notify.error(
 						`IMPORTANT: A saved metabolite named "${data.name_in_db}" already exists. \nIf you intend to use it, please select it as a 'My Metabolite' metabolite to ensure your reaction is set up correctly.`
 					);
 				}
 				if (data.noStructure) {
-					alert(
+					Notify.error(
 						`No structure found for ${data.name}, only the formula (${data.formula}) will be used. \n \nThis means that some operations which require a structure will not be skipped.`
 					);
 				}
@@ -835,7 +835,7 @@ function handleDoneAllButtonClick(event) {
 	// Check all compartment fields
 	for (let i = 0; i < compartmentFields.length; i++) {
 		if (compartmentFields[i].value === '-') {
-			alert(`Please enter a compartment for ${fullname}`);
+			Notify.error(`Please enter a compartment for ${fullname}`);
 			return;
 		}
 	}

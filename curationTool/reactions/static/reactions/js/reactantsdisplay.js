@@ -182,7 +182,10 @@ function setupdate(){
     if (action === 'edit') {
         document.getElementById('submitBtn-form').childNodes[2].nodeValue = 'Update Reaction';
     }
-
+    // Hide "Save Reaction" in edit mode (redundant for an already-saved reaction).
+    if (typeof updateEditModeUI === 'function') {
+        updateEditModeUI();
+    }
 }
 
 /**

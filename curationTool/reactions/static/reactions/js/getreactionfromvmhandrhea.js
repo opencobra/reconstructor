@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert('Error: ' + data.error);
+                    Notify.error('Error: ' + data.error);
                 } else {
                     $('.ui.modal.getrxnfromvmhrhea').modal('hide');
                     updateFormFields(data);
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
-                    alert('Error: ' + data.error);
+                    Notify.error('Error: ' + data.error);
                 } else {
                     $('.ui.modal.getrxnfromvmhrhea').modal('hide');
                     updateFormFields(data);

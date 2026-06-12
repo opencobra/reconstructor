@@ -1257,7 +1257,8 @@ def clone_reaction_view(request):
         user.saved_reactions.add(cloned_reaction)
         user.save()
         return JsonResponse({'status': 'success',
-                             'message': 'Reaction cloned successfully'})
+                             'message': 'Reaction cloned successfully',
+                             'new_reaction_id': cloned_reaction.pk})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)})
 

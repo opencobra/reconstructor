@@ -48,12 +48,12 @@ document.getElementById('registerForm').addEventListener('submit', function (eve
             // Hide the modal after successful registration
             $('#registerModal').modal('hide');
         } else {
-            alert(data.message);
+            Notify.error(data.message);
         }
     })
     .catch(error => {
         console.error('Error:', error);
-        alert("Failed to register user.");
+        Notify.error("Failed to register user.");
     });
 
 });

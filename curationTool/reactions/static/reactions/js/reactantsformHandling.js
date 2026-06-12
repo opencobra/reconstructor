@@ -185,8 +185,22 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     editing = false
     if (currentUrl.includes('edit')) {
         editing = true
-        // pop up that says "are you sure you want to update this reaction?"
-        var userConfirmed = confirm('Are you sure you want to update your saved reaction? This action cannot be undone.');
+        // Context-aware confirm: saving a clone vs. updating an existing reaction.
+        var inClone = !!(window.CloneReaction && CloneReaction.cloneId);
+        var confirmOpts = inClone
+            ? {
+                title: 'Save clone',
+                message: 'Save your changes as this new clone? The original reaction is not affected.',
+                confirmText: 'Save clone',
+                cancelText: 'Keep editing',
+            }
+            : {
+                title: 'Update reaction',
+                message: 'Update this saved reaction with your current changes?',
+                confirmText: 'Update reaction',
+                cancelText: 'Cancel',
+            };
+        var userConfirmed = await Notify.confirm(confirmOpts);
         if (!userConfirmed) {
             stopLoadingState();
             return; // Exit the function and do not submit form
@@ -202,7 +216,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     // Check if the subsystem field is filled
     var subsystemField = document.getElementById('subsystemField').value;
     if (!subsystemField.trim()) {
-        alert('Please enter a subsystem.');
+        Notify.error('Please enter a subsystem.');
         stopLoadingState();
         return; // Exit the function and do not submit form
     }
@@ -264,7 +278,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     var isValidSubsystem = subsystemList.some(subsystem => subsystem.toLowerCase() === subsystemField.toLowerCase());
 
     if (!isValidSubsystem) {
-        var userConfirmed = confirm(`Are you sure you want to add a new subsystem "${subsystemField}"?`);
+        var userConfirmed = await Notify.confirm({ title: 'New subsystem', message: `Are you sure you want to add a new subsystem "${subsystemField}"?`, confirmText: 'Add subsystem' });
         if (!userConfirmed) {
             var errorMessage = 'The subsystem entered is not valid.';
             showErrorModal(errorMessage);

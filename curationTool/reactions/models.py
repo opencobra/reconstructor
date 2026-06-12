@@ -299,6 +299,58 @@ class Workspace(models.Model):
 
     def __str__(self):
         return f"{self.user.name}'s Workspace"
+
+
+class ReactionGroup(models.Model):
+    """
+    A named, per-user, ordered collection of reactions shown under one header
+    tab in the multi-reaction workspace (feature 001-multi-reaction-tabbed).
+
+    Distinct from `Workspace` (one-per-user VMH-staging bag): a user may own many
+    named groups. Membership ordering is carried by `ReactionGroupMembership`.
+    Deleting a group does NOT delete the underlying `Reaction` rows it referenced.
+    """
+    owner = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reaction_groups')
+    name = models.CharField(max_length=255)
+    # Exactly one group per user should be active (last-opened tab).
+    is_active = models.BooleanField(default=False)
+    reactions = models.ManyToManyField(
+        Reaction,
+        through='ReactionGroupMembership',
+        related_name='reaction_groups')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"{self.name} (group of {self.owner.name})"
+
+
+class ReactionGroupMembership(models.Model):
+    """Ordered through-model linking a `Reaction` into a `ReactionGroup`."""
+    group = models.ForeignKey(
+        ReactionGroup,
+        on_delete=models.CASCADE,
+        related_name='memberships')
+    reaction = models.ForeignKey(
+        Reaction,
+        on_delete=models.CASCADE,
+        related_name='group_memberships')
+    position = models.PositiveIntegerField(default=0)
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['position', 'added_at']
+        # A reaction may appear at most once per group (duplicate-guard, FR-012).
+        unique_together = ('group', 'reaction')
+
+    def __str__(self):
+        return f"{self.reaction_id} in {self.group_id} @ {self.position}"
    
 # Gene table, populated by HGNC to show suggested gene name list in Gene Info interface 
 class Gene(models.Model):

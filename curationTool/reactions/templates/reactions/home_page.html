@@ -206,6 +206,7 @@
 				</div>
 			</div>
 		</div>
+		<header class="app-header">
 		<div class="top-menu">
 			<div class="header-left">
 				<img src="{% static 'reactions/imgs/website-icon.png' %}" alt="Website Icon" class="header-logo" />
@@ -241,6 +242,12 @@
 				<button class="header-login-btn" id="loginButton">Log In</button>
 			</div>
 		</div>
+
+		<!-- Reaction-group tab strip (001-multi-reaction-tabbed, FR-005) -->
+		<div class="group-tabs-bar">
+			<div id="groupTabs" class="group-tabs" role="tablist" aria-label="Reaction groups"></div>
+		</div>
+		</header>
 
 		<div class="main-container">
 			<div class="side-buttons">
@@ -280,6 +287,30 @@
 				</div>
 			</div>
 			<div class="main-content">
+				<!-- Master: current group's reactions (001-multi-reaction-tabbed, US1) -->
+				<section class="group-master" aria-label="Reactions in this group">
+					<div class="group-master-head">
+						<h2 class="group-master-title">Group reactions</h2>
+						<button type="button" class="ui button group-add-btn" id="addFromSavedButton">
+							<i class="fas fa-plus" aria-hidden="true"></i>
+							<span>Add from saved</span>
+						</button>
+					</div>
+					<div id="groupRail" class="group-rail"></div>
+					<div id="groupEmptyState" class="group-empty" style="display: none">
+						<i class="fas fa-flask" aria-hidden="true"></i>
+						<p class="group-empty-message">This group is empty. Create a reaction or add one from your saved reactions.</p>
+					</div>
+				</section>
+
+				<!-- Clone-with-edits banner (001-multi-reaction-tabbed, US4) -->
+				<div id="cloneModeBanner" class="clone-banner" style="display: none" role="status">
+					<i class="fas fa-clone" aria-hidden="true"></i>
+					<span class="clone-banner-label"></span>
+					<button type="button" class="ui button save-clone-btn" id="saveCloneButton">Save clone</button>
+					<button type="button" class="ui button discard-clone-btn" id="discardCloneButton">Discard clone</button>
+				</div>
+
 				<div id="FormButtons" class="workspace-actions">
 					<div class="actions-primary">
 						<div class="primary-action">
@@ -306,6 +337,10 @@
 								alt="Icon"
 								style="width: 16px; height: 16px; vertical-align: middle; margin-right: 5px" />
 							Save Reaction
+						</button>
+						<button id="cloneReactionButton" type="button" class="ui button action-btn" title="Clone this reaction into a new editable variant">
+							<i class="fas fa-clone" aria-hidden="true" style="margin-right: 5px"></i>
+							Clone
 						</button>
 						<button id="ResetButton" type="button" class="ui button action-btn">
 							<img
@@ -766,6 +801,56 @@
 
 				</div>
 			</div>
+			<!-- Add-from-saved picker (001-multi-reaction-tabbed, US3 / FR-010) -->
+			<div class="ui modal" id="addFromSavedModal">
+				<i class="close icon"></i>
+				<div class="header">Add reactions to this group</div>
+				<div class="content">
+					<div class="add-from-saved-filters">
+						<div class="ui input fluid add-from-saved-search">
+							<input type="text" id="addFromSavedSearch" placeholder="Search your saved reactions..." />
+						</div>
+						<select id="addFromSavedSearchField" class="add-from-saved-select" aria-label="Search field">
+							<option value="all">All fields</option>
+							<option value="name">Name</option>
+							<option value="subsystem">Subsystem</option>
+							<option value="flags">Flag</option>
+							<option value="substrates">Substrates</option>
+							<option value="products">Products</option>
+							<option value="formula">Formula</option>
+							<option value="direction">Direction</option>
+						</select>
+						<select id="addFromSavedSubsystemFilter" class="add-from-saved-select" aria-label="Filter by subsystem">
+							<option value="">All subsystems</option>
+						</select>
+						<div class="add-from-saved-flag-filter" id="addFromSavedFlagFilter">
+							<button
+								type="button"
+								id="addFromSavedFlagButton"
+								class="add-from-saved-flag-button"
+								aria-haspopup="listbox"
+								aria-expanded="false"
+								data-flag-id="">
+								<i id="addFromSavedFlagIcon" class="fas fa-flag" aria-hidden="true"></i>
+								<span id="addFromSavedFlagLabel">All flags</span>
+								<i class="fas fa-chevron-down add-from-saved-flag-caret" aria-hidden="true"></i>
+							</button>
+							<div id="addFromSavedFlagMenu" class="add-from-saved-flag-menu" role="listbox"></div>
+						</div>
+						<label class="add-from-saved-toggle">
+							<input type="checkbox" id="addFromSavedOnlyAddable" />
+							<span>Only not in group</span>
+						</label>
+					</div>
+					<div id="addFromSavedFilterSummary" class="picker-filter-summary" aria-live="polite"></div>
+					<div id="addFromSavedList" class="add-from-saved-list"></div>
+				</div>
+				<div class="actions">
+					<div class="ui cancel button">Cancel</div>
+					<div class="ui approve primary button" id="confirmAddFromSaved">Add selected</div>
+				</div>
+			</div>
+
 			<!-- Login Modal -->
 			<div class="ui modal" id="loginModal">
 				<i class="close icon"></i>
@@ -958,11 +1043,27 @@
 			var reactionNameExistsURL = "{% url 'reaction_name_exists' %}";
 			var identicalReactionUrl = "{% url 'identical_reaction' %}";
 			var subsystemList = [];
+			// Multi-reaction tabbed workspace (001-multi-reaction-tabbed)
+			var groupsListUrl = "{% url 'list_groups' %}";
+			var groupContentsUrl = "{% url 'group_contents' %}";
+			var groupSavedUrl = "{% url 'saved_reactions_for_group' %}";
+			var groupCreateUrl = "{% url 'create_group' %}";
+			var groupRenameUrl = "{% url 'rename_group' %}";
+			var groupDeleteUrl = "{% url 'delete_group' %}";
+			var groupAddUrl = "{% url 'add_to_group' %}";
+			var groupRemoveUrl = "{% url 'remove_from_group' %}";
+			var groupDiscardCloneUrl = "{% url 'discard_clone' %}";
+			var cloneReactionUrl = "{% url 'clone_reaction' %}";
+			var clearGeneSessionUrl = "{% url 'clear_gene_info_session' %}";
 		</script>
 		<script type="text/javascript">
 			var MEDIA_URL = '{{ MEDIA_URL }}';
 		</script>
 		<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+		<!-- Toast + confirm/prompt notifications; load first so every module can use Notify -->
+		<script src="{% static 'reactions/js/notify.js' %}"></script>
+		<!-- Per-open-reaction state store; must load before Displayalldivs.js (001-multi-reaction-tabbed) -->
+		<script src="{% static 'reactions/js/openReactionState.js' %}"></script>
 		<script src="{% static 'reactions/js/getreactionfromvmhandrhea.js' %}"></script>
 		<script src="{% static 'reactions/js/login_modal.js' %}"></script>
 		<script src="{% static 'reactions/js/displaysavedReaction.js' %}"></script>
@@ -990,6 +1091,10 @@
 		<script src="{% static 'reactions/js/chemdoodleIntegration.js' %}"></script>
 		<script src="{% static 'reactions/js/utilityFunctions.js' %}"></script>
 		<script src="{% static 'reactions/js/Creatediv.js' %}"></script>
+		<!-- Multi-reaction tabbed workspace modules (001-multi-reaction-tabbed) -->
+		<script src="{% static 'reactions/js/groupView.js' %}"></script>
+		<script src="{% static 'reactions/js/tabsController.js' %}"></script>
+		<script src="{% static 'reactions/js/cloneReaction.js' %}"></script>
 		<script src="{% static 'reactions/js_leaderboard/leader_board.js' %}"></script>
 		<script src="{% static 'reactions/js/savedMetabolites.js' %}"></script>
 		<link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css" />

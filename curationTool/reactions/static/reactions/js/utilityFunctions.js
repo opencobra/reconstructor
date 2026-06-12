@@ -47,34 +47,27 @@ window.ReactionUtils.fetchTemplates = async function (templateList, templatesFet
 
 // Function to show a toast notification
 function showToast(message, color = '#4caf50') {
-    // Create the toast container
+    // Unified through the Notify toast system (notify.js) so every toast in the
+    // app shares one neat style. Legacy callers pass a colour hint; map a red/
+    // error hint to an error toast, otherwise treat it as success.
+    let type = 'success';
+    if (typeof color === 'string') {
+        const c = color.toLowerCase();
+        if (/error|cc0000|red|#f|#d|#c|#b/.test(c)) {
+            type = 'error';
+        }
+    }
+    if (window.Notify) {
+        return Notify.toast(message, { type });
+    }
+    // Minimal fallback if notify.js is unavailable on a given page.
     const toast = document.createElement('div');
     toast.textContent = message;
-    toast.style.position = 'fixed';
-    toast.style.bottom = '20px';
-    toast.style.right = '20px';
-    toast.style.backgroundColor = color;
-    toast.style.color = '#fff';
-    toast.style.padding = '10px 20px';
-    toast.style.borderRadius = '8px';
-    toast.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
-    toast.style.fontSize = '14px';
-    toast.style.zIndex = '1000';
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.5s ease';
-
+    toast.style.cssText =
+        'position:fixed;bottom:20px;right:20px;background:' + color +
+        ';color:#fff;padding:10px 20px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,0.2);font-size:14px;z-index:5000;';
     document.body.appendChild(toast);
-
-    // Fade in the toast
-    setTimeout(() => {
-        toast.style.opacity = '1';
-    }, 10);
-
-    // Fade out and remove the toast after 3 seconds
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        setTimeout(() => toast.remove(), 500); // Remove after fade-out
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // Function to save the current visibility state of each div

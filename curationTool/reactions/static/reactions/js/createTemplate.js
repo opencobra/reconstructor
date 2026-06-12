@@ -1,7 +1,7 @@
 document.getElementById('createTemplateBtn').addEventListener('click', function() {
     // check if the user is logged in
     if (!sessionStorage.getItem('userID')) {
-        alert('Please log in to create a template.');
+        Notify.error('Please log in to create a template.');
         return;
     }
     // Hide the first modal
@@ -79,13 +79,13 @@ async function createTemplate() {
 
             // Validate template name
             if (!templateName) {
-                alert('Template name is required.');
+                Notify.error('Template name is required.');
                 return false; // Prevent modal from closing
             }
 
             const reactionForm = document.getElementById('reactionForm');
             if (typeof getActiveReactionRows === 'function' && getActiveReactionRows(reactionForm).length === 0) {
-                alert('Enter at least one substrate or one product before creating a template.');
+                Notify.error('Enter at least one substrate or one product before creating a template.');
                 return false;
             }
 
@@ -114,12 +114,12 @@ async function createTemplate() {
                     subsystem => subsystem.toLowerCase() === subsystemField.toLowerCase()
                 );
                 if (!isValidSubsystem) {
-                    const userConfirmed = confirm(`Are you sure you want to add a new subsystem "${subsystemField}"?`);
+                    const userConfirmed = await Notify.confirm({ title: 'New subsystem', message: `Are you sure you want to add a new subsystem "${subsystemField}"?`, confirmText: 'Add subsystem' });
                     if (!userConfirmed) {
-                        alert('The subsystem entered is not valid.');
+                        Notify.error('The subsystem entered is not valid.');
                         return false; // Prevent modal from closing
                     } else if (!sessionStorage.getItem('userID')) {
-                        alert('Please log in to add a new subsystem.');
+                        Notify.error('Please log in to add a new subsystem.');
                         return false; // Prevent modal from closing
                     } else {
                         subsystemList.push(subsystemField); // Add to local list
@@ -150,17 +150,17 @@ async function createTemplate() {
 
                 if (response.ok) {
                     const data = await response.json();
-                    alert('Template created successfully!');
+                    Notify.success('Template created successfully!');
                     location.reload(); // Refresh the page
                     return true; // Allow modal to close
                 } else {
                     const errorData = await response.json();
-                    alert(`Error creating template: ${errorData.message}`);
+                    Notify.error(`Error creating template: ${errorData.message}`);
                     return false; // Prevent modal from closing
                 }
             } catch (error) {
                 console.error('Error creating template:', error);
-                alert('An error occurred while creating the template.');
+                Notify.error('An error occurred while creating the template.');
                 return false; // Prevent modal from closing
             }
         },
