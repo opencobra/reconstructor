@@ -553,8 +553,9 @@ function showIdenticalReactionModal(matches, submitBtn) {
 }
 
 
-async function checkIdenticalReaction(formData, loadingIndicator, submitBtn) {
+async function checkIdenticalReaction(formData, loadingIndicator, submitBtn, logTiming) {
     try {
+        if (logTiming) logTiming('identicalReaction fetch:start');
         const response = await fetch(identicalReactionUrl, {
             method: 'POST',
             body: formData,
@@ -563,8 +564,10 @@ async function checkIdenticalReaction(formData, loadingIndicator, submitBtn) {
                 'X-CSRFToken': csrfToken
             }
         });
+        if (logTiming) logTiming('identicalReaction response headers', { status: response.status });
 
         const data = await response.json();
+        if (logTiming) logTiming('identicalReaction response json parsed', { exists: !!data.exists, status: data.status });
 
         if (data.status === 'error') {
             showErrorModal(data.message);
@@ -576,7 +579,9 @@ async function checkIdenticalReaction(formData, loadingIndicator, submitBtn) {
 
         if (data.exists) {
             loadingIndicator.style.display = 'none';
+            if (logTiming) logTiming('identicalReaction duplicate modal shown', { matches: data.matches ? data.matches.length : 0 });
             const userDecision = await showIdenticalReactionModal(data.matches, submitBtn);
+            if (logTiming) logTiming('identicalReaction duplicate modal resolved', { decision: userDecision });
             if (userDecision.startsWith('view:')) {
                 const rxnId = userDecision.split(':')[1];
                 window.location.href = `/?reaction_id=${rxnId}`;
@@ -597,6 +602,15 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     e.preventDefault(); // Prevent the default form submission
 
     var submitBtn = document.getElementById('submitBtn-form');
+    const timingStart = performance.now();
+    let timingLast = timingStart;
+    const logTiming = function (label, details) {
+        const now = performance.now();
+        const delta = (now - timingLast).toFixed(1);
+        const total = (now - timingStart).toFixed(1);
+        console.log(`[TEMP ReactionTiming client submit] ${label}: +${delta}ms total=${total}ms`, details || '');
+        timingLast = now;
+    };
     const stopLoadingState = function () {
         delete submitBtn.dataset.submitting;
         if (window.ReactantsFormDirty && ReactantsFormDirty.isEditMode()) {
@@ -612,12 +626,15 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     const reactionId = params.get('reaction_id');
     const action = params.get('action');
     const editing = action === 'edit';
+    logTiming('submit:start', { action: action || 'create', reactionId: reactionId || null });
 
     if (editing) {
         if (window.ReactantsFormDirty && !ReactantsFormDirty.hasChanges()) {
             ReactantsFormDirty.refreshButton();
+            logTiming('edit submit stopped: no Reactants changes');
             return;
         }
+        logTiming('edit dirty check complete');
         // Context-aware confirm: saving a clone vs. updating an existing reaction.
         var inClone = !!(window.CloneReaction && CloneReaction.cloneId);
         var confirmOpts = inClone
@@ -641,7 +658,9 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
                 cancelText: 'Cancel',
                 danger: true,
             };
+        logTiming('update confirm modal opening');
         var userConfirmed = await Notify.confirm(confirmOpts);
+        logTiming('update confirm modal resolved', { confirmed: userConfirmed });
         if (!userConfirmed) {
             return; // Exit the function and do not submit form
         }
@@ -650,10 +669,12 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     submitBtn.dataset.submitting = 'true';
     submitBtn.disabled = true;
     showLoader();
+    logTiming('loader shown');
 
     var divElement = document.getElementById("organTags");
     var organTags = Array.from(divElement.getElementsByClassName('tag'))
                             .map(tag => tag.firstChild.textContent.trim());
+    logTiming('organ tags read', { count: organTags.length });
 
     // Check if the subsystem field is filled
     var subsystemField = document.getElementById('subsystemField').value;
@@ -683,6 +704,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
             return
         }
     }
+    logTiming('client validation complete', { activeRows: inputsGroups.length });
     // Continue with form submission
 
     const disabledInputs = this.querySelectorAll('input:disabled, select:disabled');
@@ -690,6 +712,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     var formData = new FormData(this);
 
     disabledInputs.forEach(input => input.disabled = true);
+    logTiming('FormData built', { disabledInputs: disabledInputs.length });
     const directionEl = document.getElementById('reactionDirection');
     formData.set('direction', normalizeReactionDirection(directionEl ? directionEl.value : 'forward'));
     var nameData = {};
@@ -714,13 +737,19 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         return; // Exit the function and do not submit form
     }
     loadingIndicator.style.display = 'flex';
+    logTiming('metabolite names collected', { metaboliteNameFields: metaboliteFields.length });
     if (subsystemList.length === 0) {
+        logTiming('updateSubsystems fetch:start');
         subsystemList = await updateSubsystems();
+        logTiming('updateSubsystems fetch:complete', { count: subsystemList.length });
     }
     var isValidSubsystem = subsystemList.some(subsystem => subsystem.toLowerCase() === subsystemField.toLowerCase());
+    logTiming('subsystem validation complete', { valid: isValidSubsystem });
 
     if (!isValidSubsystem) {
+        logTiming('new subsystem confirm opening', { subsystem: subsystemField });
         var userConfirmed = await Notify.confirm({ title: 'New subsystem', message: `Are you sure you want to add a new subsystem "${subsystemField}"?`, confirmText: 'Add subsystem' });
+        logTiming('new subsystem confirm resolved', { confirmed: userConfirmed });
         if (!userConfirmed) {
             var errorMessage = 'The subsystem entered is not valid.';
             showErrorModal(errorMessage);
@@ -747,6 +776,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
     formData.append('nameData', JSON.stringify(nameData));
     formData.append('organs', JSON.stringify(organTags));
     formData.append('action', action);
+    logTiming('form payload finalized', { skipAtomMapping: skipAtomMapping, action: action || 'create' });
 
     if (action === 'edit') {
         formData.append('action', action);
@@ -758,13 +788,15 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
 
     // Check if identical reaction exists
     if (!editing){
-        const shouldProceed = await checkIdenticalReaction(formData, loadingIndicator, submitBtn);
+        const shouldProceed = await checkIdenticalReaction(formData, loadingIndicator, submitBtn, logTiming);
         if (!shouldProceed) {
+            logTiming('create stopped after identicalReaction check');
             stopLoadingState();
             return;
         }
     }
     // Create a new reaction
+    logTiming('inputReaction fetch:start');
     fetch(inputReactionUrl, {
         method: 'POST',
         body: formData,
@@ -773,8 +805,15 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
             'X-CSRFToken': csrfToken
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        logTiming('inputReaction response headers', { status: response.status });
+        return response.json();
+    })
     .then(async (data) => {
+        logTiming('inputReaction response json parsed', {
+            status: data.status,
+            reactionId: data.reaction_id || null,
+        });
         if (data.status === 'error') {
             showErrorModal(data.message);
             window.scrollTo(0, 0);
@@ -786,6 +825,7 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
             const reactionId = data.reaction_id; // Ensure reactionId is obtained from the response
             
             // Send additional request to save CreatedReaction (to keep track of which user created which reaction)
+            logTiming('create-reaction link fetch:start');
             fetch('create-reaction/', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -797,8 +837,12 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
                     'X-CSRFToken': csrfToken
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                logTiming('create-reaction link response headers', { status: response.status });
+                return response.json();
+            })
             .then(result => {
+                logTiming('create-reaction link response json parsed', { success: result.success });
                 if (result.success) {
                     console.log('CreatedReaction saved successfully.');
                 } else {
@@ -812,10 +856,12 @@ document.getElementById('reactionForm').addEventListener('submit', async functio
         
         setTimeout(function() {
             const redirectUrl = window.location.origin + "/?reaction_id=" + data.reaction_id;
+            logTiming('redirecting after successful submit', { url: action === 'edit' ? redirectUrl + "&action=edit" : redirectUrl });
             window.location.href = action === 'edit' ? redirectUrl + "&action=edit" : redirectUrl;
         }, 10); 
     })
     .catch(error => {
+        logTiming('inputReaction fetch failed');
         console.error('Error:', error);
         const errorMessage = 'An unexpected error occurred.';
         showErrorModal(errorMessage);

@@ -32,6 +32,8 @@
 
     // Row currently being edited by the modal, plus a snapshot of its values.
     var editContext = null;
+    var editSaving = false;
+    var compactSavedMetabolitesPromise = null;
 
     function hasReactionId() {
         return Boolean(new URLSearchParams(window.location.search).get('reaction_id'));
@@ -63,6 +65,44 @@
         return input ? input.value : '';
     }
 
+    function savedMetaboliteLabel(metabolite) {
+        if (!metabolite) return '';
+        var name = metabolite.name || '';
+        var abbr = metabolite.vmh_abbr || '';
+        if (abbr && name) return abbr + ' - ' + name;
+        return name || abbr || String(metabolite.id || '');
+    }
+
+    function findSavedMetaboliteById(id) {
+        if (!id || !Array.isArray(global.savedMetabolitesCache)) return null;
+        return global.savedMetabolitesCache.find(function (metabolite) {
+            return String(metabolite.id) === String(id);
+        }) || null;
+    }
+
+    function getIdentifierDisplayValue(group, fullname, type, fallbackName) {
+        if (type === 'Saved') {
+            var auto = group.querySelector('.autocomplete-container');
+            if (auto) {
+                var visible = auto.querySelector('.autocomplete-input');
+                if (visible && visible.value) return visible.value;
+            }
+            var savedId = getIdentifierValue(group, fullname);
+            return fallbackName || savedMetaboliteLabel(findSavedMetaboliteById(savedId)) || savedId;
+        }
+
+        if (type === 'MDL Mol file') {
+            var fileInput = group.querySelector('.cell-identifier input[type="file"]');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                return fileInput.files[0].name;
+            }
+            var raw = getIdentifierValue(group, fullname);
+            return raw ? raw.split('/').pop() : '';
+        }
+
+        return getIdentifierValue(group, fullname);
+    }
+
     function readRow(group, side) {
         var stoichInput = group.querySelector('input[name="' + side.sch + '"]');
         var compSelect = group.querySelector('select[name="' + side.comps + '"]');
@@ -80,13 +120,17 @@
             found = false;
         }
 
+        var type = typeSelect ? typeSelect.value : 'VMH';
+        var identifier = getIdentifierValue(group, side.fullname);
+
         return {
             group: group,
             side: side,
             stoich: stoichInput ? stoichInput.value : '1',
-            identifier: getIdentifierValue(group, side.fullname),
+            identifier: identifier,
+            displayIdentifier: getIdentifierDisplayValue(group, side.fullname, type, nameInput ? nameInput.value : ''),
             compartment: compSelect ? compSelect.value : '-',
-            type: typeSelect ? typeSelect.value : 'VMH',
+            type: type,
             name: nameInput ? nameInput.value : '',
             found: found,
         };
@@ -118,14 +162,14 @@
         stoichInput.step = 'any';
         stoichInput.className = 'compact-stoich-input';
         stoichInput.value = rowData.stoich || '1';
-        stoichInput.setAttribute('aria-label', 'Stoichiometry for ' + (rowData.identifier || 'metabolite'));
+        stoichInput.setAttribute('aria-label', 'Stoichiometry for ' + (rowData.displayIdentifier || rowData.identifier || 'metabolite'));
         stoichInput._rowData = rowData;
         token.appendChild(stoichInput);
 
         var editButton = document.createElement('button');
         editButton.type = 'button';
         editButton.className = 'compact-token-edit';
-        editButton.textContent = rowData.identifier + '[' + rowData.compartment + ']';
+        editButton.textContent = (rowData.displayIdentifier || rowData.identifier) + '[' + rowData.compartment + ']';
         editButton.title = 'Edit metabolite';
         editButton._rowData = rowData;
         token.appendChild(editButton);
@@ -133,7 +177,7 @@
         var removeButton = document.createElement('button');
         removeButton.type = 'button';
         removeButton.className = 'compact-token-remove';
-        removeButton.setAttribute('aria-label', 'Remove ' + (rowData.identifier || 'metabolite'));
+        removeButton.setAttribute('aria-label', 'Remove ' + (rowData.displayIdentifier || rowData.identifier || 'metabolite'));
         removeButton.title = 'Remove metabolite';
         removeButton.innerHTML = '<i class="fas fa-times" aria-hidden="true"></i>';
         removeButton._rowData = rowData;
@@ -450,36 +494,222 @@
         return div.innerHTML;
     }
 
+    function setCompactEditError(message) {
+        var error = document.getElementById('compactEditError');
+        if (!error) return;
+        error.textContent = message || '';
+        error.style.display = message ? '' : 'none';
+    }
+
+    function setCompactSaveBusy(isBusy) {
+        editSaving = !!isBusy;
+        var saveButton = document.getElementById('compactEditSave');
+        var cancelButton = document.getElementById('compactEditCancel');
+        if (saveButton) {
+            saveButton.disabled = !!isBusy;
+            saveButton.textContent = isBusy ? 'Verifying...' : (editContext && editContext.isNew ? 'Add' : 'Save');
+        }
+        if (cancelButton) {
+            cancelButton.disabled = !!isBusy;
+        }
+    }
+
+    function compactSavedSearchValue(metaboliteId, fallback) {
+        return savedMetaboliteLabel(findSavedMetaboliteById(metaboliteId)) || fallback || '';
+    }
+
+    function ensureSavedMetabolites() {
+        if (Array.isArray(global.savedMetabolitesCache)) {
+            return Promise.resolve(global.savedMetabolitesCache);
+        }
+        if (compactSavedMetabolitesPromise) {
+            return compactSavedMetabolitesPromise;
+        }
+        var userId = sessionStorage.getItem('userID');
+        compactSavedMetabolitesPromise = fetch('/get_saved_metabolites/?user_id=' + encodeURIComponent(userId || ''))
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                global.savedMetabolitesCache = data.metabolites || [];
+                return global.savedMetabolitesCache;
+            })
+            .catch(function () {
+                global.savedMetabolitesCache = [];
+                return global.savedMetabolitesCache;
+            });
+        return compactSavedMetabolitesPromise;
+    }
+
+    function hideCompactSavedDropdown() {
+        var dropdown = document.getElementById('compactEditSavedDropdown');
+        if (dropdown) dropdown.style.display = 'none';
+    }
+
+    function chooseCompactSavedMetabolite(metabolite) {
+        var search = document.getElementById('compactEditSavedSearch');
+        var hidden = document.getElementById('compactEditSavedId');
+        if (search) search.value = savedMetaboliteLabel(metabolite);
+        if (hidden) hidden.value = metabolite && metabolite.id != null ? metabolite.id : '';
+        hideCompactSavedDropdown();
+        setCompactEditError('');
+    }
+
+    function renderCompactSavedDropdown() {
+        var search = document.getElementById('compactEditSavedSearch');
+        var dropdown = document.getElementById('compactEditSavedDropdown');
+        if (!search || !dropdown) return;
+        ensureSavedMetabolites().then(function (metabolites) {
+            var query = String(search.value || '').trim().toLowerCase();
+            var matches = (metabolites || []).filter(function (metabolite) {
+                return !query ||
+                    String(metabolite.name || '').toLowerCase().includes(query) ||
+                    String(metabolite.vmh_abbr || '').toLowerCase().includes(query) ||
+                    String(metabolite.id || '').toLowerCase() === query;
+            }).slice(0, 40);
+
+            dropdown.innerHTML = '';
+            matches.forEach(function (metabolite) {
+                var option = document.createElement('button');
+                option.type = 'button';
+                option.className = 'compact-edit-saved-option';
+                option.textContent = savedMetaboliteLabel(metabolite);
+                option.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                    chooseCompactSavedMetabolite(metabolite);
+                });
+                dropdown.appendChild(option);
+            });
+            dropdown.style.display = matches.length ? 'block' : 'none';
+        });
+    }
+
+    function inferSavedSelectionFromSearch() {
+        var search = document.getElementById('compactEditSavedSearch');
+        var hidden = document.getElementById('compactEditSavedId');
+        if (!search || !hidden || hidden.value) return;
+        var query = String(search.value || '').trim().toLowerCase();
+        if (!query || !Array.isArray(global.savedMetabolitesCache)) return;
+        var match = global.savedMetabolitesCache.find(function (metabolite) {
+            return String(metabolite.name || '').toLowerCase() === query ||
+                String(metabolite.vmh_abbr || '').toLowerCase() === query ||
+                savedMetaboliteLabel(metabolite).toLowerCase() === query;
+        });
+        if (match) {
+            chooseCompactSavedMetabolite(match);
+        }
+    }
+
+    function updateCompactFileName() {
+        var fileInput = document.getElementById('compactEditFile');
+        var fileName = document.getElementById('compactEditFileName');
+        if (!fileName) return;
+        var existingName = editContext && editContext.original ? editContext.original.fileName : '';
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+            fileName.textContent = fileInput.files[0].name;
+        } else {
+            fileName.textContent = existingName ? 'Current file: ' + existingName : '';
+        }
+    }
+
+    function setCompactIdentifierMode(type, rowData) {
+        var label = document.getElementById('compactEditIdentifierLabel');
+        var textInput = document.getElementById('compactEditIdentifier');
+        var savedContainer = document.getElementById('compactEditSavedContainer');
+        var savedSearch = document.getElementById('compactEditSavedSearch');
+        var savedId = document.getElementById('compactEditSavedId');
+        var fileContainer = document.getElementById('compactEditFileContainer');
+        var fileInput = document.getElementById('compactEditFile');
+
+        if (label) label.textContent = type === 'Saved' ? 'My metabolite' : (type === 'MDL Mol file' ? 'MOL file' : 'Metabolite identifier');
+        if (textInput) textInput.style.display = type === 'Saved' || type === 'MDL Mol file' ? 'none' : '';
+        if (savedContainer) savedContainer.style.display = type === 'Saved' ? '' : 'none';
+        if (fileContainer) fileContainer.style.display = type === 'MDL Mol file' ? '' : 'none';
+        hideCompactSavedDropdown();
+
+        if (type === 'Saved') {
+            var id = rowData ? rowData.identifier : '';
+            var display = rowData ? (rowData.displayIdentifier || rowData.name || '') : '';
+            if (savedId) savedId.value = id || '';
+            if (savedSearch) savedSearch.value = compactSavedSearchValue(id, display);
+            ensureSavedMetabolites().then(function () {
+                if (savedSearch && savedId) {
+                    savedSearch.value = compactSavedSearchValue(savedId.value, savedSearch.value);
+                }
+            });
+        } else if (type === 'MDL Mol file') {
+            if (fileInput) fileInput.value = '';
+            updateCompactFileName();
+        }
+    }
+
+    function selectedCompactIdentifier(type) {
+        if (type === 'Saved') {
+            inferSavedSelectionFromSearch();
+            var savedId = document.getElementById('compactEditSavedId');
+            return savedId ? savedId.value.trim() : '';
+        }
+        if (type === 'MDL Mol file') {
+            var fileInput = document.getElementById('compactEditFile');
+            if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                return fileInput.files[0].name;
+            }
+            return editContext && editContext.original ? editContext.original.identifier : '';
+        }
+        var textInput = document.getElementById('compactEditIdentifier');
+        return textInput ? textInput.value.trim() : '';
+    }
+
+    function selectedCompactFile() {
+        var fileInput = document.getElementById('compactEditFile');
+        return fileInput && fileInput.files && fileInput.files.length > 0 ? fileInput.files[0] : null;
+    }
+
     // ---- Edit modal ------------------------------------------------------
 
     function openEditModal(rowData, options) {
         options = options || {};
         var overlay = ensureEditOverlayInBody();
         if (!overlay) return;
+        var modalType = rowData.type === 'Draw' ? 'VMH' : rowData.type;
         editContext = {
             group: rowData.group,
             side: rowData.side,
-            original: { identifier: rowData.identifier, type: rowData.type, compartment: rowData.compartment, stoich: rowData.stoich },
+            original: {
+                identifier: rowData.identifier,
+                displayIdentifier: rowData.displayIdentifier,
+                type: rowData.type,
+                compartment: rowData.compartment,
+                stoich: rowData.stoich,
+                fileName: rowData.type === 'MDL Mol file' ? (rowData.displayIdentifier || rowData.identifier || '') : '',
+            },
             isNew: !!options.isNew,
         };
-        document.getElementById('compactEditIdentifier').value = rowData.identifier;
-        document.getElementById('compactEditType').value = rowData.type;
+        setCompactEditError('');
+        document.getElementById('compactEditIdentifier').value = modalType === 'Saved' ? '' : (rowData.displayIdentifier || rowData.identifier || '');
+        document.getElementById('compactEditType').value = modalType;
         document.getElementById('compactEditStoich').value = rowData.stoich;
         document.getElementById('compactEditCompartment').value = rowData.compartment;
+        setCompactIdentifierMode(modalType, rowData);
         var title = document.getElementById('compactEditTitle');
         if (title) title.textContent = options.isNew ? 'Add metabolite' : 'Edit metabolite';
         var saveButton = document.getElementById('compactEditSave');
         if (saveButton) saveButton.textContent = options.isNew ? 'Add' : 'Save';
+        setCompactSaveBusy(false);
         overlay.classList.add('open');
         var modal = overlay.querySelector('.confirm-modal');
         requestAnimationFrame(function () {
             if (modal) modal.classList.add('confirm-modal-in');
-            document.getElementById('compactEditIdentifier').focus();
+            var focusTarget = modalType === 'Saved'
+                ? document.getElementById('compactEditSavedSearch')
+                : modalType === 'MDL Mol file'
+                    ? document.getElementById('compactEditFile')
+                    : document.getElementById('compactEditIdentifier');
+            if (focusTarget) focusTarget.focus();
         });
     }
 
     function closeEditModal(options) {
         options = options || {};
+        if (editSaving) return;
         var context = editContext;
         var overlay = ensureEditOverlayInBody();
         if (overlay) {
@@ -523,77 +753,213 @@
         setTimeout(function () { observer.disconnect(); render(); }, 8000);
     }
 
-    function saveEdit() {
-        if (!editContext) return;
-        var group = editContext.group;
-        var side = editContext.side;
-        var orig = editContext.original;
-
-        var newIdentifier = document.getElementById('compactEditIdentifier').value.trim();
-        var newType = document.getElementById('compactEditType').value;
-        var newStoich = document.getElementById('compactEditStoich').value;
-        var newComp = document.getElementById('compactEditCompartment').value;
-
-        if (!newIdentifier) {
-            Notify.error('Enter a metabolite identifier.');
-            return;
+    function sourceFileInput(group, side) {
+        var fileInput = group.querySelector('.cell-identifier input[type="file"]');
+        if (!fileInput) {
+            var identifierCell = group.querySelector('.cell-identifier');
+            var textInput = group.querySelector('.cell-identifier input[name="' + side.fullname + '"]');
+            fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.name = textInput ? textInput.name : side.fullname;
+            fileInput.id = textInput ? textInput.id : side.fullname;
+            if (identifierCell) identifierCell.appendChild(fileInput);
         }
-        if (!newStoich || Number(newStoich) <= 0) {
-            Notify.error('Enter a positive stoichiometry.');
-            return;
+        return fileInput;
+    }
+
+    function copyFileToInput(file, fileInput) {
+        if (!file || !fileInput || typeof DataTransfer === 'undefined') return;
+        var transfer = new DataTransfer();
+        transfer.items.add(file);
+        fileInput.files = transfer.files;
+    }
+
+    function clearRowVerification(group) {
+        group.querySelectorAll('.valid-status').forEach(function (el) { el.remove(); });
+        delete group.dataset.atomCounts;
+        delete group.dataset.charge;
+        var statusDot = group.querySelector('.status-dot');
+        if (statusDot) {
+            statusDot.style.display = 'none';
+            statusDot.className = 'status-dot';
+            statusDot.onclick = null;
+            statusDot.style.cursor = 'default';
         }
-        if (newComp === '-') {
-            Notify.error('Select a compartment.');
-            return;
-        }
+    }
 
-        var stoichInput = group.querySelector('input[name="' + side.sch + '"]');
-        var compSelect = group.querySelector('select[name="' + side.comps + '"]');
-        var typeSelect = group.querySelector('select[name="' + side.fullname + '_type"]');
+    function buildCompactVerifyData(group, side, values) {
+        var data = new FormData();
+        data.append('metabolite', values.identifier);
+        data.append('type', values.type);
+        data.append('compartment', values.compartment);
+        data.append('stoichiometry', values.stoich);
+        data.append('userID', sessionStorage.getItem('userID'));
 
-        var identityChanged = newIdentifier !== orig.identifier || newType !== orig.type || newComp !== orig.compartment;
-
-        // Apply input type first so the identifier cell matches (text vs file vs Saved).
-        if (typeSelect) {
-            typeSelect.disabled = false;
-            if (typeSelect.value !== newType) {
-                typeSelect.value = newType;
-                if (typeof toggleFileInput === 'function') toggleFileInput(group, newType);
-                if (typeof handleMetaboliteTypeChange === 'function') handleMetaboliteTypeChange(typeSelect);
+        if (values.type === 'MDL Mol file') {
+            var existingFileInput = group.querySelector('.cell-identifier input[type="file"]');
+            var file = values.file || (existingFileInput && existingFileInput.files && existingFileInput.files[0]);
+            if (file) {
+                data.append('file', file);
             }
         }
-        setIdentifierValue(group, side.fullname, newIdentifier);
-        if (compSelect) compSelect.value = newComp;
-        if (stoichInput) stoichInput.value = newStoich;
+
+        return data;
+    }
+
+    function verifyCompactValues(group, side, values) {
+        return fetch(verifyMetabolite, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': csrfToken,
+            },
+            body: buildCompactVerifyData(group, side, values),
+        })
+            .then(function (response) { return response.json(); })
+            .then(function (data) {
+                if (data.error) {
+                    throw new Error(data.message || 'Verification failed.');
+                }
+                return data;
+            });
+    }
+
+    function ensureSourceInputMode(group, side, type) {
+        var typeSelect = group.querySelector('select[name="' + side.fullname + '_type"]');
+        if (typeSelect) {
+            typeSelect.disabled = false;
+            typeSelect.value = type;
+            if (typeof toggleFileInput === 'function') toggleFileInput(group, type);
+            if (typeof handleMetaboliteTypeChange === 'function') handleMetaboliteTypeChange(typeSelect);
+        }
+        return typeSelect;
+    }
+
+    function applyVerifiedCompactEdit(group, side, values, verifyData) {
+        var stoichInput = group.querySelector('input[name="' + side.sch + '"]');
+        var compSelect = group.querySelector('select[name="' + side.comps + '"]');
+        var typeSelect = ensureSourceInputMode(group, side, values.type);
+        var mainInput = null;
+
+        if (values.type === 'Saved') {
+            var auto = group.querySelector('.autocomplete-container');
+            var search = auto ? auto.querySelector('.autocomplete-input') : null;
+            var hidden = auto ? auto.querySelector('input[type="hidden"]') : null;
+            if (search) {
+                search.disabled = false;
+                search.value = values.savedLabel || values.identifier;
+            }
+            if (hidden) {
+                hidden.value = values.identifier;
+            }
+            mainInput = auto;
+            dispatchFieldChange(search);
+            dispatchFieldChange(hidden);
+        } else if (values.type === 'MDL Mol file') {
+            mainInput = group.querySelector('.cell-identifier input[type="text"]:not(.autocomplete-input)');
+            if (mainInput) {
+                mainInput.disabled = false;
+                mainInput.value = values.identifier;
+            }
+            var fileInput = sourceFileInput(group, side);
+            if (values.file) {
+                copyFileToInput(values.file, fileInput);
+            }
+            dispatchFieldChange(mainInput);
+            dispatchFieldChange(fileInput);
+        } else {
+            mainInput = group.querySelector('.cell-identifier input[name="' + side.fullname + '"]');
+            if (mainInput) {
+                mainInput.disabled = false;
+                mainInput.value = values.identifier;
+            }
+            dispatchFieldChange(mainInput);
+        }
+
+        if (compSelect) compSelect.value = values.compartment;
+        if (stoichInput) stoichInput.value = values.stoich;
         dispatchFieldChange(typeSelect);
         dispatchFieldChange(compSelect);
         dispatchFieldChange(stoichInput);
 
-        closeEditModal({ discardNew: false });
-
-        if (identityChanged) {
-            // Clear stale verification state, then re-run the row's existing verify
-            // so name / found-status / atom counts refresh (auto re-verify on save).
-            group.querySelectorAll('.valid-status').forEach(function (el) { el.remove(); });
-            delete group.dataset.atomCounts;
-            delete group.dataset.charge;
-            var statusDot = group.querySelector('.status-dot');
-            if (statusDot) statusDot.style.display = 'none';
-            var nameInput = group.querySelector('.' + side.nameClass);
-            if (nameInput) nameInput.disabled = false;
-
-            var doneBtn = group.querySelector('.done-field-btn');
-            if (doneBtn && typeof handleDoneButtonClick === 'function') {
-                doneBtn.style.display = '';
-                handleDoneButtonClick({ target: doneBtn });
-                watchRowAndRerender(group);
-            }
-        } else if (stoichInput) {
-            // Stoichiometry-only change: let the delegated listener recompute balance.
-            stoichInput.dispatchEvent(new Event('input', { bubbles: true }));
+        clearRowVerification(group);
+        var doneBtn = group.querySelector('.done-field-btn');
+        if (doneBtn && typeof updateNameFields === 'function') {
+            updateNameFields(verifyData, mainInput, typeSelect, doneBtn);
         }
 
-        render();
+        group.dataset.atomCounts = JSON.stringify(verifyData.atom_counts || {});
+        group.dataset.charge = verifyData.charge;
+
+        var hiddenStatus = document.createElement('input');
+        hiddenStatus.style.display = 'none';
+        hiddenStatus.value = verifyData.found;
+        hiddenStatus.className = 'valid-status';
+        group.appendChild(hiddenStatus);
+
+        if (typeof updateAtomChargeCounters === 'function') {
+            updateAtomChargeCounters();
+        }
+        if (global.ReactantsFormDirty) {
+            ReactantsFormDirty.scheduleEvaluate();
+        }
+        watchRowAndRerender(group);
+    }
+
+    async function saveEdit() {
+        if (!editContext) return;
+        var group = editContext.group;
+        var side = editContext.side;
+        var newType = document.getElementById('compactEditType').value;
+        var newIdentifier = selectedCompactIdentifier(newType);
+        var newStoich = document.getElementById('compactEditStoich').value;
+        var newComp = document.getElementById('compactEditCompartment').value;
+        var selectedFile = selectedCompactFile();
+
+        if (!newIdentifier) {
+            var identifierMessage = newType === 'Saved'
+                ? 'Select a saved metabolite.'
+                : newType === 'MDL Mol file'
+                    ? 'Choose a MOL file before saving.'
+                    : 'Enter a metabolite identifier.';
+            setCompactEditError(identifierMessage);
+            Notify.error(identifierMessage);
+            return;
+        }
+        if (!newStoich || Number(newStoich) <= 0) {
+            setCompactEditError('Enter a positive stoichiometry.');
+            Notify.error('Enter a positive stoichiometry.');
+            return;
+        }
+        if (newComp === '-') {
+            setCompactEditError('Select a compartment.');
+            Notify.error('Select a compartment.');
+            return;
+        }
+
+        var values = {
+            identifier: newIdentifier,
+            savedLabel: document.getElementById('compactEditSavedSearch')?.value || '',
+            type: newType,
+            stoich: newStoich,
+            compartment: newComp,
+            file: selectedFile,
+        };
+
+        setCompactEditError('');
+        setCompactSaveBusy(true);
+        try {
+            var verifyData = await verifyCompactValues(group, side, values);
+            applyVerifiedCompactEdit(group, side, values, verifyData);
+            setCompactSaveBusy(false);
+            closeEditModal({ discardNew: false });
+            render();
+        } catch (error) {
+            var message = error && error.message ? error.message : 'Verification failed.';
+            setCompactEditError('Verification failed: ' + message);
+            Notify.error('Verification failed: ' + message);
+            setCompactSaveBusy(false);
+        }
     }
 
     // ---- View toggling ---------------------------------------------------
@@ -767,6 +1133,45 @@
                 render();
             });
         }
+
+        var compactEditType = document.getElementById('compactEditType');
+        if (compactEditType) {
+            compactEditType.addEventListener('change', function () {
+                setCompactEditError('');
+                setCompactIdentifierMode(compactEditType.value, editContext ? {
+                    identifier: editContext.original.identifier,
+                    displayIdentifier: editContext.original.displayIdentifier,
+                    name: editContext.original.displayIdentifier,
+                } : null);
+            });
+        }
+
+        var compactSavedSearch = document.getElementById('compactEditSavedSearch');
+        if (compactSavedSearch) {
+            compactSavedSearch.addEventListener('input', function () {
+                var hidden = document.getElementById('compactEditSavedId');
+                if (hidden) hidden.value = '';
+                setCompactEditError('');
+                renderCompactSavedDropdown();
+            });
+            compactSavedSearch.addEventListener('focus', renderCompactSavedDropdown);
+            compactSavedSearch.addEventListener('change', inferSavedSelectionFromSearch);
+        }
+
+        var compactFile = document.getElementById('compactEditFile');
+        if (compactFile) {
+            compactFile.addEventListener('change', function () {
+                setCompactEditError('');
+                updateCompactFileName();
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            var savedWrap = document.getElementById('compactEditSavedContainer');
+            if (savedWrap && !savedWrap.contains(e.target)) {
+                hideCompactSavedDropdown();
+            }
+        });
 
         var cancelBtn = document.getElementById('compactEditCancel');
         var saveBtn = document.getElementById('compactEditSave');

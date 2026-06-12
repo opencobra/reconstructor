@@ -1589,6 +1589,63 @@
     box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.18);
 }
 
+.compact-edit-saved-container,
+.compact-edit-file-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.compact-edit-saved-dropdown {
+    position: absolute;
+    display: none;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    z-index: 7000;
+    max-height: min(220px, 34vh);
+    overflow-y: auto;
+    border: 1px solid #cbd5e1;
+    border-radius: 0 0 10px 10px;
+    background: #ffffff;
+    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.18);
+}
+
+.compact-edit-saved-option {
+    width: 100%;
+    padding: 9px 11px;
+    border: 0;
+    background: #ffffff;
+    color: #1e293b;
+    font-size: 0.88rem;
+    text-align: left;
+    cursor: pointer;
+}
+
+.compact-edit-saved-option:hover,
+.compact-edit-saved-option:focus-visible {
+    outline: none;
+    background: #f3f4f6;
+}
+
+.compact-edit-file-name {
+    min-height: 18px;
+    color: #64748b;
+    font-size: 0.78rem;
+    overflow-wrap: anywhere;
+}
+
+.compact-edit-error {
+    padding: 8px 10px;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    background: #fef2f2;
+    color: #b91c1c;
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
 @media (max-width: 700px) {
     .compact-meta-field {
         align-items: stretch;

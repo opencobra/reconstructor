@@ -16,6 +16,7 @@ Dependencies:
 import json
 import re
 import os
+import time
 
 from rdkit import RDLogger, Chem
 from rdkit.Chem import MolToInchiKey, AllChem
@@ -102,11 +103,34 @@ def input_reaction(request):
     if request.method != 'POST':
         return render(request, 'reactions/home_page.html', {'form': ReactionForm()})
 
+    timing_start = time.perf_counter()
+    timing_last = timing_start
+
+    def timing_mark(label, **details):
+        nonlocal timing_last
+        now = time.perf_counter()
+        detail_text = (
+            ' ' + ' '.join(f'{key}={value}' for key, value in details.items())
+            if details else ''
+        )
+        print(
+            (
+                f'[TEMP ReactionTiming server input_reaction] {label}: '
+                f'+{(now - timing_last) * 1000:.1f}ms '
+                f'total={(now - timing_start) * 1000:.1f}ms{detail_text}'
+            ),
+            flush=True,
+        )
+        timing_last = now
+
+    timing_mark('request:start', method=request.method)
+
     # Action to perform (either 'create' or 'edit')
     action = request.POST.get('action')
     form = ReactionForm(request.POST, request.FILES)
     user_id = request.POST.get('userID')
     user = User.objects.get(pk=user_id) if (user_id and user_id != 'null') else None
+    timing_mark('request metadata parsed', action=action or 'create', user_id=user_id)
 
     if action == 'edit':
         reaction_id = request.POST.get('reaction_id')
@@ -119,6 +143,7 @@ def input_reaction(request):
     else:
         # Create a new Reaction object if action is not 'edit'
         reaction = Reaction()
+    timing_mark('reaction object resolved', reaction_id=getattr(reaction, 'id', None))
 
     # Get multiple substrates, products, and their stoichiometry as lists
     raw_substrates_list = request.POST.getlist('substrates')
@@ -165,6 +190,12 @@ def input_reaction(request):
     prod_comp = products_side['compartments']
     substrates_names = substrates_side['names']
     products_names = products_side['names']
+    timing_mark(
+        'request lists normalized',
+        substrates=len(substrates_list),
+        products=len(products_list),
+        files=len(request.FILES),
+    )
 
     if not reaction_has_any_side(substrates_list, products_list):
         return _reaction_submission_error(
@@ -186,12 +217,15 @@ def input_reaction(request):
             form,
             'Stoichiometry values must be whole numbers.',
         )
+    timing_mark('basic validation complete')
 
     try:
         subs_mols, subs_errors, _ = any_to_mol(
             substrates_list, substrates_types, request, side='substrates')
+        timing_mark('substrates any_to_mol complete', count=len(subs_mols))
         prod_mols, prod_errors, _ = any_to_mol(
             products_list, products_types, request, side='products')
+        timing_mark('products any_to_mol complete', count=len(prod_mols))
     except Exception as e:
         return _reaction_submission_error(
             request,
@@ -205,6 +239,7 @@ def input_reaction(request):
             [error for error in all_errors if error is not None])
         return _reaction_submission_error(request, form, error_message)
     mol_data = get_mol_info(subs_mols + prod_mols)
+    timing_mark('get_mol_info complete', mol_count=len(subs_mols) + len(prod_mols))
     smiles = mol_data['smiles']
     inchis = mol_data['inchis']
     inchi_keys = mol_data['inchi_keys']
@@ -217,6 +252,7 @@ def input_reaction(request):
     metabolite_names = substrates_names + products_names
     reaction_rxn_file = construct_reaction_rxnfile(
         subs_mols, subs_sch, prod_mols, prod_sch, substrates_names, products_names)
+    timing_mark('construct_reaction_rxnfile complete')
     subs_inchi_keys = [
         (MolToInchiKey(mol), int(stoich))
         for mol, stoich in zip(subs_mols, subs_sch)
@@ -234,8 +270,10 @@ def input_reaction(request):
         "substrates": subs_inchi_keys,
         "products": prods_inchi_keys
     }, sort_keys=True)
+    timing_mark('reaction signature complete')
 
     reaction.save()
+    timing_mark('initial reaction.save complete', reaction_id=reaction.id)
 
     # RDT requires at least one reactant and one product.
     skip_atom_mapping = (
@@ -243,10 +281,12 @@ def input_reaction(request):
         or not substrates_list
         or not products_list
     )
+    timing_mark('atom mapping decision', skip_atom_mapping=skip_atom_mapping)
     if skip_atom_mapping:
         response_data = {'visualizations': [
             '/images/atom_mapping_skip.png']}
         reaction_info = get_reaction_info(reaction_rxn_file, direction)
+        timing_mark('get_reaction_info complete without RDT')
     else:
         # Use relative paths for RDT, but ensure directories exist with absolute paths
         png_rel_path = f'media/images/visual{reaction.id}.png'
@@ -258,9 +298,11 @@ def input_reaction(request):
             reaction_rxn_file,
             destination_path_png=png_rel_path,
             destination_path_rxn=rxn_rel_path)
+        timing_mark('RDT atom mapping complete')
         reaction_info = get_reaction_info(
             rxn_rel_path, direction
         )
+        timing_mark('get_reaction_info complete after RDT')
     balanced_count = reaction_info['balanced_count']
     subs_atoms = reaction_info['subs_atoms']
     prods_atoms = reaction_info['prods_atoms']
@@ -283,6 +325,7 @@ def input_reaction(request):
         subsystem,
         subs_comp,
         prod_comp)
+    timing_mark('check_reaction_vmh complete', found=vmh_found.get('found'))
 
     if 'error' in response_data:
         context = {'form': form, 'error_message': response_data['error']}
@@ -290,8 +333,10 @@ def input_reaction(request):
 
     subs_found, subs_miriams = search_metabolites_vmh(
         substrates_list, substrates_types, request, side='substrates')
+    timing_mark('search_metabolites_vmh substrates complete')
     prod_found, prod_miriams = search_metabolites_vmh(
         products_list, products_types, request, side='products')
+    timing_mark('search_metabolites_vmh products complete')
     substrates_list = get_fields(
         request,
         substrates_list,
@@ -299,6 +344,7 @@ def input_reaction(request):
         settings.MEDIA_ROOT,
         settings.MEDIA_URL,
         side='substrates')
+    timing_mark('get_fields substrates complete')
     products_list = get_fields(
         request,
         products_list,
@@ -306,6 +352,7 @@ def input_reaction(request):
         settings.MEDIA_ROOT,
         settings.MEDIA_URL,
         side='products')
+    timing_mark('get_fields products complete')
     # Save non-VMH metabolites
     if user:
         def save_metabolites(metabolites, found_list, names, types, user,substrates=True):
@@ -375,17 +422,20 @@ def input_reaction(request):
         response = save_metabolites(
             subs_mols, subs_found, substrates_names, substrates_types, user, substrates=True
         )
+        timing_mark('save_metabolites substrates complete')
         if response:
             return response
 
         response = save_metabolites(
             prod_mols, prod_found, products_names, products_types, user, substrates=False
         )
+        timing_mark('save_metabolites products complete')
         if response:
             return response
 
 
     # Assign the values directly to the reaction instance
+    timing_mark('begin assigning reaction fields')
     reaction.Organs = json.dumps(organs)
     reaction.subs_sch = json.dumps(subs_sch)
     reaction.prods_sch = json.dumps(prod_sch)
@@ -430,7 +480,9 @@ def input_reaction(request):
     reaction.stereo_counts = json.dumps(stereo_counts)
     reaction.stereo_locations_list = json.dumps(stereo_locations_list)
     reaction.reaction_signature = reaction_signature
+    timing_mark('assign reaction fields complete')
     reaction.save()
+    timing_mark('final reaction.save complete', reaction_id=reaction.id)
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         data = {
             'visualization': json.loads(reaction.visualization),
@@ -460,6 +512,7 @@ def input_reaction(request):
             data['vmh_url'] = vmh_found['url']
             data['vmh_formula'] = vmh_found['formula']
         data['status'] = 'success'
+        timing_mark('response data built')
         return JsonResponse(data)
 
 
@@ -481,8 +534,31 @@ def get_reaction(request, reaction_id):
             - Success: Contains reaction details.
             - Error: If the reaction ID is invalid or not found.
     """
+    timing_start = time.perf_counter()
+    timing_last = timing_start
+
+    def timing_mark(label, **details):
+        nonlocal timing_last
+        now = time.perf_counter()
+        detail_text = (
+            ' ' + ' '.join(f'{key}={value}' for key, value in details.items())
+            if details else ''
+        )
+        print(
+            (
+                f'[TEMP ReactionTiming server get_reaction] {label}: '
+                f'+{(now - timing_last) * 1000:.1f}ms '
+                f'total={(now - timing_start) * 1000:.1f}ms '
+                f'reaction_id={reaction_id}{detail_text}'
+            ),
+            flush=True,
+        )
+        timing_last = now
+
+    timing_mark('request:start')
     try:
         reaction = Reaction.objects.get(pk=reaction_id)
+        timing_mark('Reaction.objects.get complete')
         if not reaction.metabolite_smiles:
             metabolite_smiles = []
             metabolite_inchis = []
@@ -503,6 +579,7 @@ def get_reaction(request, reaction_id):
             reaction.metabolite_inchi_keys = json.dumps(metabolite_inchi_keys)
             reaction.metabolite_mol_weights = json.dumps(metabolite_mol_weights)
             reaction.save()
+            timing_mark('legacy metabolite fields backfilled')
 
         reaction_data = {
             'Organs': reaction.Organs,
@@ -550,6 +627,7 @@ def get_reaction(request, reaction_id):
             'metabolite_inchi_keys': safe_json_loads(reaction.metabolite_inchi_keys),
             'metabolite_mol_weights': safe_json_loads(reaction.metabolite_mol_weights),
         }
+        timing_mark('response data built')
         return JsonResponse(reaction_data)
 
     except Reaction.DoesNotExist:
@@ -1325,11 +1403,34 @@ def create_reaction(request):
             - Error: If the user or reaction does not exist.
     """
     if request.method == 'POST':
+        timing_start = time.perf_counter()
+        timing_last = timing_start
+
+        def timing_mark(label, **details):
+            nonlocal timing_last
+            now = time.perf_counter()
+            detail_text = (
+                ' ' + ' '.join(f'{key}={value}' for key, value in details.items())
+                if details else ''
+            )
+            print(
+                (
+                    f'[TEMP ReactionTiming server create_reaction] {label}: '
+                    f'+{(now - timing_last) * 1000:.1f}ms '
+                    f'total={(now - timing_start) * 1000:.1f}ms{detail_text}'
+                ),
+                flush=True,
+            )
+            timing_last = now
+
+        timing_mark('request:start')
         data = json.loads(request.body)
         user_id = data.get('user_id')
         reaction_id = data.get('reaction_id')
+        timing_mark('request json parsed', user_id=user_id, reaction_id=reaction_id)
         # Validate the user ID using the provided function
         user = validate_user_ID(user_id)
+        timing_mark('validate_user_ID complete', found=bool(user))
 
         if not user:
             return JsonResponse(
@@ -1337,9 +1438,11 @@ def create_reaction(request):
 
         # Fetch the reaction based on reaction_id
         reaction = get_object_or_404(Reaction, id=reaction_id)
+        timing_mark('reaction lookup complete')
 
         created_reaction = CreatedReaction.objects.create(
             user=user, reaction=reaction)
+        timing_mark('CreatedReaction.objects.create complete', created_reaction_id=created_reaction.id)
         return JsonResponse({'success': True,
                              'created_reaction_id': created_reaction.id})
 

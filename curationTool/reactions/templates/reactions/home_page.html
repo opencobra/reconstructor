@@ -53,8 +53,18 @@
 					</div>
 					<div class="compact-edit-fields">
 						<div class="compact-edit-field">
-							<label for="compactEditIdentifier">Metabolite identifier</label>
+							<label for="compactEditIdentifier" id="compactEditIdentifierLabel">Metabolite identifier</label>
 							<input type="text" id="compactEditIdentifier" autocomplete="off" />
+							<div id="compactEditSavedContainer" class="compact-edit-saved-container" style="display: none">
+								<input type="text" id="compactEditSavedSearch" autocomplete="off" placeholder="Search saved metabolites..." />
+								<input type="hidden" id="compactEditSavedId" />
+								<div id="compactEditSavedDropdown" class="compact-edit-saved-dropdown"></div>
+							</div>
+							<div id="compactEditFileContainer" class="compact-edit-file-container" style="display: none">
+								<input type="file" id="compactEditFile" accept=".mol,.sdf,.rxn,chemical/x-mdl-molfile" />
+								<div class="compact-edit-file-name" id="compactEditFileName"></div>
+							</div>
+							<div class="compact-edit-error" id="compactEditError" role="alert" style="display: none"></div>
 						</div>
 						<div class="compact-edit-field">
 							<label for="compactEditType">Input type</label>
@@ -65,7 +75,6 @@
 								<option value="SwissLipids">SwissLipids</option>
 								<option value="PubChem ID">PubChem ID</option>
 								<option value="MDL Mol file">MDL Mol file</option>
-								<option value="Draw">Draw</option>
 								<option value="Saved">My Metabolites</option>
 							</select>
 						</div>
