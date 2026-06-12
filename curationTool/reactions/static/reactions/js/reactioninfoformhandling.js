@@ -90,6 +90,7 @@ function setAddInfoButtonLoading(button, isLoading) {
 
 function setupSubmitHandler(submitButtonId, Infotextid) {
 	const submitButton = document.getElementById(submitButtonId);
+	if (!submitButton || submitButton.classList.contains('is-loading')) return;
 	const newSubmitButton = submitButton.cloneNode(true);
 	submitButton.parentNode.replaceChild(newSubmitButton, submitButton);
 

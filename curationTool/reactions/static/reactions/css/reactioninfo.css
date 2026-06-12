@@ -15,6 +15,10 @@
 }
 
 #submitAddInfocom,#submitAddInforef ,#submitAddInfoext,#submitAddInfogene {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     padding: 8px 16px;
     background-color: #007bff;
     color: white;
@@ -24,6 +28,35 @@
     font-size: 16px;
     white-space: nowrap; /* Prevent the button text from wrapping */
     width:99%
+}
+
+#submitAddInfocom:disabled,
+#submitAddInforef:disabled,
+#submitAddInfoext:disabled,
+#submitAddInfogene:disabled,
+#submitAddInfocom.is-loading,
+#submitAddInforef.is-loading,
+#submitAddInfoext.is-loading,
+#submitAddInfogene.is-loading {
+    background-color: #9ca3af;
+    cursor: not-allowed;
+    opacity: 0.85;
+}
+
+.add-info-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.55);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: add-info-spin 0.75s linear infinite;
+}
+
+@keyframes add-info-spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 #submitAddInfocom ,#submitAddInforef #submitAddInfoext #submitAddInfogene:hover {
@@ -206,4 +239,3 @@
     visibility: visible; /* Make visible */
     opacity: 1; /* Full opacity */
 }
-
