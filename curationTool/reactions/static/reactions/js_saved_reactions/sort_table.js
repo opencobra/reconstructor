@@ -14,12 +14,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const icon = row.querySelector('.flag-icon');
         return icon?.getAttribute('data-flag-name')?.toLowerCase() || 'zzz';
       }
+      // Column order: Select(0) Name(1) CS(2) Description(3) Subsystem(4)
+      // Substrates(5) Direction(6) Products(7) ...
       case 'subsystem':
-        return row.children[3]?.textContent.trim().toLowerCase() || 'zzz';
-      case 'substrates':
         return row.children[4]?.textContent.trim().toLowerCase() || 'zzz';
+      case 'substrates':
+        return row.children[5]?.textContent.trim().toLowerCase() || 'zzz';
       case 'products':
-        return row.children[6]?.textContent.trim().toLowerCase() || 'zzz';
+        return row.children[7]?.textContent.trim().toLowerCase() || 'zzz';
       default:
         return '';
     }

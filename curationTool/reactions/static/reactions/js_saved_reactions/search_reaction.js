@@ -7,10 +7,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const rows = reactionListBody.getElementsByTagName('tr');
 
         Array.from(rows).forEach(row => {
+            // Column order: Select(0) Name(1) CS(2) Description(3) Subsystem(4) Substrates(5)
             const name = row.cells[1].textContent.toLowerCase();
-            const subsystem = row.cells[2].textContent.toLowerCase();
-            const substrates = row.cells[3].textContent.toLowerCase();
-            const products = row.cells[4].textContent.toLowerCase();
+            const subsystem = row.cells[3].textContent.toLowerCase();
+            const substrates = row.cells[4].textContent.toLowerCase();
+            const products = row.cells[5].textContent.toLowerCase();
 
             if (
                 name.includes(query) ||

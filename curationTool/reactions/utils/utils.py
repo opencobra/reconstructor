@@ -203,6 +203,28 @@ def get_subcellular_locations(gene_name):
 def safe_json_loads(data):
     return json.loads(data) if data is not None else None
 
+
+# Valid confidence scores per the curation convention (1 = lowest, 4 = highest).
+VALID_CONFIDENCE_SCORES = {'1', '2', '3', '4'}
+
+
+def normalize_confidence_score(raw):
+    """
+    Coerce a stored/incoming confidence score into the canonical convention.
+
+    Over time, confidence scores have been persisted with inconsistent
+    encodings: clean ``"1"``, JSON-encoded ``'"1"'``, a blank ``'" "'`` or a
+    bare space, ``0``, ``None``, etc. This returns one of the strings
+    ``"1"``-``"4"`` for an assigned score, or ``None`` when unassigned/unknown.
+    """
+    if raw is None:
+        return None
+    s = str(raw).strip()
+    # Peel off any layers of surrounding quotes (handles JSON-encoded values).
+    while len(s) >= 2 and s[0] in '"\'' and s[-1] == s[0]:
+        s = s[1:-1].strip()
+    return s if s in VALID_CONFIDENCE_SCORES else None
+
 def get_external_ids(mols,types):
     external_ids_list = []
     all_external_fields = ['keggId', 'pubChemId', 'cheBlId', 'hmdb', 'metanetx']

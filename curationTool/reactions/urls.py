@@ -24,6 +24,7 @@ urlpatterns = [
     path('save_reaction/', user_views.save_user_reaction, name='save_reaction'),
 
     path('delete_reaction/', reaction_views.delete_reaction, name='delete_reaction'),
+    path('delete_reactions/', reaction_views.delete_reactions, name='delete_reactions'),
     path('', reaction_views.input_reaction, name='input_reaction'),
     path('add_info_to_reaction/', reaction_views.add_info_to_reaction, name='add_info_to_reaction'),
     path('get_reaction_details/', reaction_views.get_reaction_details, name='get_reaction_details'),

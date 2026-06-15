@@ -179,25 +179,46 @@
 					</div>
 				</div>
 			</div>
-			<div class="toolbar">
-				<!-- Primary Action -->
-				<div class="toolbar-section toolbar-primary">
-					<button id="sendToWorkspace" class="ui button primary-action-btn">
-						<img src="{% static 'reactions/imgs/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
-						<span>Add to VMH Workspace</span>
-					</button>
+			<!-- Delete reaction(s) confirmation — intentionally hard to misclick -->
+			<div id="deleteReactionModal" class="delete-confirm modal" style="display: none">
+				<div class="modal-content">
+					<div class="delete-confirm-icon"><i class="fas fa-exclamation-triangle"></i></div>
+					<h2>Are you sure?</h2>
+					<p id="deleteReactionMessage"></p>
+					<p class="delete-confirm-instruction">
+						This cannot be undone. Type <strong>delete</strong> below and press Enter to confirm.
+					</p>
+					<input
+						type="text"
+						id="deleteConfirmInput"
+						class="delete-confirm-input"
+						placeholder="Type &quot;delete&quot; to confirm"
+						autocomplete="off"
+						spellcheck="false" />
+					<div class="actions">
+						<button id="cancelDeleteReactionBtn" class="ui button">Cancel</button>
+						<button id="confirmDeleteReactionBtn" class="ui red button" disabled>Delete</button>
+					</div>
 				</div>
-
-				<!-- Bulk Operations Group -->
+			</div>
+			<div class="toolbar">
+				<!-- Bulk Operations Group — every action here applies to the selected reactions -->
 				<div class="toolbar-section toolbar-bulk-ops">
-					<span class="toolbar-section-label">Bulk Actions</span>
+					<span class="toolbar-section-label">
+						<span>Bulk Actions</span>
+						<span class="selection-count" id="selectionCount" data-count="0">No reactions selected</span>
+					</span>
 					<div class="toolbar-section-content">
-						<button id="addFlag" class="ui button toolbar-btn">
-							<i class="fas fa-flag"></i>
-							<span>Flag Selected</span>
+						<button id="sendToWorkspace" class="ui button bulk-btn bulk-btn-primary">
+							<img src="{% static 'reactions/imgs/vmh_icon.png' %}" alt="VMH Icon" class="vmh-icon" />
+							<span>Add to VMH Workspace</span>
 						</button>
-						<div class="confidence-control">
-							<label for="massEditConfidence">Confidence:</label>
+						<button id="addFlag" class="ui button bulk-btn">
+							<i class="fas fa-flag"></i>
+							<span>Flag</span>
+						</button>
+						<div class="confidence-control bulk-btn-group">
+							<label for="massEditConfidence">Confidence</label>
 							<select id="massEditConfidence" class="toolbar-select">
 								<option value="">-</option>
 								<option value="1">1</option>
@@ -205,8 +226,12 @@
 								<option value="3">3</option>
 								<option value="4">4</option>
 							</select>
-							<button id="applyMassConfidence" class="ui button toolbar-btn-sm">Apply</button>
+							<button id="applyMassConfidence" class="ui button bulk-btn bulk-btn-apply">Apply</button>
 						</div>
+						<button id="deleteSelected" class="ui button bulk-btn bulk-btn-danger">
+							<i class="fas fa-trash"></i>
+							<span>Delete</span>
+						</button>
 					</div>
 				</div>
 
@@ -237,8 +262,9 @@
 				<table class="reactions-table" id="reactionList">
 					<thead>
 						<tr>
-							<th>Select</th>
-							<th>Name</th>
+							<th class="select-col">Select</th>
+							<th class="name-col">Name</th>
+							<th class="cs-col" title="Confidence Score">CS</th>
 							<th>Description</th>
 							<th>Subsystem</th>
 							<th>Substrates</th>
@@ -253,10 +279,13 @@
 					<tbody>
 						{% for item in combined_reactions_details %}
 						<tr>
-							<td>
-								<input type="checkbox" class="reaction-checkbox" data-reaction-id="{{ item.reaction.id }}" />
+							<td class="select-col">
+								<label class="select-checkbox">
+									<input type="checkbox" class="reaction-checkbox" data-reaction-id="{{ item.reaction.id }}" />
+									<span class="select-checkbox-box"><i class="fas fa-check"></i></span>
+								</label>
 							</td>
-							<td>
+							<td class="name-col">
 								<span class="reaction-name" data-reaction-id="{{ item.reaction.id }}" data-current-name="{{ item.details.short_name }}">
 									{{ item.details.short_name }}
 								</span>
@@ -275,6 +304,13 @@
 									data-reaction-id="{{ item.reaction.id }}"
 									title="{{ flag.name_flag }}"></i>
 								{% endfor %}
+							</td>
+							<td class="cs-col">
+								{% if item.details.confidence_score %}
+								<span class="cs-badge cs-badge--{{ item.details.confidence_score }}">{{ item.details.confidence_score }}</span>
+								{% else %}
+								<span class="cs-badge cs-badge--none">–</span>
+								{% endif %}
 							</td>
 							<td>
 								{% if item.details.description %}
@@ -309,16 +345,11 @@
 								{% endif %}
 							</td>
 							<td>
-								<form
-									method="POST"
-									action="{% url 'delete_reaction' %}"
-									onsubmit="return confirmDelete('{{ item.reaction.short_name }}')"
-									style="display: inline">
-									{% csrf_token %}
-									<input type="hidden" name="userID" value="{{ userID }}" />
-									<input type="hidden" name="reaction_id" value="{{ item.reaction.id }}" />
-									<button type="submit" class="delete-btn">Delete</button>
-								</form>
+								<button
+									type="button"
+									class="delete-btn"
+									data-reaction-id="{{ item.reaction.id }}"
+									data-reaction-name="{{ item.details.short_name }}">Delete</button>
 								<button class="view-btn">Edit</button>
 								<button type="button" class="clone-btn" onclick="cloneReaction({{ item.reaction.id }})">Clone</button>
 							</td>
@@ -344,6 +375,7 @@
 			window.vmhBaseUrl = vmhBaseUrl;
 			const editReactionURL = "{% url 'edit_reaction_info' %}";
 			const updateConfidenceScoresURL = "{% url 'update_confidence_score' %}";
+			const deleteReactionsUrl = "{% url 'delete_reactions' %}";
 			var reactions = {{ reactions_json|safe }};
 
 			// Graph button click handler - uses GraphVisualization module

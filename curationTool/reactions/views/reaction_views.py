@@ -35,6 +35,7 @@ from django.db.models import Q
 
 from reactions.views.user_views import validate_user_ID
 from reactions.utils.utils import safe_json_loads
+from reactions.utils.utils import normalize_confidence_score
 from reactions.reaction_info import get_reaction_info
 from reactions.utils.process_strings import construct_reaction_rxnfile
 from reactions.utils.get_mol_info import get_mol_info
@@ -1062,6 +1063,42 @@ def delete_reaction(request):
     return render(request, '404.html')
 
 
+def delete_reactions(request):
+    """
+    Remove one or more reactions from a user's saved reactions list.
+
+    Accepts a JSON body with `userID` and `reactionIds` (a list) and removes
+    each reaction from the user's saved reactions. Used by the saved-reactions
+    page for both single-row deletes and bulk "delete selected" actions.
+
+    Returns:
+        JsonResponse:
+            - Success: {"status": "success", "deleted": <count>}
+            - Error: with a descriptive message.
+    """
+    if request.method != 'POST':
+        return JsonResponse({"status": "error", "message": "Invalid request"})
+
+    try:
+        data = json.loads(request.body)
+    except (ValueError, TypeError):
+        return JsonResponse({"status": "error", "message": "Invalid request body."})
+
+    user_id = data.get('userID')
+    reaction_ids = data.get('reactionIds', [])
+    user = validate_user_ID(user_id)
+
+    if not user:
+        return JsonResponse({"status": "error", "message": "Please log in."})
+    if not reaction_ids:
+        return JsonResponse({"status": "error", "message": "No reactions selected."})
+
+    reactions = Reaction.objects.filter(id__in=reaction_ids)
+    user.saved_reactions.remove(*reactions)
+
+    return JsonResponse({"status": "success", "deleted": reactions.count()})
+
+
 def saved_reactions(request, modal=False):
     """
     Fetch and display all saved reactions for a user.
@@ -1155,7 +1192,7 @@ def saved_reactions(request, modal=False):
                     'direction': _normalize_direction(reaction.direction),
                     'gene_info': gene_info_list,
                     'flags': flag_details,  # Include flag details with name and color
-                    'confidence_score': reaction.confidence_score,
+                    'confidence_score': normalize_confidence_score(reaction.confidence_score),
                 }
             })
 

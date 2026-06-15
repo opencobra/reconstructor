@@ -112,9 +112,122 @@ function savedReactionModal(userID, reactionId, saveReaction) {
 
 
 
-    // ask user for new reaction name
-    // make fetch call to clone reaction (makes identical copy of reaction with new name and adds to users saved reactions)
-    // refresh page
-function confirmDelete(reactionName) {
-    return confirm('Are you sure you want to delete reaction ' + reactionName + '?');
-}
+// ---------------------------------------------------------------------------
+// Delete reaction(s) — custom confirmation modal (intentionally hard to misclick)
+//
+// Both the per-row "Delete" button and the bulk "Delete" toolbar button funnel
+// through the same modal. The confirm button stays disabled until the user types
+// "delete"; pressing Enter in the field confirms when the text matches.
+// ---------------------------------------------------------------------------
+(function () {
+    const modal = document.getElementById('deleteReactionModal');
+    if (!modal) return;
+
+    const messageEl = document.getElementById('deleteReactionMessage');
+    const input = document.getElementById('deleteConfirmInput');
+    const confirmBtn = document.getElementById('confirmDeleteReactionBtn');
+    const cancelBtn = document.getElementById('cancelDeleteReactionBtn');
+
+    let pendingIds = [];
+
+    function openModal(ids, message) {
+        pendingIds = ids;
+        messageEl.textContent = message;
+        input.value = '';
+        confirmBtn.disabled = true;
+        modal.style.display = 'flex';
+        // Focus the field so the user can immediately type the confirmation word.
+        setTimeout(() => input.focus(), 0);
+    }
+
+    function closeModal() {
+        modal.style.display = 'none';
+        pendingIds = [];
+        input.value = '';
+        confirmBtn.disabled = true;
+    }
+
+    function isConfirmed() {
+        return input.value.trim().toLowerCase() === 'delete';
+    }
+
+    function performDelete() {
+        if (!isConfirmed() || pendingIds.length === 0) return;
+        confirmBtn.disabled = true;
+
+        fetch(deleteReactionsUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({
+                userID: userID,
+                reactionIds: pendingIds,
+            }),
+        })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.status === 'success') {
+                    location.reload();
+                } else {
+                    alert('Error deleting reaction(s): ' + (data.message || 'Unknown error.'));
+                    closeModal();
+                }
+            })
+            .catch((error) => {
+                console.error('Error deleting reaction(s):', error);
+                alert('An error occurred while deleting the reaction(s).');
+                closeModal();
+            });
+    }
+
+    // Enable the confirm button only once the user types the exact word.
+    input.addEventListener('input', function () {
+        confirmBtn.disabled = !isConfirmed();
+    });
+
+    // Enter confirms (only when the typed word matches).
+    input.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            performDelete();
+        }
+    });
+
+    confirmBtn.addEventListener('click', performDelete);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // Click on the dimmed backdrop (outside the card) cancels.
+    modal.addEventListener('click', function (e) {
+        if (e.target === modal) closeModal();
+    });
+
+    // Per-row delete buttons (event delegation so it survives table rebuilds).
+    document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.delete-btn');
+        if (!btn) return;
+        const reactionId = btn.getAttribute('data-reaction-id');
+        if (!reactionId) return;
+        const reactionName = btn.getAttribute('data-reaction-name') || 'this reaction';
+        openModal([reactionId], `You are about to delete reaction "${reactionName}".`);
+    });
+
+    // Bulk "Delete" toolbar button — operates on the selected reactions.
+    const deleteSelectedBtn = document.getElementById('deleteSelected');
+    if (deleteSelectedBtn) {
+        deleteSelectedBtn.addEventListener('click', function () {
+            const ids = (window.checkedReactions || []).slice();
+            if (ids.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('Please select at least one reaction', '#f44336');
+                } else {
+                    alert('Please select at least one reaction.');
+                }
+                return;
+            }
+            const noun = ids.length === 1 ? 'reaction' : 'reactions';
+            openModal(ids, `You are about to delete ${ids.length} selected ${noun}.`);
+        });
+    }
+})();

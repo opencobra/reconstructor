@@ -229,6 +229,150 @@
 	display: none;
 }
 
+/* ============================================
+   BULK ACTIONS — cohesive group; every control
+   here applies to the currently selected rows
+   ============================================ */
+.toolbar-bulk-ops .toolbar-section-label {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.selection-count {
+	font-size: 10px;
+	font-weight: 600;
+	text-transform: none;
+	letter-spacing: 0;
+	color: #9aa0a6;
+	background: #eef1f4;
+	border: 1px solid #e3e7eb;
+	border-radius: 999px;
+	padding: 2px 9px;
+	transition: all 0.15s ease;
+}
+
+/* Highlight once something is selected so the link to the buttons is obvious */
+.selection-count:not([data-count='0']) {
+	color: #1565c0;
+	background: #e3f2fd;
+	border-color: #bbdefb;
+}
+
+.toolbar-bulk-ops .toolbar-section-content {
+	gap: 8px;
+}
+
+/* Unified bulk action buttons — same height/shape for a cohesive row */
+.bulk-btn {
+	display: inline-flex !important;
+	align-items: center;
+	gap: 6px;
+	height: 38px;
+	margin: 0 !important;
+	padding: 0 14px !important;
+	background: #f8f9fa !important;
+	color: #495057 !important;
+	font-weight: 500 !important;
+	border: 1px solid #dee2e6 !important;
+	border-radius: 6px !important;
+	font-size: 13px !important;
+	cursor: pointer;
+	transition: all 0.15s ease;
+}
+
+.bulk-btn:hover {
+	background: #e9ecef !important;
+	border-color: #ced4da !important;
+	color: #212529 !important;
+}
+
+.bulk-btn i {
+	font-size: 12px;
+	color: #6c757d;
+}
+
+.bulk-btn:hover i {
+	color: #495057;
+}
+
+.bulk-btn-primary {
+	background: linear-gradient(135deg, #2196f3 0%, #1976d2 100%) !important;
+	color: #fff !important;
+	border: none !important;
+	font-weight: 600 !important;
+	box-shadow: 0 2px 6px rgba(33, 150, 243, 0.3);
+}
+
+.bulk-btn-primary:hover {
+	background: linear-gradient(135deg, #1e88e5 0%, #1565c0 100%) !important;
+	color: #fff !important;
+}
+
+.bulk-btn-primary .vmh-icon {
+	width: 18px;
+	height: 18px;
+}
+
+.bulk-btn-danger {
+	background: #fff !important;
+	color: #c62828 !important;
+	border: 1px solid #f1c4c4 !important;
+}
+
+.bulk-btn-danger i {
+	color: #c62828;
+}
+
+.bulk-btn-danger:hover {
+	background: #c62828 !important;
+	color: #fff !important;
+	border-color: #c62828 !important;
+}
+
+.bulk-btn-danger:hover i {
+	color: #fff;
+}
+
+.bulk-btn-apply {
+	background: #28a745 !important;
+	color: #fff !important;
+	border: none !important;
+	height: 28px;
+	padding: 0 12px !important;
+}
+
+.bulk-btn-apply:hover {
+	background: #218838 !important;
+	color: #fff !important;
+}
+
+/* Confidence selector + Apply grouped into one pill so they read as one control */
+.confidence-control.bulk-btn-group {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	height: 38px;
+	padding: 0 6px 0 12px;
+	background: #fff;
+	border: 1px solid #dee2e6;
+	border-left: 1px solid #dee2e6;
+	border-radius: 6px;
+}
+
+.confidence-control.bulk-btn-group label {
+	font-size: 12px;
+	color: #6c757d;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.confidence-control.bulk-btn-group .toolbar-select {
+	min-width: 56px;
+	height: 28px;
+	padding: 0 24px 0 8px !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1200px) {
 	.toolbar {
@@ -337,9 +481,26 @@ html,
 body {
 	font-family: 'Poppins', sans-serif !important;
 	width: 100%;
+	height: 100%;
 	margin: 0;
 	padding: 0;
 	background-color: #e7f7ff !important;
+}
+
+/* Make the page exactly fill the viewport so the reactions table (which scrolls
+   internally) occupies the page and there's no dead space below it. */
+body {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* The content region grows to fill everything under the header/toolbar. */
+.content {
+	flex: 1 1 auto;
+	display: flex;
+	flex-direction: column;
+	min-height: 0; /* allow inner scroll area to shrink instead of overflowing */
 }
 
 h1 {
@@ -416,11 +577,13 @@ li {
 	border: 1px solid #ddd; /* Border for data cells */
 }
 
-/* Make the table container scrollable */
+/* Make the table container scrollable and fill the remaining page height so it
+   spans the whole page with no empty space beneath it. */
 .table-scroll-container {
-	max-height: calc(100vh - 200px); /* Adjust as needed */
+	flex: 1 1 auto;
+	min-height: 0;
 	overflow-y: auto;
-	margin-top: 10px;
+	margin: 10px 10px 10px; /* match the toolbar's horizontal gutters */
 }
 
 /* Enhance appearance for the checkbox and button container for actions */
@@ -504,9 +667,137 @@ li {
 	white-space: nowrap; /* Prevent buttons from wrapping */
 }
 
-.reaction-checkbox {
-	width: 1.7vw;
-	height: 1.7vh;
+/* ============================================
+   SELECT COLUMN — custom, centered, whole-cell clickable
+   ============================================ */
+.reactions-table th.select-col,
+.reactions-table td.select-col {
+	width: 52px;
+	min-width: 52px;
+}
+
+/* Remove cell padding so the label can fill the whole cell (clickable area) */
+.reactions-table td.select-col {
+	padding: 0;
+}
+
+/* The label fills the entire cell so a click anywhere in it toggles the box */
+.select-checkbox {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	min-height: 44px;
+	margin: 0;
+	cursor: pointer;
+}
+
+/* Visually hide the real checkbox but keep it accessible/operable */
+.select-checkbox .reaction-checkbox {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+	margin: 0;
+	pointer-events: none;
+}
+
+.select-checkbox-box {
+	width: 20px;
+	height: 20px;
+	border: 2px solid #c2c9d1;
+	border-radius: 6px;
+	background: #fff;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #fff;
+	transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.select-checkbox-box i {
+	font-size: 11px;
+	opacity: 0;
+	transform: scale(0.6);
+	transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.select-checkbox:hover .select-checkbox-box {
+	border-color: #2196f3;
+}
+
+.select-checkbox .reaction-checkbox:checked + .select-checkbox-box {
+	background: #2196f3;
+	border-color: #2196f3;
+}
+
+.select-checkbox .reaction-checkbox:checked + .select-checkbox-box i {
+	opacity: 1;
+	transform: scale(1);
+}
+
+.select-checkbox .reaction-checkbox:focus-visible + .select-checkbox-box {
+	box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.25);
+}
+
+/* Highlight the row of a selected reaction so the selection reads clearly */
+.reactions-table tr:has(.reaction-checkbox:checked) {
+	background-color: #e8f3fe;
+}
+
+/* ============================================
+   NAME (narrower) + CS (very narrow) COLUMNS
+   ============================================ */
+.reactions-table th.name-col,
+.reactions-table td.name-col {
+	width: 12%;
+	max-width: 150px;
+}
+
+.reactions-table th.cs-col,
+.reactions-table td.cs-col {
+	width: 42px;
+	min-width: 42px;
+	max-width: 48px;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.cs-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 24px;
+	border-radius: 50%;
+	font-size: 12px;
+	font-weight: 700;
+	color: #fff;
+	line-height: 1;
+}
+
+.cs-badge--1 {
+	background: #e53935;
+}
+
+.cs-badge--2 {
+	background: #fb8c00;
+}
+
+.cs-badge--3 {
+	background: #fdd835;
+	color: #5b4d00;
+}
+
+.cs-badge--4 {
+	background: #43a047;
+}
+
+.cs-badge--none {
+	background: #eceff1;
+	color: #90a4ae;
+	font-weight: 600;
 }
 
 /* Styles for the button container */
@@ -1677,6 +1968,102 @@ button#backToHome {
 #deleteFlagModal .content,
 #confirmSendModal .content {
 	text-align: center;
+}
+
+@keyframes scaleIn {
+	from {
+		transform: scale(0.92);
+		opacity: 0;
+	}
+	to {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+/* ============================================
+   DELETE REACTION(S) CONFIRMATION MODAL
+   ============================================ */
+#deleteReactionModal.delete-confirm.modal {
+	position: fixed;
+	inset: 0;
+	display: none; /* JS toggles to flex */
+	align-items: center;
+	justify-content: center;
+	background: rgba(0, 0, 0, 0.45);
+	z-index: 1100;
+}
+
+#deleteReactionModal .modal-content {
+	width: 90%;
+	max-width: 430px;
+	background: #fff;
+	border-radius: 10px;
+	padding: 28px 32px;
+	box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+	text-align: center;
+	animation: scaleIn 0.2s ease-out;
+}
+
+.delete-confirm-icon {
+	width: 54px;
+	height: 54px;
+	margin: 0 auto 14px;
+	border-radius: 50%;
+	background: #fdecea;
+	color: #c62828;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 22px;
+}
+
+#deleteReactionModal h2 {
+	margin: 0 0 8px;
+	color: #212529;
+	font-size: 20px;
+}
+
+#deleteReactionMessage {
+	color: #495057;
+	margin: 0 0 12px;
+}
+
+.delete-confirm-instruction {
+	color: #6c757d;
+	font-size: 13px;
+	margin: 0 0 16px;
+}
+
+.delete-confirm-instruction strong {
+	color: #c62828;
+}
+
+.delete-confirm-input {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	font-size: 14px;
+	box-sizing: border-box;
+	margin-bottom: 18px;
+}
+
+.delete-confirm-input:focus {
+	outline: none;
+	border-color: #c62828;
+	box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.15);
+}
+
+#deleteReactionModal .actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+#confirmDeleteReactionBtn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 #descriptionModal.ui.modal {

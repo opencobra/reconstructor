@@ -2,6 +2,17 @@
 var checkedReactions = []; // Store IDs of checked reactions
 window.checkedReactions = checkedReactions; // Expose to window for graph visualization
 
+// Keep the toolbar's selection count in sync so it's clear that the bulk
+// actions apply to whatever is currently selected.
+function updateSelectionCount() {
+    const countEl = document.getElementById('selectionCount');
+    if (!countEl) return;
+    const n = checkedReactions.length;
+    countEl.dataset.count = String(n);
+    countEl.textContent =
+        n === 0 ? 'No reactions selected' : `${n} reaction${n === 1 ? '' : 's'} selected`;
+}
+
 // Use event delegation so this survives table rebuilds (e.g. after sort)
 document.addEventListener('change', function (e) {
     if (!e.target.classList.contains('reaction-checkbox')) return;
@@ -17,7 +28,10 @@ document.addEventListener('change', function (e) {
         }
     }
     window.checkedReactions = checkedReactions;
+    updateSelectionCount();
 });
+
+document.addEventListener('DOMContentLoaded', updateSelectionCount);
 
 document.getElementById("applyMassConfidence").addEventListener("click", async function () {
     let selectedReactions = document.querySelectorAll(".reaction-checkbox:checked");

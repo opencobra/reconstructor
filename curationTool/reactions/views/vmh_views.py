@@ -37,6 +37,7 @@ from reactions.models import (
 from reactions.reaction_info import construct_vmh_formula
 from reactions.utils.search_vmh import search_metabolites_vmh
 from reactions.utils.utils import capitalize_first_letter
+from reactions.utils.utils import normalize_confidence_score
 from reactions.utils.gen_vmh_abbrs import gen_metabolite_abbr
 from reactions.utils.search_vmh import get_from_vmh
 from reactions.utils.add_to_vmh_utils import (
@@ -464,7 +465,7 @@ def save_reaction_draft(request):
             reaction.short_name = data['abbreviation']
         
         if 'confidence_score' in data:
-            reaction.confidence_score = data['confidence_score']
+            reaction.confidence_score = normalize_confidence_score(data['confidence_score'])
 
         # Update substrate names if provided
         if 'substrates_info' in data:
@@ -778,8 +779,8 @@ def add_to_vmh(request):
         obj.references = new_references if new_references else None
         obj.ext_links = new_ext_links if new_ext_links else None
         obj.comments = new_comments if new_comments else None
-        obj.confidence_score = reaction.get(
-            'confidence_score', 0)  # Add confidence score
+        obj.confidence_score = normalize_confidence_score(
+            reaction.get('confidence_score'))  # Add confidence score
         balanced_charge = (
             json.loads(obj.balanced_charge)[0] if obj.balanced_charge else None
         )
