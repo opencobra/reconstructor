@@ -8,6 +8,8 @@ function displayReactionMessage(reactionData) {
 
     const hasMatch = Boolean(reactionData && reactionData.vmh_found);
     const isSimilar = Boolean(reactionData && reactionData.vmh_found_similar);
+    const addedViaConstructor = Boolean(
+        reactionData && reactionData.vmh_added_via_constructor);
     const rawUrl = reactionData && reactionData.vmh_url ? reactionData.vmh_url : '';
     const cleanedUrl = rawUrl.trim().replace(/^"|"$/g, '');
 
@@ -24,7 +26,13 @@ function displayReactionMessage(reactionData) {
     const hasLink = cleanedUrl !== '';
 
     const badge = hasLink ? document.createElement('a') : document.createElement('span');
-    badge.className = isSimilar ? 'vmh-badge vmh-badge--similar' : 'vmh-badge vmh-badge--exact';
+    let modifierClass = 'vmh-badge--exact';
+    if (addedViaConstructor) {
+        modifierClass = 'vmh-badge--added';
+    } else if (isSimilar) {
+        modifierClass = 'vmh-badge--similar';
+    }
+    badge.className = `vmh-badge ${modifierClass}`;
 
     if (hasLink) {
         badge.href = cleanedUrl;
@@ -33,13 +41,21 @@ function displayReactionMessage(reactionData) {
     }
 
     const icon = document.createElement('i');
-    icon.className = isSimilar ? 'fas fa-code-branch' : 'fas fa-check-circle';
+    if (addedViaConstructor) {
+        icon.className = 'fas fa-plus-circle';
+    } else {
+        icon.className = isSimilar ? 'fas fa-code-branch' : 'fas fa-check-circle';
+    }
     icon.setAttribute('aria-hidden', 'true');
 
     const label = document.createElement('span');
-    label.textContent = isSimilar
-        ? `VMH similar reaction: ${reactionId}`
-        : `VMH exact reaction: ${reactionId}`;
+    if (addedViaConstructor) {
+        label.textContent = 'Reaction added to VMH via constructor';
+    } else if (isSimilar) {
+        label.textContent = `VMH similar reaction: ${reactionId}`;
+    } else {
+        label.textContent = `VMH exact reaction: ${reactionId}`;
+    }
 
     badge.appendChild(icon);
     badge.appendChild(label);

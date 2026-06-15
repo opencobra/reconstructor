@@ -55,6 +55,7 @@ class Reaction(models.Model):
     Organs = models.TextField(blank=True, null=True)
     vmh_found = models.BooleanField(default=False)
     vmh_found_similar = models.BooleanField(default=False)
+    vmh_added_via_constructor = models.BooleanField(default=False)
     vmh_url = models.TextField(blank=True, null=True)
     vmh_formula = models.TextField(blank=True, null=True)
     references = models.JSONField(blank=True, null=True)

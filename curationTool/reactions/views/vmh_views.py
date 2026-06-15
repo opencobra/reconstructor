@@ -61,6 +61,7 @@ except Exception as e:
     MatlabSessionManager = None
 
 from reactions.utils.utils import reactions_to_json
+from reactions.utils.vmh_api import vmh_reaction_url
 
 
 def _json_list(value):
@@ -969,7 +970,10 @@ def add_to_vmh(request):
                         submission_snapshot=met,
                     )
                 reaction_obj.vmh_found = True
-                reaction_obj.save(update_fields=['vmh_found'])
+                reaction_obj.vmh_added_via_constructor = True
+                reaction_obj.vmh_url = json.dumps(vmh_reaction_url(abbr)) if abbr else None
+                reaction_obj.save(update_fields=[
+                    'vmh_found', 'vmh_added_via_constructor', 'vmh_url'])
                 workspace.reactions.remove(reaction_obj)
         
         return JsonResponse({

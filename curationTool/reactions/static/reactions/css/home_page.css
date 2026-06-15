@@ -1722,6 +1722,12 @@ footer {
 	color: #f2fff4;
 }
 
+.vmh-badge--added {
+	background: rgba(33, 150, 243, 0.24);
+	border-color: rgba(214, 236, 255, 0.52);
+	color: #eaf5ff;
+}
+
 .vmh-badge--none {
 	background: rgba(84, 110, 122, 0.3);
 	border-color: rgba(229, 238, 244, 0.45);

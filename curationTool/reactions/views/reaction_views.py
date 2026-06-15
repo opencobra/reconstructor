@@ -509,6 +509,7 @@ def input_reaction(request):
         if vmh_found['found']:
             data['vmh_found'] = vmh_found['found']
             data['vmh_found_similar'] = vmh_found['similar']
+            data['vmh_added_via_constructor'] = False
             data['vmh_url'] = vmh_found['url']
             data['vmh_formula'] = vmh_found['formula']
         data['status'] = 'success'
@@ -614,6 +615,7 @@ def get_reaction(request, reaction_id):
             'prod_miriams': safe_json_loads(reaction.prod_miriams),
             'vmh_found': reaction.vmh_found,
             'vmh_found_similar': reaction.vmh_found_similar,
+            'vmh_added_via_constructor': reaction.vmh_added_via_constructor,
             'vmh_url': reaction.vmh_url,
             'vmh_formula': reaction.vmh_formula,
             'metabolite_names': safe_json_loads(reaction.metabolite_names),
