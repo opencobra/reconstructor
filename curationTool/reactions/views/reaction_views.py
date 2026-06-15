@@ -1704,7 +1704,15 @@ def update_confidence_score(request):
 
             Reaction.objects.filter(id__in=reaction_ids).update(confidence_score=confidence_score)
 
-            return JsonResponse({"status": "success"})
+            # Return the persisted (normalized) score per reaction so the client
+            # can refresh just the affected rows from the server's source of truth.
+            updated = {
+                str(rid): normalize_confidence_score(score)
+                for rid, score in Reaction.objects.filter(
+                    id__in=reaction_ids
+                ).values_list('id', 'confidence_score')
+            }
+            return JsonResponse({"status": "success", "updated": updated})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)})
 

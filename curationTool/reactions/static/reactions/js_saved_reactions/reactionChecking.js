@@ -33,6 +33,30 @@ document.addEventListener('change', function (e) {
 
 document.addEventListener('DOMContentLoaded', updateSelectionCount);
 
+// Build the CS badge markup for a (server-confirmed) confidence score. Mirrors
+// the server-side template so updated rows match a freshly rendered page.
+function renderConfidenceBadge(score) {
+    const valid = ['1', '2', '3', '4'];
+    if (score && valid.includes(String(score))) {
+        return `<span class="cs-badge cs-badge--${score}">${score}</span>`;
+    }
+    return '<span class="cs-badge cs-badge--none">–</span>';
+}
+
+// Refresh just the CS cell of each updated row, in place, keeping row order and
+// everything else untouched. `updated` maps reaction_id -> normalized score.
+function applyConfidenceUpdates(updated) {
+    Object.entries(updated).forEach(([reactionId, score]) => {
+        const checkbox = document.querySelector(
+            `.reaction-checkbox[data-reaction-id="${reactionId}"]`);
+        const row = checkbox && checkbox.closest('tr');
+        const cell = row && row.querySelector('.cs-col');
+        if (cell) {
+            cell.innerHTML = renderConfidenceBadge(score);
+        }
+    });
+}
+
 document.getElementById("applyMassConfidence").addEventListener("click", async function () {
     let selectedReactions = document.querySelectorAll(".reaction-checkbox:checked");
     let confidenceScore = document.getElementById("massEditConfidence").value;
@@ -68,7 +92,12 @@ document.getElementById("applyMassConfidence").addEventListener("click", async f
 
         let data = await response.json();
         if (data.status === "success") {
-            alert("Confidence scores updated successfully!");
+            // Reflect the server's persisted values in the affected rows only.
+            applyConfidenceUpdates(data.updated || {});
+            const n = Object.keys(data.updated || {}).length;
+            if (typeof showToast === 'function') {
+                showToast(`Confidence score updated for ${n} reaction${n === 1 ? '' : 's'}`);
+            }
         } else {
             alert("Error updating confidence scores: " + data.message);
         }
