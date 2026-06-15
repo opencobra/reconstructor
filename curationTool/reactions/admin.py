@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction, Flag, ReactionTemplate, SavedMetabolite, Workspace
+from .models import User, Reaction, ReactionsAddedVMH, MetabolitesAddedVMH, Subsystem, CreatedReaction, Flag, ReactionTemplate, SavedMetabolite, Workspace, Feedback
 
 
 
@@ -263,3 +263,33 @@ admin.site.register(Flag, FlagAdmin)
 admin.site.register(ReactionTemplate, ReactionTemplateAdmin)
 admin.site.register(SavedMetabolite, SavedMetaboliteAdmin)
 admin.site.register(Workspace)
+
+
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = (
+        'id',
+        'feedback_type',
+        'short_text',
+        'user',
+        'github_issue_number',
+        'created_at',
+    )
+    list_filter = ('feedback_type', 'created_at')
+    search_fields = ('text', 'user__name', 'github_issue_url')
+    readonly_fields = (
+        'feedback_type',
+        'text',
+        'user',
+        'created_at',
+        'github_issue_url',
+        'github_issue_number',
+        'github_sync_error',
+    )
+
+    def short_text(self, obj):
+        text = obj.text or ''
+        return (text[:75] + '…') if len(text) > 75 else text
+    short_text.short_description = 'Feedback'
+
+
+admin.site.register(Feedback, FeedbackAdmin)

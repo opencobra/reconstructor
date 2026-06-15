@@ -33,6 +33,13 @@ except ImportError:
 VMH_BASE_URL = os.getenv('VMH_BASE_URL', '').rstrip('/')
 VMH_API_KEY = os.getenv('VMH_API_KEY', '')
 
+# GitHub issue mirroring for user feedback.
+# GITHUB_FEEDBACK_TOKEN must be a Personal Access Token (or fine-grained token)
+# with permission to create issues on GITHUB_FEEDBACK_REPO. If the token is
+# empty, feedback is still stored locally but no GitHub issue is created.
+GITHUB_FEEDBACK_TOKEN = os.getenv('GITHUB_FEEDBACK_TOKEN', '')
+GITHUB_FEEDBACK_REPO = os.getenv('GITHUB_FEEDBACK_REPO', 'opencobra/reconstructor')
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 

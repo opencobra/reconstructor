@@ -12,7 +12,8 @@ from .views import (
     ai_views,
     utility_views,
     graph_views,
-    group_views)
+    group_views,
+    feedback_views)
 from django.conf import settings
 from django.conf.urls.static import static
 
@@ -86,6 +87,7 @@ urlpatterns = [
 
     path('stats/', about_leaderboard_views.leader_board, name='leader_board'),
     path('about/', about_leaderboard_views.about_view, name='about'),
+    path('submit_feedback/', feedback_views.submit_feedback, name='submit_feedback'),
 
     path('check-session/', utility_views.check_session_data, name='check_session'),
     path('delete-gene-info/', utility_views.delete_gene_info_from_session, name='delete_gene_info_from_session'),

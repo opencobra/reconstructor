@@ -352,7 +352,47 @@ class ReactionGroupMembership(models.Model):
     def __str__(self):
         return f"{self.reaction_id} in {self.group_id} @ {self.position}"
    
-# Gene table, populated by HGNC to show suggested gene name list in Gene Info interface 
+class Feedback(models.Model):
+    """User-submitted feedback (bug report, suggestion, etc.).
+
+    Each entry is persisted locally so admins can browse it, and (when a
+    GitHub token is configured) is also mirrored as an issue on the
+    opencobra/reconstructor repository.
+    """
+
+    FEEDBACK_TYPE_CHOICES = [
+        ('bug', 'Bug'),
+        ('suggestion', 'Suggestion'),
+        ('question', 'Question'),
+        ('feature', 'Feature request'),
+        ('other', 'Other'),
+    ]
+
+    feedback_type = models.CharField(
+        max_length=20,
+        choices=FEEDBACK_TYPE_CHOICES,
+        default='other')
+    text = models.TextField()
+    user = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        related_name='feedback',
+        blank=True,
+        null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    # GitHub issue mirroring metadata (populated on successful sync).
+    github_issue_url = models.URLField(blank=True, null=True)
+    github_issue_number = models.IntegerField(blank=True, null=True)
+    github_sync_error = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_feedback_type_display()} #{self.id}"
+
+
+# Gene table, populated by HGNC to show suggested gene name list in Gene Info interface
 class Gene(models.Model):
     symbol = models.CharField(max_length=50, db_index=True)
     name = models.TextField(blank=True)
