@@ -8,9 +8,10 @@
  * writes values back into those same row controls and re-runs the existing verify
  * flow — so the standard Create/Update Reaction path handles persistence unchanged.
  *
- * Toggle visibility / chosen view are gated on `?reaction_id=...` and persisted
- * globally in localStorage, mirroring the panel-order/size preference pattern in
- * Creatediv.js.
+ * The toggle is always available (both new and existing reactions), since the
+ * compact view operates entirely on the live form rows and needs no saved
+ * reaction. The chosen view is persisted globally in localStorage, mirroring the
+ * panel-order/size preference pattern in Creatediv.js.
  */
 (function (global) {
     'use strict';
@@ -34,10 +35,6 @@
     var editContext = null;
     var editSaving = false;
     var compactSavedMetabolitesPromise = null;
-
-    function hasReactionId() {
-        return Boolean(new URLSearchParams(window.location.search).get('reaction_id'));
-    }
 
     function isCompactPreferred() {
         return localStorage.getItem(STORAGE_KEY) === 'true';
@@ -990,16 +987,12 @@
     }
 
     function syncToggleVisibility() {
+        // The compact view works off the live form rows, so it is available for
+        // both new and existing reactions. Show the toggle whenever it exists.
         var wrap = document.getElementById('reactantsViewToggle');
         if (!wrap) return false;
-        var show = hasReactionId();
-        wrap.style.display = show ? '' : 'none';
-        if (!show) {
-            // New/uncreated reaction: never present the compact view, but keep the
-            // saved preference intact for the next created reaction.
-            applyView(false, false);
-        }
-        return show;
+        wrap.style.display = '';
+        return true;
     }
 
     // ---- Wiring ----------------------------------------------------------
