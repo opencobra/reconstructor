@@ -1,3 +1,27 @@
+/**
+ * Convert a CSS color into a #rrggbb hex string.
+ *
+ * Flags are stored as hex (the color picker emits e.g. "#ff0000"), but reading
+ * a flag icon's `style.color` back from the DOM yields "rgb(255, 0, 0)". This
+ * normalizes it back to hex so the saved flag_color matches the stored flag.
+ * Already-hex values are returned unchanged.
+ */
+function rgbToHex(color) {
+    if (!color) {
+        return '';
+    }
+    color = color.trim();
+    if (color.charAt(0) === '#') {
+        return color;
+    }
+    const match = color.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (!match) {
+        return color; // Unrecognized format; pass through unchanged.
+    }
+    const toHex = (n) => parseInt(n, 10).toString(16).padStart(2, '0');
+    return `#${toHex(match[1])}${toHex(match[2])}${toHex(match[3])}`;
+}
+
 document.getElementById("confidenceScoreInput").addEventListener("input", function () {
     let value = this.value.trim();
 
