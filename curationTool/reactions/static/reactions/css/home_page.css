@@ -967,7 +967,9 @@ body {
 .custom-error-modal {
 	display: none; /* Hidden by default */
 	position: fixed;
-	z-index: 1000;
+	/* Above #loadingIndicator (9999) so error dialogs aren't hidden by the
+	   "Creating reaction... please wait" overlay. */
+	z-index: 10000;
 	left: 0;
 	top: 0;
 	width: 100%;
@@ -2434,7 +2436,8 @@ footer {
 	position: fixed;
 	top: calc(var(--top-menu-height) + var(--group-tabs-height) + 14px);
 	right: 18px;
-	z-index: 4000;
+	/* Above #loadingIndicator (9999) so toasts stay visible during loading. */
+	z-index: 10010;
 	display: flex;
 	flex-direction: column;
 	gap: 10px;
@@ -2543,7 +2546,10 @@ footer {
 .confirm-modal-overlay {
 	position: fixed;
 	inset: 0;
-	z-index: 5000;
+	/* Above #loadingIndicator (9999); the "New subsystem" confirm and other
+	   Notify.confirm/prompt dialogs open while the loader is active and must
+	   sit on top of it to remain usable. */
+	z-index: 10020;
 	display: none;
 	align-items: center;
 	justify-content: center;
