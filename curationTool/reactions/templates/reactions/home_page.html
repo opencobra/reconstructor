@@ -1169,6 +1169,23 @@
 			var getFromVmhUrl = "{% url 'get_from_vmh' %}";
 			var inputReactionUrl = "{% url 'input_reaction' %}";
 			var csrfToken = '{{ csrf_token }}';
+			function getCookie(name) {
+				const cookies = document.cookie ? document.cookie.split(';') : [];
+				for (const cookie of cookies) {
+					const trimmedCookie = cookie.trim();
+					if (trimmedCookie.startsWith(name + '=')) {
+						return decodeURIComponent(trimmedCookie.substring(name.length + 1));
+					}
+				}
+				return '';
+			}
+			function getCsrfToken() {
+				const cookieToken = getCookie('csrftoken');
+				const formToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+				csrfToken = cookieToken || formToken || csrfToken || '';
+				return csrfToken;
+			}
+			csrfToken = getCsrfToken();
 			var getReactionDetails = "{% url 'get_reaction_details' %}";
 			var addInfo2Reaction = "{% url 'add_info_to_reaction' %}";
 			var deleteInfo = "{% url 'delete_reaction_info' %}";

@@ -34,7 +34,7 @@ document.getElementById('registerForm').addEventListener('submit', function (eve
         method: 'POST',
         headers: {
             'X-Requested-With': 'XMLHttpRequest',
-            'X-CSRFToken': csrfToken,
+            'X-CSRFToken': getCsrfToken(),
         },
         body: data
     })

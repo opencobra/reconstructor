@@ -34,7 +34,7 @@ document.getElementById('loginForm').addEventListener('submit', function (event)
           method: 'POST',
           headers: {
               'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRFToken': csrfToken,
+              'X-CSRFToken': getCsrfToken(),
           },
           body: data
       })
@@ -97,7 +97,7 @@ async function fetchAvailableReactions(userId) {
           method: 'POST',
           headers: {
               'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRFToken': csrfToken
+              'X-CSRFToken': getCsrfToken()
           },
           body: JSON.stringify({ user_id: userId })
       });
@@ -129,4 +129,3 @@ function handleLoginResponse(data) {
       window.location.href = window.location.origin + "/?reaction_id=" + lastReactionId +"&action=edit";
   }
 }
-
