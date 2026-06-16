@@ -481,22 +481,24 @@ html,
 body {
 	font-family: 'Poppins', sans-serif !important;
 	width: 100%;
-	height: 100%;
 	margin: 0;
 	padding: 0;
 	background-color: #e7f7ff !important;
 }
 
 /* Make the page exactly fill the viewport so the reactions table (which scrolls
-   internally) occupies the page and there's no dead space below it. */
-body {
+   internally) occupies the page and there's no dead space below it.
+   Scoped to the saved-reactions page so it doesn't affect other pages that share
+   this stylesheet (e.g. the VMH Workspace, which relies on normal page scroll). */
+body.saved-reactions-page {
+	height: 100vh;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
 }
 
 /* The content region grows to fill everything under the header/toolbar. */
-.content {
+body.saved-reactions-page .content {
 	flex: 1 1 auto;
 	display: flex;
 	flex-direction: column;
