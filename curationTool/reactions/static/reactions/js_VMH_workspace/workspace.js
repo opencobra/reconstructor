@@ -1552,9 +1552,22 @@ window.vmhPrepCache = new VMHPrepCache({
 			return rxn ? rxn.fields.short_name : pk;
 		});
 
-		const confirmMessage = `Add ${selectedPks.length} reaction(s) to VMH?\n\n${selectedReactions.join(', ')}`;
-		
-		if (!confirm(confirmMessage)) {
+		const escapeHtml = (str) => str.replace(/[&<>"']/g, (c) => ({
+			'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+		}[c]));
+		const count = selectedPks.length;
+		const listHtml = selectedReactions
+			.map(name => `<li>${escapeHtml(String(name))}</li>`)
+			.join('');
+		const confirmed = await Notify.confirm({
+			title: 'Add to VMH',
+			messageHtml:
+				`<p>Add <strong>${count}</strong> reaction${count === 1 ? '' : 's'} to VMH?</p>` +
+				`<ul class="ws-confirm-list">${listHtml}</ul>`,
+			confirmText: 'Add to VMH',
+			cancelText: 'Cancel',
+		});
+		if (!confirmed) {
 			return;
 		}
 

@@ -2202,3 +2202,149 @@
 	padding: 60px 20px;
 	font-size: 14px;
 }
+
+/* ========================================
+   CONFIRM MODAL (Notify.confirm) — shared in-app confirmation dialog.
+   Mirrors the styles defined in home_page.css so the same modal renders
+   correctly on this page (which doesn't load home_page.css).
+   ======================================== */
+.confirm-modal-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 10020;
+	display: none;
+	align-items: center;
+	justify-content: center;
+	background: rgba(15, 23, 42, 0.45);
+	backdrop-filter: blur(2px);
+	padding: 20px;
+}
+
+.confirm-modal-overlay.open {
+	display: flex;
+}
+
+.confirm-modal {
+	width: 440px;
+	max-width: 100%;
+	background: #ffffff;
+	border-radius: 16px;
+	box-shadow: 0 24px 60px rgba(15, 23, 42, 0.32);
+	padding: 22px 24px 18px;
+	transform: translateY(14px) scale(0.97);
+	opacity: 0;
+	transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+}
+
+.confirm-modal.confirm-modal-in {
+	transform: translateY(0) scale(1);
+	opacity: 1;
+}
+
+.confirm-modal-header {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-bottom: 10px;
+}
+
+.confirm-modal-icon {
+	font-size: 1.4rem;
+	color: #2563eb;
+	flex: 0 0 auto;
+}
+
+.confirm-modal .confirm-modal-icon.fa-exclamation-triangle {
+	color: #dc2626;
+}
+
+.confirm-modal-title {
+	font-size: 1.1rem;
+	font-weight: 700;
+	color: #1e293b;
+	margin: 0;
+}
+
+.confirm-modal-message {
+	font-size: 0.92rem;
+	color: #475569;
+	line-height: 1.5;
+	margin-bottom: 16px;
+	white-space: pre-line;
+}
+
+.confirm-modal-message p {
+	margin: 0 0 8px;
+}
+
+/* List of reactions inside the Add-to-VMH confirmation */
+.ws-confirm-list {
+	margin: 0;
+	padding-left: 18px;
+	max-height: min(260px, 36vh);
+	overflow-y: auto;
+	color: #334155;
+}
+
+.ws-confirm-list li {
+	margin-bottom: 4px;
+	overflow-wrap: anywhere;
+}
+
+.confirm-modal-field {
+	margin-bottom: 16px;
+}
+
+.confirm-modal-input {
+	width: 100%;
+	padding: 10px 12px;
+	border: 1px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 0.92rem;
+	box-sizing: border-box;
+}
+
+.confirm-modal-input:focus {
+	outline: none;
+	border-color: #2563eb;
+	box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+.confirm-modal-actions {
+	display: flex;
+	justify-content: flex-end;
+	gap: 10px;
+}
+
+.confirm-modal-actions .ui.button {
+	margin: 0;
+	font-size: 0.88rem;
+	padding: 9px 18px;
+	border-radius: 8px;
+}
+
+.confirm-modal-cancel.ui.button {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+.confirm-modal-cancel.ui.button:hover {
+	background: #e2e8f0;
+}
+
+.confirm-modal-confirm.ui.button {
+	background: #2563eb;
+	color: #ffffff;
+}
+
+.confirm-modal-confirm.ui.button:hover {
+	background: #1d4ed8;
+}
+
+.confirm-modal-confirm.ui.button.danger {
+	background: #dc2626;
+}
+
+.confirm-modal-confirm.ui.button.danger:hover {
+	background: #b91c1c;
+}
