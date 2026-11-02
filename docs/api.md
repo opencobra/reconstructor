@@ -63,8 +63,9 @@ Reactions and resolution take metabolites in this shape:
 ```
 
 - `type`: `vmh`, `chebi`, `chebi_name`, `pubchem`, `swisslipids`, `smiles`, `saved`
-  (file upload and structure drawing are web-UI-only).
-- `stoichiometry`: whole number ≥ 1 (default 1).
+  (file upload and structure drawing are web-UI-only). `saved` identifiers must
+  reference metabolites you own or that were shared with you.
+- `stoichiometry`: whole number between 1 and 100 (default 1).
 - `compartment`: one of `c`, `e`, `g`, `m`, `l`, `n`, `r`, `x`, `-` (default `c`).
 - `name`: **required for `type: "smiles"`**; optional otherwise.
 
@@ -162,7 +163,9 @@ curl -X POST <base-url>/api/v1/sources/vmh/fetch \
 
 Imports the VMH reaction, runs it through the same balance-check pipeline, and
 returns `201 ProcessedReaction`. Unknown abbreviation → `422 unknown_identifier`;
-VMH down → `502 upstream_unavailable`.
+VMH down → `502 upstream_unavailable`. Reactions with fractional coefficients
+(e.g. `0.5 o2[c]`) are rejected with `422 validation_error` rather than silently
+rounded.
 
 ### `POST /api/v1/sources/rhea/fetch`
 

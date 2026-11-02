@@ -7,6 +7,7 @@ from pydantic import field_validator, model_validator
 from reactions.services.constants import (  # noqa: F401 (re-exported)
     API_TO_INTERNAL_TYPE,
     COMPARTMENTS,
+    MAX_STOICHIOMETRY,
     SUPPORTED_TYPES,
 )
 
@@ -28,6 +29,13 @@ class MetaboliteInput(Schema):
     compartment: str = 'c'
     name: Optional[str] = None
 
+    @field_validator('identifier')
+    @classmethod
+    def check_identifier(cls, v):
+        if not v or not v.strip():
+            raise ValueError('identifier must not be empty')
+        return v.strip()
+
     @field_validator('type')
     @classmethod
     def check_type(cls, v):
@@ -39,8 +47,9 @@ class MetaboliteInput(Schema):
     @field_validator('stoichiometry')
     @classmethod
     def check_stoichiometry(cls, v):
-        if v < 1:
-            raise ValueError('stoichiometry must be a whole number >= 1')
+        if v < 1 or v > MAX_STOICHIOMETRY:
+            raise ValueError(
+                f'stoichiometry must be a whole number between 1 and {MAX_STOICHIOMETRY}')
         return v
 
     @field_validator('compartment')
@@ -61,6 +70,13 @@ class MetaboliteInput(Schema):
 class ResolveIn(Schema):
     identifier: str
     type: str
+
+    @field_validator('identifier')
+    @classmethod
+    def check_identifier(cls, v):
+        if not v or not v.strip():
+            raise ValueError('identifier must not be empty')
+        return v.strip()
 
     @field_validator('type')
     @classmethod

@@ -2,7 +2,11 @@
 pipeline (FR-007). Reuses the same helpers as the web fetch endpoints."""
 import requests
 
-from reactions.services.errors import UnknownIdentifierError, UpstreamServiceError
+from reactions.services.errors import (
+    ServiceValidationError,
+    UnknownIdentifierError,
+    UpstreamServiceError,
+)
 from reactions.services.reaction_processing import process_reaction
 from reactions.utils.get_from_rhea import get_from_rhea
 from reactions.utils.search_vmh import decode_formula
@@ -20,12 +24,24 @@ _INTERNAL_TO_API = {
 }
 
 
+def _coefficient(stoich, identifier):
+    """Whole-number coefficient, or a clear error: silently truncating a
+    fractional upstream coefficient (e.g. '1.5 h2o[c]') would change the
+    imported reaction and its balance verdicts."""
+    value = float(stoich)
+    if not value.is_integer():
+        raise ServiceValidationError(
+            f"Stoichiometry {value} for '{identifier}' is fractional; only "
+            'whole-number coefficients can be imported.')
+    return int(value)
+
+
 def _side(identifiers, types, stoichs, comps):
     return [
         {
             'identifier': identifier,
             'type': _INTERNAL_TO_API.get(mtype, mtype),
-            'stoichiometry': int(float(stoich)),
+            'stoichiometry': _coefficient(stoich, identifier),
             'compartment': comp,
             'name': None,
         }

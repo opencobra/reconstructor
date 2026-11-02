@@ -4,16 +4,18 @@ from rdkit import Chem
 
 from reactions.services.constants import API_TO_INTERNAL_TYPE, SUPPORTED_TYPES
 from reactions.services.errors import (
+    ServiceValidationError,
     UnknownIdentifierError,
     UnsupportedTypeError,
     UpstreamServiceError,
 )
+from reactions.services.saved_metabolites import visible_to_user
 from reactions.utils.get_mol_info import get_mol_info
 from reactions.utils.search_vmh import search_vmh
 from reactions.utils.to_mol import any_to_mol
 
 
-def resolve_metabolite(identifier, id_type):
+def resolve_metabolite(identifier, id_type, user=None):
     """Return a dict matching the MetaboliteResolution schema.
 
     Raises UnsupportedTypeError / UnknownIdentifierError / UpstreamServiceError.
@@ -23,6 +25,17 @@ def resolve_metabolite(identifier, id_type):
         raise UnsupportedTypeError(
             f"Unsupported identifier type '{id_type}'. "
             f"Supported types: {', '.join(SUPPORTED_TYPES)}.")
+
+    identifier = str(identifier).strip()
+    if not identifier:
+        raise ServiceValidationError('identifier must not be empty.')
+
+    # Saved-metabolite pks are global in the resolver utils; only ids the
+    # caller owns (or was shared) may be dereferenced here.
+    if internal_type == 'Saved' and not visible_to_user(identifier, user):
+        raise UnknownIdentifierError(
+            f"No saved metabolite with id '{identifier}' in your collection.",
+            detail={'identifier': identifier, 'type': id_type})
 
     try:
         mols, errors, names = any_to_mol(
@@ -40,6 +53,10 @@ def resolve_metabolite(identifier, id_type):
             detail={'identifier': identifier, 'type': id_type})
 
     mol = mols[0]
+    if mol.GetNumAtoms() == 0:
+        raise UnknownIdentifierError(
+            f"Identifier '{identifier}' resolved to an empty structure.",
+            detail={'identifier': identifier, 'type': id_type})
     info = get_mol_info([mol])
 
     try:

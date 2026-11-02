@@ -3,12 +3,21 @@ from unittest.mock import patch
 
 import requests
 from django.test import TestCase
+from rdkit import Chem
 
+from reactions.models import SavedMetabolite
 from reactions.tests.helpers import make_key, make_user, post_json
 from reactions.utils.to_mol import smiles_to_mol
 
 URL = '/api/v1/metabolites/resolve'
 NOT_IN_VMH = (False, '', '', '')
+
+
+def make_saved_water(owner, name='private water'):
+    mol = Chem.MolFromSmiles('O')
+    return SavedMetabolite.objects.create(
+        owner=owner, name=name, inchi=Chem.MolToInchi(mol),
+        inchi_key=Chem.MolToInchiKey(mol), smiles='O', mol_file='')
 
 
 class ResolveMetaboliteTests(TestCase):
@@ -70,3 +79,39 @@ class ResolveMetaboliteTests(TestCase):
                              self.key)
         self.assertEqual(response.status_code, 502)
         self.assertEqual(response.json()['error']['code'], 'upstream_unavailable')
+
+    def test_blank_identifier_rejected(self):
+        for identifier in ('', '   '):
+            response = post_json(self.client, URL,
+                                 {'identifier': identifier, 'type': 'smiles'},
+                                 self.key)
+            self.assertEqual(response.status_code, 422)
+            self.assertEqual(response.json()['error']['code'], 'validation_error')
+
+    def test_empty_smiles_is_invalid_in_util(self):
+        # RDKit parses '' as a valid zero-atom molecule; the util must not.
+        mol, error, _ = smiles_to_mol('')
+        self.assertIsNone(mol)
+        self.assertIn('Invalid SMILES', error)
+
+    @patch('reactions.services.metabolite_resolution.search_vmh',
+           return_value=NOT_IN_VMH)
+    def test_own_saved_metabolite_resolves(self, _):
+        saved = make_saved_water(self.user)
+        response = post_json(self.client, URL,
+                             {'identifier': str(saved.pk), 'type': 'saved'},
+                             self.key)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['formula'], 'H2O')
+
+    def test_foreign_saved_metabolite_is_unknown(self):
+        other = make_user(name='other')
+        saved = make_saved_water(other)
+        response = post_json(self.client, URL,
+                             {'identifier': str(saved.pk), 'type': 'saved'},
+                             self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'unknown_identifier')
+        # the private name must not leak into the error
+        self.assertNotIn('private water', error['message'])

@@ -13,4 +13,4 @@ def resolve(request, payload: ResolveIn):
     """Resolve a VMH abbreviation, ChEBI ID/name, SwissLipids ID, PubChem CID,
     SMILES string or saved-metabolite id to name, formula, charge, structure
     and VMH presence."""
-    return resolve_metabolite(payload.identifier, payload.type)
+    return resolve_metabolite(payload.identifier, payload.type, user=request.auth)

@@ -50,7 +50,9 @@ def smiles_to_mol(smiles_str):
     - (tuple): (mol or None, error message or None, name '').
     """
     mol = Chem.MolFromSmiles(smiles_str)
-    if mol is None:
+    if mol is None or mol.GetNumAtoms() == 0:
+        # RDKit parses '' (and whitespace) as a valid zero-atom molecule,
+        # which breaks downstream property calculations.
         return None, f"Invalid SMILES '{smiles_str}'", ''
     return mol, None, ''
 

@@ -13,6 +13,7 @@ import json
 import logging
 
 import requests
+from django.db import transaction
 from django.db.models import Q
 from rdkit import Chem
 from rdkit.Chem import AllChem
@@ -22,7 +23,11 @@ from rdkit.Chem.rdMolDescriptors import CalcMolFormula
 
 from reactions.models import CreatedReaction, Reaction, SavedMetabolite
 from reactions.reaction_info import get_reaction_info
-from reactions.services.constants import API_TO_INTERNAL_TYPE, COMPARTMENTS
+from reactions.services.constants import (
+    API_TO_INTERNAL_TYPE,
+    COMPARTMENTS,
+    MAX_STOICHIOMETRY,
+)
 from reactions.services.errors import (
     DuplicateNameError,
     NotFoundError,
@@ -32,6 +37,7 @@ from reactions.services.errors import (
     UnsupportedTypeError,
     UpstreamServiceError,
 )
+from reactions.services.saved_metabolites import visible_to_user
 from reactions.utils.get_mol_info import get_mol_info
 from reactions.utils.process_strings import construct_reaction_rxnfile
 from reactions.utils.search_vmh import check_reaction_vmh, search_metabolites_vmh
@@ -80,9 +86,10 @@ def _normalize_side(items, side):
             raise ServiceValidationError(
                 f'Stoichiometry values must be whole numbers ({side}[{index}]).',
                 detail={'side': side, 'index': index})
-        if stoich < 1:
+        if stoich < 1 or stoich > MAX_STOICHIOMETRY:
             raise ServiceValidationError(
-                f'Stoichiometry must be >= 1 ({side}[{index}]).',
+                f'Stoichiometry must be between 1 and {MAX_STOICHIOMETRY} '
+                f'({side}[{index}]).',
                 detail={'side': side, 'index': index})
         comp = item.get('compartment', 'c')
         if comp not in COMPARTMENTS:
@@ -90,12 +97,29 @@ def _normalize_side(items, side):
                 f"Unknown compartment '{comp}' for {side}[{index}]. "
                 f"Accepted compartments: {', '.join(COMPARTMENTS)}.",
                 detail={'side': side, 'index': index})
-        identifiers.append(str(item.get('identifier', '')).strip())
+        identifier = str(item.get('identifier', '')).strip()
+        if not identifier:
+            raise ServiceValidationError(
+                f'Missing identifier for {side}[{index}].',
+                detail={'side': side, 'index': index})
+        identifiers.append(identifier)
         types.append(internal)
         stoichs.append(stoich)
         comps.append(comp)
         names.append((item.get('name') or '').strip())
     return identifiers, types, stoichs, comps, names
+
+
+def _check_saved_ownership(identifiers, types, side, user):
+    """Saved-metabolite pks resolve globally in the utils; only ids the caller
+    owns (or was shared) may be referenced. Foreign and nonexistent ids get the
+    same error, so no existence information leaks."""
+    for index, (identifier, internal) in enumerate(zip(identifiers, types)):
+        if internal == 'Saved' and not visible_to_user(identifier, user):
+            raise UnknownIdentifierError(
+                f"{side}[{index}]: no saved metabolite with id '{identifier}' "
+                'in your collection.',
+                detail={'side': side, 'index': index})
 
 
 def _resolve_side(identifiers, types, side):
@@ -108,7 +132,8 @@ def _resolve_side(identifiers, types, side):
         raise ProcessingError(f'Failed to process metabolites: {exc}')
     problems = []
     for index, error in enumerate(errors):
-        if error is not None or mols[index] is None:
+        mol = mols[index]
+        if error is not None or mol is None or mol.GetNumAtoms() == 0:
             problems.append({
                 'side': side,
                 'index': index,
@@ -191,6 +216,8 @@ def process_reaction(substrates, products, direction='forward', subsystem=None,
         substrates, 'substrates')
     prod_ids, prod_types, prod_sch, prod_comp, prod_names = _normalize_side(
         products, 'products')
+    _check_saved_ownership(subs_ids, subs_types, 'substrates', user)
+    _check_saved_ownership(prod_ids, prod_types, 'products', user)
 
     # Same storage values the web flow uses ('forward' / 'bidirectional').
     internal_direction = 'forward' if direction == 'forward' else 'bidirectional'
@@ -216,33 +243,34 @@ def process_reaction(substrates, products, direction='forward', subsystem=None,
     reaction_signature = json.dumps(
         {'substrates': subs_inchi_keys, 'products': prods_inchi_keys}, sort_keys=True)
 
-    reaction = Reaction()
-    reaction.save()
+    reaction_info = get_reaction_info(rxn_file, internal_direction)
+
     try:
-        reaction_info = get_reaction_info(rxn_file, internal_direction)
+        vmh_found = _normalize_vmh_check(check_reaction_vmh(
+            subs_ids, prod_ids, subs_sch, prod_sch, subs_types, prod_types,
+            subs_mols, prod_mols, internal_direction, subsystem,
+            subs_comp, prod_comp))
+    except requests.RequestException as exc:
+        raise UpstreamServiceError(f'VMH is unavailable: {exc}')
 
-        try:
-            vmh_found = _normalize_vmh_check(check_reaction_vmh(
-                subs_ids, prod_ids, subs_sch, prod_sch, subs_types, prod_types,
-                subs_mols, prod_mols, internal_direction, subsystem,
-                subs_comp, prod_comp))
-        except requests.RequestException as exc:
-            raise UpstreamServiceError(f'VMH is unavailable: {exc}')
+    try:
+        subs_found, subs_miriams = search_metabolites_vmh(
+            subs_ids, subs_types, None, side='substrates')
+        prod_found, prod_miriams = search_metabolites_vmh(
+            prod_ids, prod_types, None, side='products')
+    except requests.RequestException as exc:
+        raise UpstreamServiceError(f'VMH is unavailable: {exc}')
 
-        try:
-            subs_found, subs_miriams = search_metabolites_vmh(
-                subs_ids, subs_types, None, side='substrates')
-            prod_found, prod_miriams = search_metabolites_vmh(
-                prod_ids, prod_types, None, side='products')
-        except requests.RequestException as exc:
-            raise UpstreamServiceError(f'VMH is unavailable: {exc}')
-
+    # All upstream work is done; persist everything in one transaction so a
+    # failure (e.g. a duplicate metabolite name) leaves no partial rows behind.
+    with transaction.atomic():
         if user:
             _persist_saved_metabolites(
                 subs_mols, subs_found, subs_names, subs_types, subs_ids, user)
             _persist_saved_metabolites(
                 prod_mols, prod_found, prod_names, prod_types, prod_ids, user)
 
+        reaction = Reaction()
         reaction.Organs = json.dumps(organs)
         reaction.subs_sch = json.dumps(subs_sch)
         reaction.prods_sch = json.dumps(prod_sch)
@@ -289,14 +317,11 @@ def process_reaction(substrates, products, direction='forward', subsystem=None,
             mol_data['stereo_locations_list'])
         reaction.reaction_signature = reaction_signature
         reaction.save()
-    except Exception:
-        reaction.delete()
-        raise
 
-    if user:
-        # Same bookkeeping the web UI does via its create_reaction endpoint, and
-        # what makes the new reaction visible to this user's GET/save calls.
-        CreatedReaction.objects.create(user=user, reaction=reaction)
+        if user:
+            # Same bookkeeping the web UI does via its create_reaction endpoint,
+            # and what makes the new reaction visible to this user's GET/save.
+            CreatedReaction.objects.create(user=user, reaction=reaction)
 
     return reaction, serialize_reaction(reaction)
 

@@ -56,6 +56,24 @@ class VmhFetchTests(TestCase):
                              {'abbreviation': 'EMPTY'}, self.key)
         self.assertEqual(response.status_code, 422)
 
+    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+           return_value={'formula': '1.5 h2o[c] -> 1 h2o[e]'})
+    def test_fractional_stoichiometry_rejected_not_truncated(self, _find, _check):
+        response = post_json(self.client, VMH_URL,
+                             {'abbreviation': 'FRAC'}, self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'validation_error')
+        self.assertIn('fractional', error['message'])
+
+    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+           return_value={'formula': '500 h2o[c] -> 500 h2o[e]'})
+    def test_excessive_imported_stoichiometry_rejected(self, _find, _check):
+        response = post_json(self.client, VMH_URL,
+                             {'abbreviation': 'BIG'}, self.key)
+        self.assertEqual(response.status_code, 422)
+        self.assertIn('100', response.json()['error']['message'])
+
 
 @patch('reactions.services.reaction_processing.search_metabolites_vmh', found_all)
 @patch('reactions.services.reaction_processing.check_reaction_vmh',

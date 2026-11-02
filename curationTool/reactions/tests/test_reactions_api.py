@@ -90,6 +90,29 @@ class CreateReactionTests(TestCase):
         self.assertEqual(response.status_code, 422)
         self.assertIn('compartment', response.json()['error']['message'])
 
+    def test_validation_rejects_excessive_stoichiometry(self, _):
+        payload = water_transport()
+        payload['substrates'][0]['stoichiometry'] = 101
+        response = post_json(self.client, URL, payload, self.key)
+        self.assertEqual(response.status_code, 422)
+        self.assertIn('100', response.json()['error']['message'])
+
+    def test_foreign_saved_metabolite_rejected(self, _):
+        other = make_user(name='other')
+        theirs = SavedMetabolite.objects.create(
+            owner=other, name='their secret', inchi='InChI=1S/H2O/h1H2',
+            inchi_key='XLYOFNOQVPJJNP-UHFFFAOYSA-N', smiles='O', mol_file='')
+        payload = water_transport()
+        payload['substrates'][0] = {'identifier': str(theirs.pk), 'type': 'saved'}
+        response = post_json(self.client, URL, payload, self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'unknown_identifier')
+        self.assertIn('substrates[0]', error['message'])
+        self.assertNotIn('their secret', error['message'])
+        # and nothing was copied into the caller's collection
+        self.assertEqual(SavedMetabolite.objects.filter(owner=self.user).count(), 0)
+
     def test_vmh_check_error_string_degrades_to_not_found(self, mock_check):
         # check_reaction_vmh returns a json-encoded error STRING when VMH is
         # unreachable; creation must still succeed with vmh.found == False.
@@ -142,6 +165,24 @@ class SavedMetabolitePersistenceTests(TestCase):
         self.assertEqual(response.status_code, 409)
         self.assertEqual(response.json()['error']['code'], 'duplicate_name')
         # failed processing must not leave an orphan row behind
+        self.assertEqual(
+            Reaction.objects.exclude(
+                pk__in=self.user.created_reactions.values('reaction')).count(), 0)
+
+    @patch('reactions.services.reaction_processing.search_metabolites_vmh', found_none)
+    def test_failed_create_rolls_back_saved_metabolites(self, _):
+        post_json(self.client, URL, water_transport(), self.key)  # saves 'water'
+        payload = {
+            # new metabolite that would persist before the failure...
+            'substrates': [smiles_met('CCO', 'ethanol')],
+            # ...then a name clash with the existing 'water' aborts the request
+            'products': [smiles_met('CC', 'water', compartment='e')],
+            'direction': 'forward',
+        }
+        response = post_json(self.client, URL, payload, self.key)
+        self.assertEqual(response.status_code, 409)
+        self.assertFalse(
+            SavedMetabolite.objects.filter(owner=self.user, name='ethanol').exists())
         self.assertEqual(
             Reaction.objects.exclude(
                 pk__in=self.user.created_reactions.values('reaction')).count(), 0)
