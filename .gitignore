@@ -14,3 +14,4 @@ temp_mol.mol
 docker/postgres_data/
 curationTool/*.sqlite3
 mcp_server/.venv/
+.mcp.json
