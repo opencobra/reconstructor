@@ -1,0 +1,53 @@
+{
+  "manifest_version": "0.2",
+  "name": "constructor-mcp",
+  "display_name": "Constructor",
+  "version": "0.1.0",
+  "description": "Curate and balance-check metabolic reactions via the Constructor API (VMH ecosystem).",
+  "long_description": "Resolve metabolites (VMH, ChEBI, PubChem, SwissLipids, SMILES), create reactions and get mass/charge balance verdicts, import reactions from VMH and Rhea, and manage your saved reactions — conversationally. Talks only HTTP to a Constructor instance; it can never write to the shared VMH database.",
+  "author": {
+    "name": "Farid Zare",
+    "email": "farid.zare.edu@gmail.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farid-zare/reconstructor"
+  },
+  "server": {
+    "type": "python",
+    "entry_point": "server/main.py",
+    "mcp_config": {
+      "command": "python3",
+      "args": ["${__dirname}/server/main.py"],
+      "env": {
+        "PYTHONPATH": "${__dirname}/server/lib",
+        "CONSTRUCTOR_BASE_URL": "${user_config.base_url}",
+        "CONSTRUCTOR_API_KEY": "${user_config.api_key}"
+      }
+    }
+  },
+  "user_config": {
+    "base_url": {
+      "type": "string",
+      "title": "Constructor URL",
+      "description": "Base URL of the Constructor instance you use.",
+      "default": "https://constructor.humanmetabolism.org",
+      "required": true
+    },
+    "api_key": {
+      "type": "string",
+      "title": "API key",
+      "description": "Your personal Constructor API key (ctor_...). Sign in to Constructor and generate it at <Constructor URL>/api-key/ — it is shown only once.",
+      "sensitive": true,
+      "required": true
+    }
+  },
+  "compatibility": {
+    "platforms": ["darwin", "linux", "win32"],
+    "runtimes": {
+      "python": ">=3.10"
+    }
+  },
+  "keywords": ["metabolism", "vmh", "reaction-curation", "genome-scale-reconstruction", "chemistry"],
+  "license": "MIT"
+}

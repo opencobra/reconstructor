@@ -8,23 +8,59 @@ saved reactions — conversationally.
 It talks **only HTTP** to `/api/v1/` of a Constructor instance and exposes **no tool
 that writes to VMH**.
 
-## Setup
+## Get an API key
+
+Sign in to Constructor, open `<base-url>/api-key/`, and generate your key
+(`ctor_...` — it is shown only once).
+
+## Install
+
+Pick whichever suits you; all three expose the same 7 tools.
+
+### Option A — `uvx` one-liner (recommended; needs [uv](https://docs.astral.sh/uv/))
+
+No clone, no venv. Add to your MCP client config (Claude Desktop:
+`claude_desktop_config.json`; Claude Code: `.mcp.json` or `claude mcp add`):
+
+```json
+{
+  "mcpServers": {
+    "constructor": {
+      "command": "uvx",
+      "args": ["constructor-mcp"],
+      "env": {
+        "CONSTRUCTOR_BASE_URL": "https://constructor.humanmetabolism.org",
+        "CONSTRUCTOR_API_KEY": "ctor_..."
+      }
+    }
+  }
+}
+```
+
+Until the package is on PyPI, point `uvx` at this repository instead:
+
+```json
+      "args": ["--from",
+               "git+https://github.com/farid-zare/reconstructor#subdirectory=mcp_server",
+               "constructor-mcp"],
+```
+
+### Option B — one-click Claude Desktop bundle (`.mcpb`)
+
+Download `constructor-mcp.mcpb` (from a release, or build it yourself with
+`./build_mcpb.sh`), open it with Claude Desktop, and fill in the two settings
+it asks for — Constructor URL and your API key (stored in the OS keychain).
+No terminal, no config files. Requires a system `python3` (≥ 3.10).
+
+### Option C — from source
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-```
-
-Get an API key: sign in to Constructor, open `<base-url>/api-key/`, generate your key
-(it is shown only once).
-
-Quick check:
-
-```bash
 CONSTRUCTOR_API_KEY=ctor_... python server.py --smoke   # lists the 7 tools
 ```
 
-## Register with an MCP client
+then register it with absolute paths:
 
 ```json
 {
