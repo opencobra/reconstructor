@@ -174,8 +174,8 @@ For code structure explanation, please check [docs/CODE_STRUCTURE.md](./tutorial
 
 ### API & MCP server
 
-Constructor also exposes its curation capabilities programmatically (see
-`specs/002-curation-api-mcp/` for the full specification):
+Constructor also exposes its curation capabilities programmatically (full guide:
+[`docs/api.md`](./docs/api.md); design artifacts: `specs/002-curation-api-mcp/`):
 
 - **REST API v1** at `/api/v1/` — resolve metabolites (VMH, ChEBI, PubChem,
   SwissLipids, SMILES), create and balance-check reactions, list/save your
