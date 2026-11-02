@@ -41,7 +41,10 @@ def service_error(request, exc):
 def auth_error(request, exc):
     return _error(request, 401, 'unauthorized',
                   'Missing or invalid API key. Pass it as '
-                  '"Authorization: Bearer <key>" or "X-API-Key: <key>".')
+                  '"Authorization: Bearer <key>" or "X-API-Key: <key>". '
+                  'To get a key, sign in to Constructor and generate one at '
+                  f"{request.build_absolute_uri('/api-key/')} "
+                  '(rotating it there invalidates the old key).')
 
 
 @api.exception_handler(Throttled)

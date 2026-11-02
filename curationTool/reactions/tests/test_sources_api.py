@@ -41,13 +41,28 @@ class VmhFetchTests(TestCase):
         self.assertEqual(body['direction'], 'forward')
         self.assertEqual(body['subsystem'], 'Transport, extracellular')
 
+    @patch('reactions.services.external_sources.vmh_api_key_configured',
+           return_value=True)
     @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
            return_value=None)
-    def test_unknown_abbreviation(self, _find, _check):
+    def test_unknown_abbreviation(self, _find, _configured, _check):
         response = post_json(self.client, VMH_URL,
                              {'abbreviation': 'NOPE'}, self.key)
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.json()['error']['code'], 'unknown_identifier')
+
+    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+           return_value=None)
+    def test_missing_vmh_credentials_explains_setup(self, _find, _check):
+        # No VMH_API_KEY in the test environment: a failed lookup must say the
+        # server lacks credentials, not pretend the reaction does not exist.
+        response = post_json(self.client, VMH_URL,
+                             {'abbreviation': 'HEX1'}, self.key)
+        self.assertEqual(response.status_code, 502)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'upstream_unavailable')
+        self.assertIn('VMH_API_KEY', error['message'])
+        self.assertIn('Rhea', error['message'])
 
     @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
            return_value={'formula': ''})

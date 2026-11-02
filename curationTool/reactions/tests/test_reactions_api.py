@@ -113,6 +113,23 @@ class CreateReactionTests(TestCase):
         # and nothing was copied into the caller's collection
         self.assertEqual(SavedMetabolite.objects.filter(owner=self.user).count(), 0)
 
+    @patch('reactions.services.reaction_processing.any_to_mol',
+           side_effect=lambda ids, types, req, side='substrates': (
+               [None] * len(ids),
+               ['Abbreviation not found in VMH database'] * len(ids),
+               [''] * len(ids)))
+    def test_vmh_metabolites_without_credentials_explain_setup(self, _mol, _check):
+        payload = {
+            'substrates': [{'identifier': 'atp', 'type': 'vmh'}],
+            'products': [{'identifier': 'adp', 'type': 'vmh'}],
+            'direction': 'forward',
+        }
+        response = post_json(self.client, URL, payload, self.key)
+        self.assertEqual(response.status_code, 502)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'upstream_unavailable')
+        self.assertIn('VMH_API_KEY', error['message'])
+
     def test_vmh_check_error_string_degrades_to_not_found(self, mock_check):
         # check_reaction_vmh returns a json-encoded error STRING when VMH is
         # unreachable; creation must still succeed with vmh.found == False.

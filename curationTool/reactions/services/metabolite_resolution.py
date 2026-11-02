@@ -2,7 +2,11 @@
 import requests
 from rdkit import Chem
 
-from reactions.services.constants import API_TO_INTERNAL_TYPE, SUPPORTED_TYPES
+from reactions.services.constants import (
+    API_TO_INTERNAL_TYPE,
+    SUPPORTED_TYPES,
+    VMH_NOT_CONFIGURED_HINT,
+)
 from reactions.services.errors import (
     ServiceValidationError,
     UnknownIdentifierError,
@@ -13,6 +17,7 @@ from reactions.services.saved_metabolites import visible_to_user
 from reactions.utils.get_mol_info import get_mol_info
 from reactions.utils.search_vmh import search_vmh
 from reactions.utils.to_mol import any_to_mol
+from reactions.utils.vmh_api import vmh_api_key_configured
 
 
 def resolve_metabolite(identifier, id_type, user=None):
@@ -48,6 +53,10 @@ def resolve_metabolite(identifier, id_type, user=None):
             f"Could not resolve identifier '{identifier}' (type {id_type}): {exc}")
 
     if errors[0] or mols[0] is None:
+        if internal_type == 'VMH' and not vmh_api_key_configured():
+            raise UpstreamServiceError(
+                f"Cannot resolve VMH identifier '{identifier}': "
+                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             errors[0] or f"Could not resolve identifier '{identifier}' (type {id_type}).",
             detail={'identifier': identifier, 'type': id_type})

@@ -2,6 +2,7 @@
 pipeline (FR-007). Reuses the same helpers as the web fetch endpoints."""
 import requests
 
+from reactions.services.constants import VMH_NOT_CONFIGURED_HINT
 from reactions.services.errors import (
     ServiceValidationError,
     UnknownIdentifierError,
@@ -10,7 +11,10 @@ from reactions.services.errors import (
 from reactions.services.reaction_processing import process_reaction
 from reactions.utils.get_from_rhea import get_from_rhea
 from reactions.utils.search_vmh import decode_formula
-from reactions.utils.vmh_api import find_reaction_by_abbreviation
+from reactions.utils.vmh_api import (
+    find_reaction_by_abbreviation,
+    vmh_api_key_configured,
+)
 
 # Internal type strings -> API type values (inverse of API_TO_INTERNAL_TYPE).
 _INTERNAL_TO_API = {
@@ -56,6 +60,12 @@ def fetch_vmh_reaction(abbreviation, user):
     except requests.RequestException as exc:
         raise UpstreamServiceError(f'VMH is unavailable: {exc}')
     if not reaction_data:
+        if not vmh_api_key_configured():
+            # Without credentials every lookup comes back empty; saying
+            # "not found" would be misleading.
+            raise UpstreamServiceError(
+                f"Could not fetch '{abbreviation}' from VMH: "
+                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             f"No VMH reaction found with abbreviation '{abbreviation}'.")
     formula = reaction_data.get('formula', '')

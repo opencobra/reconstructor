@@ -20,3 +20,11 @@ API_TO_INTERNAL_TYPE = {
     'saved': 'Saved',
 }
 SUPPORTED_TYPES = sorted(API_TO_INTERNAL_TYPE)
+
+# Appended to errors when a VMH-backed operation fails because the server
+# itself has no VMH credentials (as opposed to the identifier being wrong).
+VMH_NOT_CONFIGURED_HINT = (
+    'this Constructor server has no VMH API key configured, so VMH lookups '
+    'are disabled. An administrator must set VMH_API_KEY in the server '
+    'environment (e.g. in .env) and restart the service. Until then, use '
+    'SMILES, ChEBI, PubChem or SwissLipids identifiers, or import from Rhea.')

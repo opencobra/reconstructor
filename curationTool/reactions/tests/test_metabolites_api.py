@@ -28,6 +28,18 @@ class ResolveMetaboliteTests(TestCase):
     def test_requires_auth(self):
         response = post_json(self.client, URL, {'identifier': 'O', 'type': 'smiles'})
         self.assertEqual(response.status_code, 401)
+        # the error must tell users where to get a key
+        self.assertIn('/api-key/', response.json()['error']['message'])
+
+    @patch('reactions.utils.to_mol.vmh_to_mol',
+           return_value=(None, 'Abbreviation not found in VMH database', ''))
+    def test_vmh_resolution_without_credentials_explains_setup(self, _):
+        response = post_json(self.client, URL,
+                             {'identifier': 'hex1', 'type': 'vmh'}, self.key)
+        self.assertEqual(response.status_code, 502)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'upstream_unavailable')
+        self.assertIn('VMH_API_KEY', error['message'])
 
     @patch('reactions.services.metabolite_resolution.search_vmh',
            return_value=NOT_IN_VMH)

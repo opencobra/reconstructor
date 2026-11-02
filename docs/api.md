@@ -167,6 +167,12 @@ VMH down → `502 upstream_unavailable`. Reactions with fractional coefficients
 (e.g. `0.5 o2[c]`) are rejected with `422 validation_error` rather than silently
 rounded.
 
+VMH-backed operations (this endpoint, and resolving `vmh`-type identifiers)
+require the **server itself** to have VMH access: the deployment must set
+`VMH_API_KEY` in its environment. Without it these return
+`502 upstream_unavailable` with a message explaining what to configure —
+SMILES/ChEBI/PubChem/SwissLipids resolution and Rhea imports work regardless.
+
 ### `POST /api/v1/sources/rhea/fetch`
 
 Same as above with `{"rhea_id": "10031"}` (the `RHEA:` prefix is optional).

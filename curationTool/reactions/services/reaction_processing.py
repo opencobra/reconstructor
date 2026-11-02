@@ -27,6 +27,7 @@ from reactions.services.constants import (
     API_TO_INTERNAL_TYPE,
     COMPARTMENTS,
     MAX_STOICHIOMETRY,
+    VMH_NOT_CONFIGURED_HINT,
 )
 from reactions.services.errors import (
     DuplicateNameError,
@@ -43,6 +44,7 @@ from reactions.utils.process_strings import construct_reaction_rxnfile
 from reactions.utils.search_vmh import check_reaction_vmh, search_metabolites_vmh
 from reactions.utils.to_mol import any_to_mol, smiles_with_explicit_hydrogens
 from reactions.utils.utils import safe_json_loads
+from reactions.utils.vmh_api import vmh_api_key_configured
 
 SKIP_ATOM_MAPPING_IMAGE = '/images/atom_mapping_skip.png'
 
@@ -141,6 +143,11 @@ def _resolve_side(identifiers, types, side):
                 'message': error or f"Could not resolve '{identifiers[index]}'",
             })
     if problems:
+        if not vmh_api_key_configured() and any(
+                types[p['index']] == 'VMH' for p in problems):
+            raise UpstreamServiceError(
+                f'Cannot resolve VMH identifiers on {side}: '
+                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             '; '.join(f"{p['side']}[{p['index']}] '{p['identifier']}': {p['message']}"
                       for p in problems),
