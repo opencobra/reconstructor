@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>API Key – Constructor</title>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
+		<link rel="shortcut icon" type="image/x-icon" href="{% static 'reactions/imgs/favicon.ico' %}" />
+	</head>
+	<body>
+		<div class="ui container" style="margin-top: 3em; max-width: 640px !important">
+			<button onclick="window.location.href = '/';" class="ui basic button">
+				<i class="home icon"></i> Home Page
+			</button>
+			<div class="ui raised segment">
+				<h2 class="ui header">
+					<i class="key icon"></i>
+					<div class="content">
+						API Key
+						<div class="sub header">Personal access key for the Constructor API (/api/v1/) and MCP server.</div>
+					</div>
+				</h2>
+				{% if not session_user %}
+				<div class="ui warning message">
+					<div class="header">Not signed in</div>
+					<p>Sign in on the <a href="/">home page</a> first, then return here to manage your API key.</p>
+				</div>
+				{% else %}
+				<p>
+					Signed in as <strong>{{ session_user.name }}</strong>.
+					{% if key_prefix %} Current key: <code>{{ key_prefix }}…</code> (created {{ key_created_at|date:"Y-m-d H:i" }}).{% else %} You don't have an API key yet.{% endif %}
+				</p>
+				<div class="ui info message">
+					<p>Your key is shown <strong>only once</strong> when generated. Regenerating invalidates the previous key immediately.</p>
+				</div>
+				<button id="generateKeyBtn" class="ui primary button">
+					<i class="sync icon"></i>
+					{% if key_prefix %}Regenerate key{% else %}Generate key{% endif %}
+				</button>
+				<div id="newKeySegment" class="ui segment" style="display: none">
+					<div class="ui fluid action input">
+						<input id="newKeyValue" type="text" readonly />
+						<button id="copyKeyBtn" class="ui teal right labeled icon button">
+							<i class="copy icon"></i> Copy
+						</button>
+					</div>
+					<div class="ui small warning message">Store this key now — it will not be shown again.</div>
+				</div>
+				<div id="keyError" class="ui negative message" style="display: none"></div>
+				{% endif %}
+			</div>
+		</div>
+		<script>
+			window.csrfToken = '{{ csrf_token }}';
+		</script>
+		<script src="{% static 'reactions/js/apiKey.js' %}"></script>
+	</body>
+</html>

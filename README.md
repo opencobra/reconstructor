@@ -172,6 +172,27 @@ Below is the most common workflow – see the [tutorials](./tutorials) directory
 
 For code structure explanation, please check [docs/CODE_STRUCTURE.md](./tutorials/docs/CODE_STRUCTURE.md).
 
+### API & MCP server
+
+Constructor also exposes its curation capabilities programmatically (see
+`specs/002-curation-api-mcp/` for the full specification):
+
+- **REST API v1** at `/api/v1/` — resolve metabolites (VMH, ChEBI, PubChem,
+  SwissLipids, SMILES), create and balance-check reactions, list/save your
+  reactions, and import reactions from VMH/Rhea. Authenticate with a personal
+  API key (`Authorization: Bearer <key>`), generated at `/api-key/` while signed
+  in. Interactive docs: `/api/v1/docs`, OpenAPI: `/api/v1/openapi.json`.
+  Responses use a uniform error envelope
+  (`{"error": {"code", "message", "detail"}}`) and are rate-limited per key
+  (default 60/min, `API_THROTTLE_RATE` env var).
+- **MCP server** in [`mcp_server/`](./mcp_server) — a thin stdio
+  [Model Context Protocol](https://modelcontextprotocol.io) wrapper over the
+  API so AI assistants can curate conversationally. Setup and client
+  configuration: [`mcp_server/README.md`](./mcp_server/README.md).
+
+Neither surface can submit reactions or metabolites to VMH; that remains a
+web-UI-only, credentialed action.
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- CONTRIBUTING -->

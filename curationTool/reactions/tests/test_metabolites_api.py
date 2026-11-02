@@ -1,0 +1,72 @@
+"""POST /api/v1/metabolites/resolve (US2 / FR-004)."""
+from unittest.mock import patch
+
+import requests
+from django.test import TestCase
+
+from reactions.tests.helpers import make_key, make_user, post_json
+from reactions.utils.to_mol import smiles_to_mol
+
+URL = '/api/v1/metabolites/resolve'
+NOT_IN_VMH = (False, '', '', '')
+
+
+class ResolveMetaboliteTests(TestCase):
+    def setUp(self):
+        self.user = make_user()
+        self.key = make_key(self.user)
+
+    def test_requires_auth(self):
+        response = post_json(self.client, URL, {'identifier': 'O', 'type': 'smiles'})
+        self.assertEqual(response.status_code, 401)
+
+    @patch('reactions.services.metabolite_resolution.search_vmh',
+           return_value=NOT_IN_VMH)
+    def test_resolve_smiles_offline(self, _):
+        response = post_json(self.client, URL,
+                             {'identifier': 'O', 'type': 'smiles'}, self.key)
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body['formula'], 'H2O')
+        self.assertEqual(body['charge'], 0)
+        self.assertTrue(body['inchi_key'].startswith('XLYOFNOQVPJJNP'))
+        self.assertFalse(body['vmh']['found'])
+
+    @patch('reactions.services.metabolite_resolution.search_vmh',
+           return_value=(True, 'https://vmh.example/h2o', 'h2o', 'Water'))
+    @patch('reactions.utils.to_mol.vmh_to_mol',
+           side_effect=lambda abbr: (smiles_to_mol('O')[0], None, 'Water'))
+    def test_resolve_vmh_abbreviation(self, _mol, _search):
+        response = post_json(self.client, URL,
+                             {'identifier': 'h2o', 'type': 'vmh'}, self.key)
+        self.assertEqual(response.status_code, 200)
+        body = response.json()
+        self.assertEqual(body['name'], 'Water')
+        self.assertEqual(body['vmh'],
+                         {'found': True, 'abbreviation': 'h2o',
+                          'miriam': 'https://vmh.example/h2o'})
+
+    def test_unknown_identifier(self):
+        response = post_json(self.client, URL,
+                             {'identifier': 'not(((smiles', 'type': 'smiles'},
+                             self.key)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()['error']['code'], 'unknown_identifier')
+
+    def test_unsupported_type_names_supported_ones(self):
+        response = post_json(self.client, URL,
+                             {'identifier': 'x', 'type': 'kegg'}, self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'validation_error')
+        self.assertIn('smiles', error['message'])
+        self.assertIn('chebi', error['message'])
+
+    @patch('reactions.services.metabolite_resolution.any_to_mol',
+           side_effect=requests.ConnectionError('boom'))
+    def test_upstream_unavailable(self, _):
+        response = post_json(self.client, URL,
+                             {'identifier': 'CHEBI:15377', 'type': 'chebi'},
+                             self.key)
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()['error']['code'], 'upstream_unavailable')

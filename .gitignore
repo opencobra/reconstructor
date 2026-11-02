@@ -12,3 +12,5 @@ temp_mol.mol
 .env
 .codex
 docker/postgres_data/
+curationTool/*.sqlite3
+mcp_server/.venv/

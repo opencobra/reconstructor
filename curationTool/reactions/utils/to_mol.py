@@ -39,6 +39,22 @@ def smiles_with_explicit_hydrogens(smiles):
     return smiles_with_h
 
 
+def smiles_to_mol(smiles_str):
+    """
+    Creates an RDKit molecule from a raw SMILES string.
+
+    Input:
+    - smiles_str (str): The SMILES string.
+
+    Output:
+    - (tuple): (mol or None, error message or None, name '').
+    """
+    mol = Chem.MolFromSmiles(smiles_str)
+    if mol is None:
+        return None, f"Invalid SMILES '{smiles_str}'", ''
+    return mol, None, ''
+
+
 def vmh_to_mol(abbreviation):
     """
     Creates a mol file of a metabolite from the VMH database using its abbreviation.
@@ -308,6 +324,8 @@ def any_to_mol(mols, types, request, side='substrates'):
             mol, error, name = pubchem_id_to_mol(mols[idx])
         elif type == 'SwissLipids':
             mol, error, name = swisslipids_to_mol(mols[idx])
+        elif type == 'SMILES':
+            mol, error, name = smiles_to_mol(mols[idx])
         elif type == 'Saved':
             mol, error, name = saved_met_to_mol(mols[idx])
         elif type == 'MDL Mol file':

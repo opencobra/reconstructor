@@ -33,6 +33,9 @@ except ImportError:
 VMH_BASE_URL = os.getenv('VMH_BASE_URL', '').rstrip('/')
 VMH_API_KEY = os.getenv('VMH_API_KEY', '')
 
+# Per-key throttle for the /api/v1/ programmatic surface (ninja rate syntax).
+API_THROTTLE_RATE = os.getenv('API_THROTTLE_RATE', '60/m')
+
 # GitHub issue mirroring for user feedback.
 # GITHUB_FEEDBACK_TOKEN must be a Personal Access Token (or fine-grained token)
 # with permission to create issues on GITHUB_FEEDBACK_REPO. If the token is
