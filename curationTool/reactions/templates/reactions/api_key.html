@@ -31,7 +31,9 @@
 				{% else %}
 				<p>
 					Signed in as <strong>{{ session_user.name }}</strong>.
-					{% if key_prefix %} Current key: <code>{{ key_prefix }}…</code> (created {{ key_created_at|date:"Y-m-d H:i" }}).{% else %} You don't have an API key yet.{% endif %}
+					{% if key_prefix %} Current key: <code title="Prefix only — the full key is never stored">{{ key_prefix }}…</code> (created {{ key_created_at|date:"Y-m-d H:i" }}).
+					<br /><span style="color: rgba(0, 0, 0, 0.55); font-size: 0.92em">Only this prefix is kept, for recognition — the full key cannot be shown again. If you lost it, regenerate.</span>
+					{% else %} You don't have an API key yet.{% endif %}
 				</p>
 				<div class="ui info message">
 					<p>Your key is shown <strong>only once</strong> when generated. Regenerating invalidates the previous key immediately.</p>
@@ -42,7 +44,7 @@
 				</button>
 				<div id="newKeySegment" class="ui segment" style="display: none">
 					<div class="ui fluid action input">
-						<input id="newKeyValue" type="text" readonly />
+						<input id="newKeyValue" type="text" readonly title="Click to copy" style="cursor: pointer" />
 						<button id="copyKeyBtn" class="ui teal right labeled icon button">
 							<i class="copy icon"></i> Copy
 						</button>
