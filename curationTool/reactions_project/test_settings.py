@@ -15,3 +15,8 @@ DATABASES = {
 
 # No collectstatic manifest in tests / local smoke runs.
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
+# Serve static/media from runserver so the sandbox web UI renders with its
+# CSS/JS. Harmless for tests: Django's test runner forces DEBUG=False.
+DEBUG = True
+SERVE_MEDIA = True
