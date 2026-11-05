@@ -16,7 +16,7 @@ the API or the MCP server. That remains a credentialed, web-UI-only action.
 
 Every endpoint except `GET /health` requires a personal API key:
 
-1. Sign in to Constructor and open `<base-url>/api-key/`.
+1. Sign in to Constructor and pick **API Key** from the user menu (top-right), or open `<base-url>/api-key/` directly.
 2. Click **Generate** — the full key (`ctor_...`) is shown **only once**; store it
    somewhere safe. Only a SHA-256 hash is kept on the server.
 3. Generating again **rotates** the key: the old key stops working immediately.
