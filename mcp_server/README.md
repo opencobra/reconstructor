@@ -41,7 +41,7 @@ Until the package is on PyPI, point `uvx` at this repository instead:
 
 ```json
       "args": ["--from",
-               "git+https://github.com/farid-zare/reconstructor#subdirectory=mcp_server",
+               "git+https://github.com/opencobra/reconstructor#subdirectory=mcp_server",
                "constructor-mcp"],
 ```
 

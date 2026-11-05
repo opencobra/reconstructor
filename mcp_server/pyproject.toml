@@ -17,8 +17,8 @@ dependencies = [
 keywords = ["mcp", "metabolism", "vmh", "genome-scale-reconstruction", "curation"]
 
 [project.urls]
-Homepage = "https://github.com/farid-zare/reconstructor"
-Documentation = "https://github.com/farid-zare/reconstructor/blob/main/mcp_server/README.md"
+Homepage = "https://github.com/opencobra/reconstructor"
+Documentation = "https://github.com/opencobra/reconstructor/blob/main/mcp_server/README.md"
 
 [project.scripts]
 constructor-mcp = "constructor_mcp.server:main"
