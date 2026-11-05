@@ -393,6 +393,25 @@ class Feedback(models.Model):
         return f"{self.get_feedback_type_display()} #{self.id}"
 
 
+class ApiKey(models.Model):
+    """Per-user credential for the /api/v1/ programmatic surface.
+
+    Only the SHA-256 digest of the key is stored; the raw key is shown once at
+    generation. One key per user; regenerating replaces the digest, which
+    invalidates the old key immediately.
+    """
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, related_name='api_key')
+    key_hash = models.CharField(max_length=64, unique=True)
+    prefix = models.CharField(
+        max_length=16, help_text='First characters of the key, for display.')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_used_at = models.DateTimeField(blank=True, null=True)
+
+    def __str__(self):
+        return f'{self.prefix}… (user {self.user_id})'
+
+
 # Gene table, populated by HGNC to show suggested gene name list in Gene Info interface
 class Gene(models.Model):
     symbol = models.CharField(max_length=50, db_index=True)

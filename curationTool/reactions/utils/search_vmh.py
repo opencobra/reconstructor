@@ -442,6 +442,12 @@ def search_metabolites_vmh(
                 miriam = ''
             else:
                 found, miriam = search_vmh(mol_obj, return_abbr=return_abbr)
+        elif this_type == 'SMILES':
+            mol_obj = Chem.MolFromSmiles(mols[idx])
+            if mol_obj is None:
+                found, miriam = False, ''
+            else:
+                found, miriam = search_vmh(mol_obj, return_abbr=return_abbr)
         elif this_type == 'Saved':
             found = False
             miriam = ''

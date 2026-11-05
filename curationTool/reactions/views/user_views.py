@@ -16,7 +16,9 @@ Functions:
 
 import json
 from django.http import JsonResponse
-from reactions.models import User, Reaction, Flag
+from django.shortcuts import render
+from reactions.models import ApiKey, User, Reaction, Flag
+from reactions.services import api_keys as api_key_service
 
 def get_user(request):
     """
@@ -213,3 +215,51 @@ def save_user_reaction(request):
         return JsonResponse({'status': 'error', 'message': 'Invalid user or reaction'})
 
     return JsonResponse({'status': 'error', 'message': 'Invalid request'})
+
+
+def _session_user(request):
+    """Return the signed-in User from the session, or None."""
+    user_id = request.session.get('userID')
+    if not user_id:
+        return None
+    try:
+        return User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return None
+
+
+def api_key_page(request):
+    """
+    Render the API key management page (feature 002, FR-003).
+
+    Shows the key prefix and creation date when a key exists; the raw key is
+    only ever returned by api_key_generate, once.
+    """
+    user = _session_user(request)
+    key = None
+    if user:
+        key = ApiKey.objects.filter(user=user).first()
+    return render(request, 'reactions/api_key.html', {
+        'session_user': user,
+        'key_prefix': key.prefix if key else None,
+        'key_created_at': key.created_at if key else None,
+    })
+
+
+def api_key_generate(request):
+    """
+    Generate (or rotate) the signed-in user's API key.
+
+    Returns the full key exactly once; only its hash is stored. Rotation
+    invalidates the previous key immediately.
+    """
+    if request.method != 'POST':
+        return JsonResponse(
+            {'status': 'error', 'message': 'Invalid request'}, status=400)
+    user = _session_user(request)
+    if not user:
+        return JsonResponse(
+            {'status': 'error', 'message': 'Sign in to manage your API key.'},
+            status=401)
+    raw_key = api_key_service.generate_key(user)
+    return JsonResponse({'status': 'success', 'api_key': raw_key})

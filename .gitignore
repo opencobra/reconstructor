@@ -12,3 +12,9 @@ temp_mol.mol
 .env
 .codex
 docker/postgres_data/
+curationTool/*.sqlite3
+mcp_server/.venv/
+.mcp.json
+mcp_server/build/
+mcp_server/dist/
+mcp_server/src/constructor_mcp.egg-info/

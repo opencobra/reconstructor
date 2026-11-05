@@ -2,14 +2,22 @@
 
 <!--
 Sync Impact Report
+- Version: 1.0.0 → 1.1.0 (MINOR: sanctioned exception added to Principle I;
+  Technology Constraints expanded)
+- Change: Principle I now sanctions a versioned, token-authenticated programmatic
+  API under /api/v1/ plus a thin MCP wrapper (feature 002-curation-api-mcp,
+  user-approved 2026-11-02), under strict conditions (web UI stays server-rendered,
+  domain logic shared via reactions/services/ + existing utils, no VMH writes from
+  programmatic surfaces).
+- Templates reviewed: plan-template.md ✅, spec-template.md ✅, tasks-template.md ✅
+- Follow-up TODOs: none
+
+Previous (1.0.0):
 - Version: (none) → 1.0.0  (initial ratification)
 - Principles defined: I Server-Rendered Django Core; II Modular Vanilla JS;
   III UX Consistency (Semantic UI); IV Data & Integration Integrity;
   V Spec Traceability; VI Minimal Footprint
 - Added sections: Technology Constraints; Development Workflow & Quality Gates
-- Templates reviewed: plan-template.md (Constitution Check gate ✅ aligns),
-  spec-template.md ✅, tasks-template.md ✅
-- Follow-up TODOs: none
 -->
 
 ## Core Principles
@@ -23,6 +31,15 @@ Django views + URL routes + templates, not as a separate API/SPA tier. Introduci
 client-side framework (React, Vue, etc.) or a separate frontend service is a breaking
 architectural change and MUST be justified in the plan's Complexity Tracking and
 approved before work begins.
+
+**Sanctioned exception (2026-11-02, feature 002-curation-api-mcp)**: a versioned,
+token-authenticated programmatic API mounted at `/api/v1/` (Django Ninja, inside the
+monolith) and a thin MCP wrapper (`mcp_server/`, HTTP client of that API only) MAY
+expose curation capabilities, provided that (a) the web UI remains server-rendered
+Django and is not rebuilt on the API, (b) domain logic is shared through
+`reactions/services/` and the existing `reactions/utils/` functions so web and API
+verdicts cannot diverge, and (c) no programmatic surface submits reactions or
+metabolites to VMH.
 
 ### II. Modular Vanilla JS (One Concern Per File)
 
@@ -81,6 +98,10 @@ and added UI concise; avoid speculative generality (YAGNI).
   contracts must be preserved.
 - **Deployment**: Docker / gunicorn (see `docker/`, `gunicorn.conf.py`,
   `deploy.sh`). Changes must remain runnable under the existing container setup.
+- **Programmatic surface**: Django Ninja API at `/api/v1/` (per-user API keys,
+  pydantic schemas, OpenAPI) and the stdio MCP server under `mcp_server/` (official
+  MCP Python SDK; configured via `CONSTRUCTOR_BASE_URL`/`CONSTRUCTOR_API_KEY`;
+  talks only HTTP to `/api/v1/`). Both are read/curate surfaces: no VMH submission.
 
 ## Development Workflow & Quality Gates
 
@@ -108,4 +129,4 @@ a new principle or materially expanded guidance, **PATCH** for clarifications. P
 reviews MUST verify compliance; unavoidable deviations are recorded in the plan's
 Complexity Tracking with a rationale and a simpler-alternative-rejected note.
 
-**Version**: 1.0.0 | **Ratified**: 2026-06-10 | **Last Amended**: 2026-06-10
+**Version**: 1.1.0 | **Ratified**: 2026-06-10 | **Last Amended**: 2026-11-02
