@@ -10,8 +10,8 @@ that writes to VMH**.
 
 ## Get an API key
 
-Sign in to Constructor, open `<base-url>/api-key/`, and generate your key
-(`ctor_...` — it is shown only once).
+Sign in to Constructor, open `<base-url>/api-key/`, confirm your password and
+generate your key (`ctor_...` — it is shown only once).
 
 ## Install
 

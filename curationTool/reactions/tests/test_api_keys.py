@@ -1,4 +1,6 @@
 """API key lifecycle, /api/v1 auth behaviour, throttling, and the web key page."""
+import json
+
 from django.core.cache import cache
 from django.test import TestCase
 
@@ -89,10 +91,17 @@ class ApiAuthTests(TestCase):
 
 
 class ApiKeyWebPageTests(TestCase):
+    def setUp(self):
+        cache.clear()  # failed-password counters live in the cache
+
     def _sign_in(self, user):
         session = self.client.session
         session['userID'] = user.pk
         session.save()
+
+    def _generate(self, password):
+        data = {} if password is None else {'password': password}
+        return self.client.post('/api-key/generate/', data)
 
     def test_generate_requires_session(self):
         response = self.client.post('/api-key/generate/')
@@ -103,10 +112,15 @@ class ApiKeyWebPageTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'Not signed in')
 
+    def test_page_asks_for_password(self):
+        self._sign_in(make_user())
+        response = self.client.get('/api-key/')
+        self.assertContains(response, 'id="apiKeyPassword"')
+
     def test_generate_rotate_roundtrip(self):
-        user = make_user()
+        user = make_user(password='s3cret')
         self._sign_in(user)
-        response = self.client.post('/api-key/generate/')
+        response = self._generate('s3cret')
         self.assertEqual(response.status_code, 200)
         first_key = response.json()['api_key']
         self.assertTrue(first_key.startswith('ctor_'))
@@ -117,8 +131,45 @@ class ApiKeyWebPageTests(TestCase):
         self.assertContains(page, first_key[:12])
         self.assertNotContains(page, first_key)  # raw key never re-shown
 
-        second_key = self.client.post('/api-key/generate/').json()['api_key']
+        second_key = self._generate('s3cret').json()['api_key']
         self.assertEqual(
             self.client.get('/api/v1/me', **auth(first_key)).status_code, 401)
         self.assertEqual(
             self.client.get('/api/v1/me', **auth(second_key)).status_code, 200)
+
+    def test_forged_session_cannot_mint_or_rotate_a_key(self):
+        # The browser syncs any user id into the session (set_session_user),
+        # so a session alone must not be enough to obtain someone's API key.
+        victim = make_user(name='victim', password='victim-pw')
+        victim_key = make_key(victim)
+        response = self.client.post(
+            '/set_session_user/', data=json.dumps({'userID': victim.pk}),
+            content_type='application/json')
+        self.assertEqual(response.json()['status'], 'success')
+
+        for password in (None, '', 'guess'):
+            response = self._generate(password)
+            self.assertEqual(response.status_code, 403)
+            self.assertNotIn('api_key', response.json())
+        # the victim's existing key was not rotated away
+        self.assertEqual(api_keys.authenticate(victim_key), victim)
+
+    def test_failed_password_attempts_are_limited(self):
+        user = make_user(password='right')
+        self._sign_in(user)
+        for _ in range(5):
+            self.assertEqual(self._generate('wrong').status_code, 403)
+        # locked even with the right password until the window passes
+        response = self._generate('right')
+        self.assertEqual(response.status_code, 429)
+        self.assertFalse(ApiKey.objects.filter(user=user).exists())
+
+    def test_successful_password_resets_the_counter(self):
+        user = make_user(password='right')
+        self._sign_in(user)
+        for _ in range(4):
+            self._generate('wrong')
+        self.assertEqual(self._generate('right').status_code, 200)
+        for _ in range(4):
+            self.assertEqual(self._generate('wrong').status_code, 403)
+        self.assertEqual(self._generate('right').status_code, 200)

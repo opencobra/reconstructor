@@ -1,19 +1,37 @@
 // API key management page (feature 002): generate/rotate the session user's key.
 $(function () {
+    $('#apiKeyPassword').on('keydown', function (event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            $('#generateKeyBtn').trigger('click');
+        }
+    });
+
     $('#generateKeyBtn').on('click', async function () {
         const btn = $(this);
+        const passwordField = $('#apiKeyPassword');
+        if (!passwordField.val()) {
+            $('#keyError').text('Enter your password to generate a key.').show();
+            passwordField.trigger('focus');
+            return;
+        }
         btn.addClass('loading disabled');
         $('#keyError').hide();
         try {
+            // The password proves the signed-in user is the account owner.
+            const body = new FormData();
+            body.append('password', passwordField.val());
             const response = await fetch('/api-key/generate/', {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRFToken': window.csrfToken,
                 },
+                body: body,
             });
             const data = await response.json();
             if (response.ok && data.status === 'success') {
+                passwordField.val('');
                 $('#newKeyValue').val(data.api_key);
                 $('#newKeySegment').show();
                 document.getElementById('newKeyValue').select();
