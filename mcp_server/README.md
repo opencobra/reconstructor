@@ -101,8 +101,8 @@ API errors surface as `Error [<code>]: <message>` (codes: `unauthorized`,
 `not_found`, `duplicate_name`, …) so the assistant can react; connection problems
 appear as `Error [connection]: …`.
 
-Note: VMH-backed tools (`fetch_vmh_reaction`, resolving `vmh` identifiers)
-additionally require the **Constructor server** to have `VMH_API_KEY` set in its
-environment. If it does not, those tools return an `upstream_unavailable` error
-that says so and explains the fix; SMILES/ChEBI/PubChem resolution and Rhea
-imports work without it.
+Note: VMH-backed tools (`fetch_vmh_reaction`, resolving `vmh` identifiers) rely
+on the Constructor server reaching the public VMH API. If VMH is unreachable or
+its anonymous rate limit (100 requests/hour, lifted by setting `VMH_API_KEY` on
+the server) is hit, they return `upstream_unavailable` with the reason; unknown
+identifiers are `unknown_identifier`.

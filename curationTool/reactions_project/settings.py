@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import tempfile
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -29,9 +30,48 @@ except ImportError:
     print("WARNING: python-dotenv not installed, environment variables must be set manually")
     pass
 
-# VMH configuration
+def _env_int(name, default):
+    try:
+        return int(os.getenv(name, default))
+    except (TypeError, ValueError):
+        print(f"WARNING: {name} must be an integer; using {default}")
+        return default
+
+
+# VMH configuration (reactions/utils/vmh_api.py; see docs/vmh_api.md).
+# VMH_BASE_URL: site used for links (default https://www.vmh.life).
+# VMH_API_BASE_URL: public API (default https://www.vmh.life/api/public).
+# VMH_API_KEY: optional. Without it VMH allows 100 requests/hour per server IP;
+#   a VMH 'public_unlimited' key lifts that limit.
 VMH_BASE_URL = os.getenv('VMH_BASE_URL', '').rstrip('/')
+VMH_API_BASE_URL = os.getenv('VMH_API_BASE_URL', '').rstrip('/')
 VMH_API_KEY = os.getenv('VMH_API_KEY', '')
+VMH_API_TIMEOUT = _env_int('VMH_API_TIMEOUT', 20)
+VMH_CACHE_TTL = _env_int('VMH_CACHE_TTL', 24 * 3600)
+VMH_NEGATIVE_CACHE_TTL = _env_int('VMH_NEGATIVE_CACHE_TTL', 3600)
+# Shared by all gunicorn workers; also holds the derived InChIKey index.
+CACHE_DIR = os.getenv('DJANGO_CACHE_DIR', os.path.join(tempfile.gettempdir(), 'constructor-cache'))
+VMH_CACHE_DIR = os.getenv('VMH_CACHE_DIR', os.path.join(CACHE_DIR, 'vmh'))
+# Match VMH metabolites stored without an InChIKey via keys derived from their SMILES.
+VMH_DERIVED_INDEX = str(os.getenv('VMH_DERIVED_INDEX', 'true')).strip().lower() in {
+    '1', 'true', 'yes', 'on'}
+
+CACHES = {
+    # File-based so state is shared by all gunicorn workers (e.g. the per-key
+    # throttle of /api/v1/); nothing here needs to survive a restart.
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(CACHE_DIR, 'default'),
+        'OPTIONS': {'MAX_ENTRIES': 5000},
+    },
+    # Answers from the VMH API (cached so VMH's rate limit is rarely reached).
+    'vmh': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': VMH_CACHE_DIR,
+        'TIMEOUT': VMH_CACHE_TTL,
+        'OPTIONS': {'MAX_ENTRIES': 10000},
+    },
+}
 
 # Per-key throttle for the /api/v1/ programmatic surface (ninja rate syntax).
 API_THROTTLE_RATE = os.getenv('API_THROTTLE_RATE', '60/m')

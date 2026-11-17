@@ -27,7 +27,6 @@ from reactions.services.constants import (
     API_TO_INTERNAL_TYPE,
     COMPARTMENTS,
     MAX_STOICHIOMETRY,
-    VMH_NOT_CONFIGURED_HINT,
 )
 from reactions.services.errors import (
     DuplicateNameError,
@@ -44,7 +43,7 @@ from reactions.utils.process_strings import construct_reaction_rxnfile
 from reactions.utils.search_vmh import check_reaction_vmh, search_metabolites_vmh
 from reactions.utils.to_mol import any_to_mol, smiles_with_explicit_hydrogens
 from reactions.utils.utils import safe_json_loads
-from reactions.utils.vmh_api import vmh_api_key_configured
+from reactions.utils.vmh_api import VMHUnavailableError
 
 SKIP_ATOM_MAPPING_IMAGE = '/images/atom_mapping_skip.png'
 
@@ -52,17 +51,20 @@ logger = logging.getLogger(__name__)
 
 
 def _normalize_vmh_check(raw):
-    """check_reaction_vmh has three return shapes: a full dict, a bare
-    {'found': False}, and a json-encoded error string when VMH is unreachable.
-    Degrade the error case to 'not found' — the same policy vmh_api applies to
-    metabolite lookups — and fill missing keys."""
+    """check_reaction_vmh returns a dict, carrying an 'error' message when VMH
+    could not be asked (older versions returned a json-encoded error string).
+    Degrade the error case to 'not found' — the reaction itself is still
+    created — and fill missing keys."""
     if isinstance(raw, str):
         try:
             parsed = json.loads(raw)
         except ValueError:
             parsed = {'error': raw}
-        logger.warning('VMH reaction check unavailable: %s',
-                       parsed.get('error', raw))
+        raw = parsed if isinstance(parsed, dict) else {'error': raw}
+    if not isinstance(raw, dict):
+        raw = {}
+    if raw.get('error'):
+        logger.warning('VMH reaction check unavailable: %s', raw['error'])
         raw = {}
     return {
         'found': raw.get('found', False),
@@ -127,6 +129,8 @@ def _check_saved_ownership(identifiers, types, side, user):
 def _resolve_side(identifiers, types, side):
     try:
         mols, errors, auto_names = any_to_mol(identifiers, types, None, side=side)
+    except VMHUnavailableError as exc:
+        raise UpstreamServiceError(exc.user_message(f'resolve VMH identifiers on {side}'))
     except requests.RequestException as exc:
         raise UpstreamServiceError(
             f'An upstream metabolite source is unavailable: {exc}')
@@ -143,11 +147,6 @@ def _resolve_side(identifiers, types, side):
                 'message': error or f"Could not resolve '{identifiers[index]}'",
             })
     if problems:
-        if not vmh_api_key_configured() and any(
-                types[p['index']] == 'VMH' for p in problems):
-            raise UpstreamServiceError(
-                f'Cannot resolve VMH identifiers on {side}: '
-                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             '; '.join(f"{p['side']}[{p['index']}] '{p['identifier']}': {p['message']}"
                       for p in problems),
@@ -260,11 +259,15 @@ def process_reaction(substrates, products, direction='forward', subsystem=None,
     except requests.RequestException as exc:
         raise UpstreamServiceError(f'VMH is unavailable: {exc}')
 
+    # strict: a metabolite VMH could not be checked must not be stored as one
+    # of the user's own metabolites (it may well be in VMH).
     try:
         subs_found, subs_miriams = search_metabolites_vmh(
-            subs_ids, subs_types, None, side='substrates')
+            subs_ids, subs_types, None, side='substrates', strict=True)
         prod_found, prod_miriams = search_metabolites_vmh(
-            prod_ids, prod_types, None, side='products')
+            prod_ids, prod_types, None, side='products', strict=True)
+    except VMHUnavailableError as exc:
+        raise UpstreamServiceError(exc.user_message('check the metabolites against VMH'))
     except requests.RequestException as exc:
         raise UpstreamServiceError(f'VMH is unavailable: {exc}')
 

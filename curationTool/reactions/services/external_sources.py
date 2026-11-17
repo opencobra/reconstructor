@@ -2,19 +2,16 @@
 pipeline (FR-007). Reuses the same helpers as the web fetch endpoints."""
 import requests
 
-from reactions.services.constants import VMH_NOT_CONFIGURED_HINT
 from reactions.services.errors import (
     ServiceValidationError,
     UnknownIdentifierError,
     UpstreamServiceError,
 )
 from reactions.services.reaction_processing import process_reaction
+from reactions.utils import chebi_api
 from reactions.utils.get_from_rhea import get_from_rhea
 from reactions.utils.search_vmh import decode_formula
-from reactions.utils.vmh_api import (
-    find_reaction_by_abbreviation,
-    vmh_api_key_configured,
-)
+from reactions.utils.vmh_api import VMHUnavailableError, lookup_reaction
 
 # Internal type strings -> API type values (inverse of API_TO_INTERNAL_TYPE).
 _INTERNAL_TO_API = {
@@ -54,26 +51,28 @@ def _side(identifiers, types, stoichs, comps):
 
 
 def fetch_vmh_reaction(abbreviation, user):
-    """Fetch a VMH reaction by abbreviation and process it for the user."""
+    """Fetch a VMH reaction by abbreviation (former abbreviations and other
+    letter cases resolve to the current reaction) and process it for the user."""
     try:
-        reaction_data = find_reaction_by_abbreviation(abbreviation)
+        reaction_data = lookup_reaction(abbreviation)
+    except VMHUnavailableError as exc:
+        # Distinct from "not found": the abbreviation may well exist.
+        raise UpstreamServiceError(exc.user_message(f"fetch '{abbreviation}' from VMH"))
     except requests.RequestException as exc:
         raise UpstreamServiceError(f'VMH is unavailable: {exc}')
     if not reaction_data:
-        if not vmh_api_key_configured():
-            # Without credentials every lookup comes back empty; saying
-            # "not found" would be misleading.
-            raise UpstreamServiceError(
-                f"Could not fetch '{abbreviation}' from VMH: "
-                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             f"No VMH reaction found with abbreviation '{abbreviation}'.")
     formula = reaction_data.get('formula', '')
     if not formula:
         raise UnknownIdentifierError(
             f"Reaction '{abbreviation}' has no formula in VMH.")
-    (substrates, products, subs_sch, prod_sch,
-     subs_comps, prod_comps, direction) = decode_formula(formula)
+    try:
+        (substrates, products, subs_sch, prod_sch,
+         subs_comps, prod_comps, direction) = decode_formula(formula)
+    except ValueError:
+        raise UnknownIdentifierError(
+            f"Could not read the VMH formula of '{abbreviation}': {formula}")
     api_direction = 'forward' if direction == 'forward' else 'reversible'
     return process_reaction(
         substrates=_side(substrates, ['VMH'] * len(substrates), subs_sch, subs_comps),
@@ -96,6 +95,8 @@ def fetch_rhea_reaction(rhea_id, user):
         raise UpstreamServiceError(f'Rhea is unavailable: {exc}')
     if 'error' in result:
         raise UnknownIdentifierError(f"Rhea: {result['error']}")
+    # One batched ChEBI request for both sides (ChEBI is slow per request).
+    chebi_api.prefetch_compounds(result['substrates'] + result['products'])
     api_direction = ('forward' if result.get('direction', 'forward') == 'forward'
                      else 'reversible')
     return process_reaction(

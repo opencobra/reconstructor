@@ -85,9 +85,21 @@ async function callPrepareAddToVMH(reactionIds) {
 		});
 
 		if (!response.ok) {
-			// Handle HTTP errors
+			// Error responses still carry {status: 'error', message}, e.g. when
+			// VMH could not be reached; return them so callers can show the reason.
 			console.error(`HTTP error! status: ${response.status}`);
-			return null;
+			let errorData = null;
+			try {
+				errorData = await response.json();
+			} catch (parseError) {
+				errorData = null;
+			}
+			return {
+				...(errorData || {}),
+				status: 'error',
+				message: (errorData && errorData.message)
+					|| `The server returned an error (HTTP ${response.status}). Please try again.`,
+			};
 		}
 
 		const data = await response.json();

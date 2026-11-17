@@ -1426,7 +1426,9 @@ window.vmhPrepCache = new VMHPrepCache({
 			});
 			const data = await response.json();
 			if (data.status !== 'success') {
-				throw new Error(data.message || 'Availability check failed');
+				const serverError = new Error(data.message || 'Availability check failed');
+				serverError.fromServer = Boolean(data.message);
+				throw serverError;
 			}
 
 			setAvailabilityStatus(container, 'name', data.name_in_vmh ? 'conflict' : 'ok');
@@ -1443,7 +1445,10 @@ window.vmhPrepCache = new VMHPrepCache({
 			console.error('Availability check failed:', error);
 			setAvailabilityStatus(container, 'name', 'stale');
 			setAvailabilityStatus(container, 'abbr', 'stale');
-			showWorkspaceToast('Could not check VMH availability', 'error');
+			showWorkspaceToast(
+				error && error.fromServer ? error.message : 'Could not check VMH availability',
+				'error'
+			);
 		} finally {
 			button.disabled = false;
 			button.innerHTML = '<i class="fas fa-search"></i>';

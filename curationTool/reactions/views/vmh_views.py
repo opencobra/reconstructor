@@ -62,7 +62,7 @@ except Exception as e:
     MatlabSessionManager = None
 
 from reactions.utils.utils import reactions_to_json
-from reactions.utils.vmh_api import vmh_reaction_url
+from reactions.utils.vmh_api import VMHUnavailableError, vmh_reaction_url
 
 
 def _json_list(value):
@@ -408,6 +408,10 @@ def prepare_add_to_vmh(request):
             'reaction_name_in_vmh': reaction_name_in_vmh,
             'reaction_abbr_in_vmh': reaction_abbr_in_vmh,
         })
+    except VMHUnavailableError as exc:
+        return JsonResponse({'status': 'error', 'vmh_unavailable': True,
+                             'message': exc.user_message('check the reactions against VMH')},
+                            status=503)
     except Exception as e:
         return JsonResponse({'status': 'error',
                              'message': 'An error occurred while processing reactions.'},
@@ -612,11 +616,16 @@ def create_formula_abbr(request):
             return JsonResponse({'error': 'Missing data'}, status=400)
 
         # Use the bypass function to force the else clause
-        abbr = gen_metabolite_abbr(
-            metabolite,
-            mtype,
-            metabolite_name,
-            bypass_search_func)
+        try:
+            abbr = gen_metabolite_abbr(
+                metabolite,
+                mtype,
+                metabolite_name,
+                bypass_search_func)
+        except VMHUnavailableError as exc:
+            return JsonResponse(
+                {'error': exc.user_message('check the new abbreviation against VMH')},
+                status=503)
 
         # Return the abbreviation as JSON
         return JsonResponse({'abbr': abbr})
@@ -641,10 +650,15 @@ def check_vmh_availability(request):
     if item_type not in {'reaction', 'metabolite'}:
         return JsonResponse({'status': 'error', 'message': 'Invalid availability check type.'}, status=400)
 
-    if item_type == 'reaction':
-        identity = _check_reaction_identity(name, abbr)
-    else:
-        identity = _check_metabolite_identity(name, abbr)
+    try:
+        if item_type == 'reaction':
+            identity = _check_reaction_identity(name, abbr)
+        else:
+            identity = _check_metabolite_identity(name, abbr)
+    except VMHUnavailableError as exc:
+        return JsonResponse({'status': 'error', 'vmh_unavailable': True,
+                             'message': exc.user_message('check availability in VMH')},
+                            status=503)
 
     return JsonResponse({
         'status': 'success',
@@ -656,6 +670,14 @@ def check_vmh_availability(request):
         'name_ok': bool(name and not identity['name_in_vmh']),
         'abbr_ok': bool(abbr and not identity['abbr_in_vmh']),
     })
+
+def _vmh_unavailable_for_submission(exc):
+    return JsonResponse(
+        {'status': 'error', 'vmh_unavailable': True,
+         'message': exc.user_message('check names and abbreviations against VMH')
+         + ' Nothing was added to VMH.'},
+        status=503)
+
 
 def add_to_vmh(request):
     """
@@ -702,8 +724,13 @@ def add_to_vmh(request):
     if error_response:
         return error_response
 
-    # Validate reaction existence in VMH (names and abbreviations)
-    error_response = validate_reaction_existence(reactions)
+    # Validate reaction existence in VMH (names and abbreviations). These checks
+    # need a definite answer: nothing is written (locally or to VMH) if VMH
+    # cannot be asked.
+    try:
+        error_response = validate_reaction_existence(reactions)
+    except VMHUnavailableError as exc:
+        return _vmh_unavailable_for_submission(exc)
     if error_response:
         return error_response
 
@@ -722,8 +749,12 @@ def add_to_vmh(request):
                 pk=reaction['pk']).prod_found) for reaction in reactions]
 
     # Validate metabolite existence in VMH
-    error_response = validate_metabolite_existence(reactions_new_subs_info, reactions_new_prods_info,
-                                                    reactions_subs_found, reactions_prods_found)
+    try:
+        error_response = validate_metabolite_existence(
+            reactions_new_subs_info, reactions_new_prods_info,
+            reactions_subs_found, reactions_prods_found)
+    except VMHUnavailableError as exc:
+        return _vmh_unavailable_for_submission(exc)
     if error_response:
         return error_response
 
