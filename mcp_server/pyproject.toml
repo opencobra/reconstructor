@@ -1,0 +1,27 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "constructor-mcp"
+version = "0.1.0"
+description = "MCP server for Constructor: curate and balance-check metabolic reactions via the Constructor API (VMH ecosystem)"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Farid Zare", email = "farid.zare.edu@gmail.com" }]
+requires-python = ">=3.10"
+dependencies = [
+    "mcp>=2,<3",
+    "httpx>=0.27",
+]
+keywords = ["mcp", "metabolism", "vmh", "genome-scale-reconstruction", "curation"]
+
+[project.urls]
+Homepage = "https://github.com/opencobra/reconstructor"
+Documentation = "https://github.com/opencobra/reconstructor/blob/main/mcp_server/README.md"
+
+[project.scripts]
+constructor-mcp = "constructor_mcp.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/constructor_mcp"]

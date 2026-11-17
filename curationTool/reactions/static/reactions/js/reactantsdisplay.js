@@ -45,6 +45,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             $('#savedMetabolitesModal').modal('show');
             userDropdown.classList.remove('active');
         });
+
+        document.getElementById('dropdown-api-key').addEventListener('click', function() {
+            const userId = sessionStorage.getItem('userID');
+            if (userId) {
+                window.location.href = '/api-key/';
+            } else {
+                showErrorModal('Please login to manage your API key.');
+            }
+            userDropdown.classList.remove('active');
+        });
     }
 
     // Add event listeners for nav links

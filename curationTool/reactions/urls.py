@@ -22,6 +22,8 @@ urlpatterns = [
     path('set_session_user/', user_views.set_session_user, name='set_session_user'),
     path('register_user', user_views.register_user, name='register_user'),
     path('save_reaction/', user_views.save_user_reaction, name='save_reaction'),
+    path('api-key/', user_views.api_key_page, name='api_key_page'),
+    path('api-key/generate/', user_views.api_key_generate, name='api_key_generate'),
 
     path('delete_reaction/', reaction_views.delete_reaction, name='delete_reaction'),
     path('delete_reactions/', reaction_views.delete_reactions, name='delete_reactions'),

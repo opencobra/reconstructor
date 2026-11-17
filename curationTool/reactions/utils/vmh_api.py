@@ -31,6 +31,11 @@ def _vmh_api_key() -> str:
     return os.getenv("VMH_API_KEY", "") or getattr(settings, "VMH_API_KEY", "") or ""
 
 
+def vmh_api_key_configured() -> bool:
+    """True when a VMH API key is available (env var or settings)."""
+    return bool(_vmh_api_key())
+
+
 def vmh_public_base_url() -> str:
     """Prefix used to build clickable VMH links such as /metabolite/{abbr}."""
     base = os.getenv("VMH_BASE_URL", "") or getattr(settings, "VMH_BASE_URL", "")

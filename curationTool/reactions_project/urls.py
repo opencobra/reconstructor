@@ -19,8 +19,11 @@ from django.urls import path, include, re_path
 from django.conf import settings
 from django.views.static import serve
 
+from reactions.api import api as api_v1
+
 urlpatterns = [
     path('admin/', admin.site.urls),  # Django Admin
+    path('api/v1/', api_v1.urls),  # Programmatic surface (feature 002)
     path('', include('reactions.urls')),  # Include URLs from reactions app
 ]
 

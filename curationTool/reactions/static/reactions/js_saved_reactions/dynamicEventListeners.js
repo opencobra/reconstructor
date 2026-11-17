@@ -68,6 +68,14 @@ $(document).ready(function () {
 				userDropdown.classList.remove('active');
 			});
 		}
+
+		const dropdownApiKey = document.getElementById('dropdown-api-key');
+		if (dropdownApiKey) {
+			dropdownApiKey.addEventListener('click', function() {
+				window.location.href = '/api-key/';
+				userDropdown.classList.remove('active');
+			});
+		}
 	}
 });
 
