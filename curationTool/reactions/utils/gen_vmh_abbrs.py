@@ -5,7 +5,7 @@ import sys
 import traceback
 from pathlib import Path
 from django.conf import settings
-from reactions.utils.vmh_api import find_metabolite_by_abbreviation, find_reaction_by_abbreviation
+from reactions.utils.vmh_api import metabolite_abbreviation_exists, reaction_abbreviation_exists
 
 # Use HTTP client to communicate with MATLAB container
 from reactions.utils.MatlabHTTPClient import MatlabSessionManager
@@ -36,14 +36,15 @@ def _save_abbr_cache(cache):
     except IOError as e:
         print(f"[WARN gen_vmh_abbrs] Failed to save cache: {e}", flush=True)
 
+# Both checks treat current abbreviations (also in other letter cases) and
+# former ones as taken, and raise VMHUnavailableError when VMH cannot be asked,
+# so a generated abbreviation never collides with an existing VMH entry.
 def check_reaction_abbr_exists(abbr):
-    row = find_reaction_by_abbreviation(abbr)
-    return bool(row and (row.get("abbreviation") or "").lower() == abbr.lower())
+    return reaction_abbreviation_exists(abbr)
 
 
 def check_met_abbr_exists(abbr):
-    row = find_metabolite_by_abbreviation(abbr)
-    return bool(row and (row.get("abbreviation") or "").lower() == abbr.lower())
+    return metabolite_abbreviation_exists(abbr)
 
 
 def gen_reaction_abbr(sub_abbr, prod_abbr, reaction):
@@ -81,8 +82,11 @@ def gen_metabolite_abbr(
         print(f"[DEBUG gen_vmh_abbrs] Cache hit for '{metabolite_name}': {cached_abbr}", flush=True)
         return cached_abbr
 
+    # strict: if VMH cannot be asked, abort rather than invent an abbreviation
+    # for a metabolite VMH may already have.
     found, abbr = search_func(
-        [metabolite], [mtype], None, side='substrates', nofile=True, return_abbr=True)
+        [metabolite], [mtype], None, side='substrates', nofile=True, return_abbr=True,
+        strict=True)
     found, abbr = found[0], abbr[0]
     if found:
         print(f"[DEBUG gen_vmh_abbrs] Metabolite '{metabolite_name}' found in VMH with abbr: {abbr}", flush=True)

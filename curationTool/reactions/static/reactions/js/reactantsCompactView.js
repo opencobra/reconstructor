@@ -817,6 +817,13 @@
                 if (data.error) {
                     throw new Error(data.message || 'Verification failed.');
                 }
+                // VMH could not be checked, or the abbreviation was renamed in VMH
+                if (data.warning && window.Notify) {
+                    Notify.warning(data.warning, 'VMH not checked');
+                }
+                if (data.notice && window.Notify) {
+                    Notify.info(data.notice, 'VMH');
+                }
                 return data;
             });
     }

@@ -38,6 +38,13 @@
 				<div class="ui info message">
 					<p>Your key is shown <strong>only once</strong> when generated. Regenerating invalidates the previous key immediately.</p>
 				</div>
+				<div class="ui form">
+					<div class="field">
+						<label for="apiKeyPassword">Confirm your password</label>
+						<input id="apiKeyPassword" type="password" autocomplete="current-password" placeholder="Your Constructor password" />
+					</div>
+				</div>
+				<br />
 				<button id="generateKeyBtn" class="ui primary button">
 					<i class="sync icon"></i>
 					{% if key_prefix %}Regenerate key{% else %}Generate key{% endif %}

@@ -10,9 +10,9 @@ from django.core.files.temp import NamedTemporaryFile
 from urllib.parse import unquote
 import requests
 from reactions_project.settings import MEDIA_ROOT, MEDIA_URL
-from zeep import Client
 from reactions.models import SavedMetabolite
-from reactions.utils.vmh_api import find_metabolite_by_abbreviation
+from reactions.utils import chebi_api
+from reactions.utils.vmh_api import VMHUnavailableError, lookup_metabolite
 
 def smiles_with_explicit_hydrogens(smiles):
     """
@@ -50,7 +50,13 @@ def vmh_to_smiles(abbreviation):
     Output:
     - (tuple): A tuple containing the SMILES string and an error message (if any).
     """
-    row = find_metabolite_by_abbreviation(abbreviation)
+    try:
+        row = lookup_metabolite(abbreviation)
+    except VMHUnavailableError as exc:
+        return None, exc.user_message(f"look up {abbreviation} in VMH")
+    if row and row.get('is_former'):
+        return None, (f"Metabolite {abbreviation} was renamed in VMH; "
+                      f"use `{row.get('abbreviation')}` instead")
     if not row:
         return None, f"Metabolite {abbreviation} does not exist in VMH"
 
@@ -70,27 +76,13 @@ def chebi_to_smiles(chebi_id, name):
     Output:
     - (tuple): A tuple containing - the MOL object,- an error message (if any) and - the name of the metabolite.
     """
-    wsdl = 'https://www.ebi.ac.uk/webservices/chebi/2.0/webservice?wsdl'
-    client = Client(wsdl)
-
-    if name:
-        # Setup parameters to search for "group"
-        params = {
-            'search': chebi_id,
-            'searchCategory': 'CHEBI NAME',
-            'maximumResults': 10,
-            'stars': 'ALL'}
-
-        # Call getLiteEntity method
-        response = client.service.getLiteEntity(**params)
-        response = response[0]
-        chebi_id = response['chebiId']
-
-    complete_entity = client.service.getCompleteEntity(chebiId=chebi_id)
-    try:
-        smiles = complete_entity['smiles']
-    except BaseException:
-        return None, f"Metabolite {chebi_id} does not have InChI on ChEBI"
+    # ChEBI 2.0 REST API (the SOAP web service was retired).
+    compound, error = chebi_api.resolve(chebi_id, by_name=bool(name))
+    if error:
+        return None, error
+    smiles = compound['smiles']
+    if not smiles:
+        return None, f"Metabolite {compound['chebi_accession']} does not have SMILES on ChEBI"
     try:
         smiles = smiles_with_explicit_hydrogens(smiles)
     except BaseException:

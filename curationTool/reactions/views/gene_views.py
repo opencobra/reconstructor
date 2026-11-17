@@ -23,7 +23,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from reactions.organ_data import ORGAN_MAPPING, location_mapping
 from reactions.utils.utils import fetch_and_map_gene_expression, get_subcellular_locations, _vmh_gene_exists, _entrez_exists, _hgnc_symbol_exists_exact
-from reactions.utils.vmh_api import gene_data_new, gene_rows_old, gene_symbol_from_row
+from reactions.utils.vmh_api import VMHUnavailableError, gene_symbol_from_row, lookup_gene
 
 from reactions.models import Gene
 from django.db.models import Q
@@ -126,15 +126,16 @@ def get_gene_info(request):
                     return JsonResponse(
                         {'error': False, 'symbol': gene_data["name"]})
 
-        # If not found in Entrez, check VMH (new API first, then old fallback).
-        vmh_rows = gene_data_new(gene_input)
-        if not vmh_rows and "." not in gene_input:
-            vmh_rows = gene_data_new(f"{gene_input}.1")
-
-        if not vmh_rows:
-            vmh_rows = gene_rows_old(gene_number=gene_input)
-        if not vmh_rows and "." not in gene_input:
-            vmh_rows = gene_rows_old(gene_number=f"{gene_input}.1")
+        # If not found in Entrez, check VMH (Entrez IDs, incl. VMH's "2645.1" form).
+        try:
+            vmh_gene = lookup_gene(gene_input)
+        except VMHUnavailableError as exc:
+            return JsonResponse(
+                {'error': True,
+                 'message': f'Gene number `{gene_input}` was not found in Entrez, and '
+                            + exc.user_message('check VMH')},
+                status=503)
+        vmh_rows = vmh_gene['rows'] if vmh_gene else []
 
         if not vmh_rows:
             return JsonResponse(

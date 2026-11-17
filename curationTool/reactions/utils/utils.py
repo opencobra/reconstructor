@@ -8,7 +8,7 @@ import requests
 import json
 from reactions.models import SavedMetabolite
 from django.core import serializers 
-from reactions.utils.vmh_api import gene_data_new, gene_rows_old
+from reactions.utils.vmh_api import gene_exists_new
 
 
 def capitalize_first_letter(s):
@@ -285,9 +285,10 @@ def _vmh_gene_exists(symbol: str = "", entrez_id: str = "") -> bool:
     Check whether a gene already exists in the VMH database.
 
     Process:
-        - Try the new VMH gene handler (`/getGeneHandler?id=...`) first.
-        - If symbol lookup is unavailable on the new API for a given symbol, fall back to the old VMH API.
-        - Return True if any query indicates presence; otherwise False.
+        - Look the HGNC symbol up in VMH (`/getGeneHandler?id=...`).
+        - Otherwise look the Entrez ID up (VMH maps it to its gene symbol), which
+          also catches genes whose symbol changed since VMH imported them.
+        - VMH being unreachable counts as "not present" (this is only a hint).
 
     Parameters:
         symbol (str): HGNC gene symbol to check (optional).
@@ -296,28 +297,9 @@ def _vmh_gene_exists(symbol: str = "", entrez_id: str = "") -> bool:
     Returns:
         bool: True if the gene exists in VMH, False otherwise.
     """
-    try:
-        if symbol and gene_data_new(symbol):
-            return True
-        if entrez_id:
-            if gene_data_new(entrez_id):
-                return True
-            if "." not in entrez_id and gene_data_new(f"{entrez_id}.1"):
-                return True
-    except Exception:
-        pass
-
-    try:
-        if symbol and gene_rows_old(symbol=symbol):
-            return True
-        if entrez_id:
-            if gene_rows_old(gene_number=entrez_id):
-                return True
-            if "." not in entrez_id and gene_rows_old(gene_number=f"{entrez_id}.1"):
-                return True
-    except Exception:
-        pass
-    return False
+    if symbol and gene_exists_new(symbol):
+        return True
+    return bool(entrez_id) and gene_exists_new(entrez_id)
 
 HGNC_BASE = "https://rest.genenames.org"
 HGNC_HEADERS = {"Accept": "application/json"}

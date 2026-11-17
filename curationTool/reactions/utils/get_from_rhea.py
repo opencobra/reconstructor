@@ -1,109 +1,121 @@
-import requests
 import re
+
+import requests
+
+RHEA_URL = 'https://www.rhea-db.org/rhea/'
+TIMEOUT = 30
+# Rhea gives each reaction four consecutive identifiers: the master (undefined
+# direction) and its left-to-right, right-to-left and bidirectional variants.
+_GROUP_SIZE = 4
+_COMPONENT_SEPARATOR = re.compile(r'\s+\+\s+')  # names contain '+', e.g. 'NAD(+)'
+_ARROW = re.compile(r'\s+(<=>|=>|<=|=)\s+')
+_STOICHIOMETRY = re.compile(r'^(\d+)\s+(.*)$')
+
+
+def _query_rhea(query):
+    """Rows (dicts keyed by column title) of a Rhea TSV search."""
+    response = requests.get(RHEA_URL, params={
+        "query": query,
+        "columns": "rhea-id,equation,chebi-id",
+        "format": 'tsv',
+        "limit": 10,
+    }, timeout=TIMEOUT)
+    if response.status_code != 200:
+        raise requests.HTTPError(
+            f"Failed to fetch data from Rhea. Status code: {response.status_code}",
+            response=response)
+    lines = [line for line in response.text.splitlines() if line.strip()]
+    if not lines:
+        return []
+    headers = lines[0].split("\t")
+    rows = []
+    for line in lines[1:]:
+        values = line.split("\t")
+        if len(values) == len(headers):
+            rows.append(dict(zip(headers, values)))
+    return rows
+
+
+def _rhea_number(rhea_id):
+    match = re.match(r'^RHEA:(\d+)$', (rhea_id or '').strip(), re.IGNORECASE)
+    return int(match.group(1)) if match else None
+
+
+def _find_reaction(rhea_id):
+    """The Rhea row for an identifier. Directional and bidirectional
+    identifiers (e.g. RHEA:10031) resolve to their master reaction."""
+    rows = _query_rhea(rhea_id)
+    if rows:
+        return rows[0]
+    number = _rhea_number(rhea_id)
+    if number is None:
+        return None
+    # "RHEA:10031" finds nothing, but the bare number finds the master
+    # reaction of its group; only accept a master from the same group.
+    for row in _query_rhea(str(number)):
+        master = _rhea_number(row.get("Reaction identifier"))
+        if master is not None and master <= number < master + _GROUP_SIZE:
+            return row
+    return None
+
+
+def _parse_side(side):
+    components = []
+    for component in _COMPONENT_SEPARATOR.split(side.strip()):
+        component = component.strip()
+        if not component:
+            continue
+        match = _STOICHIOMETRY.match(component)
+        if match:
+            components.append((int(match.group(1)), match.group(2)))
+        else:
+            components.append((1, component))
+    return components
 
 
 def get_from_rhea(reaction_abbreviation):
-    BASE_URL = 'https://www.rhea-db.org/rhea/?'
-    params = {
-        "query": reaction_abbreviation,
-        "columns": "rhea-id,equation,chebi-id",
-        "format": 'tsv',
-        "limit": 10
-    }
-    if 'RHEA:' != reaction_abbreviation[:5]:
+    reaction_abbreviation = (reaction_abbreviation or '').strip()
+    if 'RHEA:' != reaction_abbreviation[:5].upper():
         return {"error": "RHEA ID should start with 'RHEA:'"}
+    reaction_abbreviation = 'RHEA:' + reaction_abbreviation[5:].strip()
 
-    response = requests.get(BASE_URL, params=params)
-
-    if response.status_code != 200:
-        return {
-            "error": f"Failed to fetch data from API. Status code: {response.status_code}"}
-
-    data = response.text
-
-    if not data:
+    reaction_info = _find_reaction(reaction_abbreviation)
+    if not reaction_info:
         return {"error": "No reaction found with this abbreviation"}
 
-    lines = data.splitlines()
-    headers = lines[0].split("\t")
-    results = [line.split("\t") for line in lines[1:]]
-
-    rhea_data = []
-    for result in results:
-        rhea_dict = {headers[i]: result[i] for i in range(len(headers))}
-        rhea_data.append(rhea_dict)
-
-    if not rhea_data:
-        return {"error": "No reaction found with this abbreviation"}
-
-    reaction_info = rhea_data[0]
     equation = reaction_info.get("Equation", "")
-    chebi_ids = reaction_info.get("ChEBI identifier", "")
-
+    chebi_ids = [chebi.strip() for chebi in reaction_info.get("ChEBI identifier", "").split(';')
+                 if chebi.strip()]
     if not equation or not chebi_ids:
         return {"error": "Equation or ChEBI IDs not found"}
 
-    def parse_equation(equation, chebi_ids):
-        chebi_ids_list = chebi_ids.split(';')
-        if '=' in equation:
-            substrates, products = equation.split('=')
-            direction = "forward"
-        elif '<=>' in equation:
-            substrates, products = equation.split('<=>')
-            direction = "reversible"
-        elif '=>' in equation:
-            substrates, products = equation.split('=>')
-            direction = "forward"
-        elif '<=' in equation:
-            substrates, products = equation.split('<=')
-            direction = "reverse"
-        else:
-            return {"error": "Unknown equation format"}
+    arrow = _ARROW.search(equation)
+    if not arrow:
+        return {"error": "Unknown equation format"}
+    substrates = _parse_side(equation[:arrow.start()])
+    products = _parse_side(equation[arrow.end():])
+    if len(substrates) + len(products) != len(chebi_ids):
+        return {"error": f"Could not match the Rhea equation to its ChEBI identifiers: {equation}"}
+    if arrow.group(1) == '<=>':
+        direction = "reversible"
+    elif arrow.group(1) == '<=':
+        direction = "reverse"
+    else:
+        direction = "forward"  # '=' (undefined direction) and '=>'
 
-        substrates = [s.strip() for s in substrates.split('+')]
-        products = [p.strip() for p in products.split('+')]
-
-        def parse_components(components):
-            parsed_components = []
-            stoichiometry_pattern = re.compile(r"^(\d+)\s+(.*)$")
-            for component in components:
-                match = stoichiometry_pattern.match(component)
-                if match:
-                    stoichiometry = int(match.group(1))
-                    component_name = match.group(2)
-                else:
-                    stoichiometry = 1
-                    component_name = component
-                parsed_components.append((stoichiometry, component_name))
-            return parsed_components
-
-        parsed_substrates = parse_components(substrates)
-        parsed_products = parse_components(products)
-
-        substrate_chebis = chebi_ids_list[:len(parsed_substrates)]
-        product_chebis = chebi_ids_list[len(parsed_substrates):]
-
-        return {
-            "substrates": parsed_substrates,
-            "products": parsed_products,
-            "substrate_chebis": substrate_chebis,
-            "product_chebis": product_chebis,
-            "direction": direction
-        }
-
-    parsed_equation = parse_equation(equation, chebi_ids)
-
-    result = {
-        "direction": parsed_equation["direction"],
-        "subs_sch": [1] * len(parsed_equation["substrate_chebis"]),
-        "prod_sch": [1] * len(parsed_equation["product_chebis"]),
-        "subs_types": ["ChEBI ID"] * len(parsed_equation["substrate_chebis"]),
-        "prods_types": ["ChEBI ID"] * len(parsed_equation["product_chebis"]),
-        "substrates": parsed_equation["substrate_chebis"],
-        "products": parsed_equation["product_chebis"],
-        "subs_comps": ["-"] * len(parsed_equation["substrate_chebis"]),
-        "prods_comps": ["-"] * len(parsed_equation["product_chebis"]),
+    substrate_chebis = chebi_ids[:len(substrates)]
+    product_chebis = chebi_ids[len(substrates):]
+    return {
+        "rhea_id": reaction_info.get("Reaction identifier", reaction_abbreviation),
+        "equation": equation,
+        "direction": direction,
+        "subs_sch": [stoichiometry for stoichiometry, _ in substrates],
+        "prod_sch": [stoichiometry for stoichiometry, _ in products],
+        "subs_types": ["ChEBI ID"] * len(substrate_chebis),
+        "prods_types": ["ChEBI ID"] * len(product_chebis),
+        "substrates": substrate_chebis,
+        "products": product_chebis,
+        "subs_comps": ["-"] * len(substrate_chebis),
+        "prods_comps": ["-"] * len(product_chebis),
         "subsystem": ""
     }
-
-    return result

@@ -11,6 +11,7 @@ from reactions.tests.helpers import (
     post_json,
 )
 from reactions.utils.to_mol import smiles_to_mol
+from reactions.utils.vmh_api import VMHUnavailableError
 
 VMH_URL = '/api/v1/sources/vmh/fetch'
 RHEA_URL = '/api/v1/sources/rhea/fetch'
@@ -29,7 +30,7 @@ class VmhFetchTests(TestCase):
         self.key = make_key(self.user)
 
     @patch('reactions.utils.to_mol.vmh_to_mol', side_effect=water_mol)
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+    @patch('reactions.services.external_sources.lookup_reaction',
            return_value={'formula': '1 h2o[c] -> 1 h2o[e]',
                          'subsystem': 'Transport, extracellular'})
     def test_fetch_vmh_reaction_is_processed(self, _find, _mol, _check):
@@ -41,37 +42,46 @@ class VmhFetchTests(TestCase):
         self.assertEqual(body['direction'], 'forward')
         self.assertEqual(body['subsystem'], 'Transport, extracellular')
 
-    @patch('reactions.services.external_sources.vmh_api_key_configured',
-           return_value=True)
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+    @patch('reactions.services.external_sources.lookup_reaction',
            return_value=None)
-    def test_unknown_abbreviation(self, _find, _configured, _check):
+    def test_unknown_abbreviation(self, _find, _check):
+        # VMH answered "no such reaction": that is a 422 whether or not the
+        # server has a VMH API key (reads do not need one).
         response = post_json(self.client, VMH_URL,
                              {'abbreviation': 'NOPE'}, self.key)
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.json()['error']['code'], 'unknown_identifier')
 
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
-           return_value=None)
-    def test_missing_vmh_credentials_explains_setup(self, _find, _check):
-        # No VMH_API_KEY in the test environment: a failed lookup must say the
-        # server lacks credentials, not pretend the reaction does not exist.
+    @patch('reactions.services.external_sources.lookup_reaction',
+           side_effect=VMHUnavailableError(
+               "VMH's request limit has been reached", retry_after=600, status=429))
+    def test_vmh_unavailable_is_not_reported_as_unknown(self, _find, _check):
+        # VMH could not be asked: say so (and why), never "not found".
         response = post_json(self.client, VMH_URL,
                              {'abbreviation': 'HEX1'}, self.key)
         self.assertEqual(response.status_code, 502)
         error = response.json()['error']
         self.assertEqual(error['code'], 'upstream_unavailable')
-        self.assertIn('VMH_API_KEY', error['message'])
-        self.assertIn('Rhea', error['message'])
+        self.assertIn('request limit', error['message'])
+        self.assertIn('10 minutes', error['message'])
+        self.assertIn('VMH_API_KEY', error['message'])  # hint: no key configured
 
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+    @patch('reactions.services.external_sources.lookup_reaction',
+           return_value={'formula': 'not a formula'})
+    def test_unreadable_formula(self, _find, _check):
+        response = post_json(self.client, VMH_URL,
+                             {'abbreviation': 'ODD'}, self.key)
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.json()['error']['code'], 'unknown_identifier')
+
+    @patch('reactions.services.external_sources.lookup_reaction',
            return_value={'formula': ''})
     def test_reaction_without_formula(self, _find, _check):
         response = post_json(self.client, VMH_URL,
                              {'abbreviation': 'EMPTY'}, self.key)
         self.assertEqual(response.status_code, 422)
 
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+    @patch('reactions.services.external_sources.lookup_reaction',
            return_value={'formula': '1.5 h2o[c] -> 1 h2o[e]'})
     def test_fractional_stoichiometry_rejected_not_truncated(self, _find, _check):
         response = post_json(self.client, VMH_URL,
@@ -81,7 +91,7 @@ class VmhFetchTests(TestCase):
         self.assertEqual(error['code'], 'validation_error')
         self.assertIn('fractional', error['message'])
 
-    @patch('reactions.services.external_sources.find_reaction_by_abbreviation',
+    @patch('reactions.services.external_sources.lookup_reaction',
            return_value={'formula': '500 h2o[c] -> 500 h2o[e]'})
     def test_excessive_imported_stoichiometry_rejected(self, _find, _check):
         response = post_json(self.client, VMH_URL,

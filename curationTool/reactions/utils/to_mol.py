@@ -11,9 +11,9 @@ from urllib.parse import unquote
 import requests
 import uuid
 from reactions_project.settings import MEDIA_ROOT, MEDIA_URL
-from zeep import Client
 from reactions.models import SavedMetabolite
-from reactions.utils.vmh_api import find_metabolite_by_abbreviation
+from reactions.utils import chebi_api
+from reactions.utils.vmh_api import VMHUnavailableError, lookup_metabolite
 
 from django.conf import settings
 
@@ -60,15 +60,28 @@ def smiles_to_mol(smiles_str):
 def vmh_to_mol(abbreviation):
     """
     Creates a mol file of a metabolite from the VMH database using its abbreviation.
-    Falls back to /home/sandeep/ctf/mets/molFiles if not found in API.
+    Falls back to a local MOL file (settings.MOL_FILE_PATH) if VMH has no
+    usable entry.
 
     Input:
     - abbreviation (str): The abbreviation of the metabolite to query.
 
     Output:
     - (tuple): (RDKit Mol object or None, error message or None, metabolite name or '')
+
+    Raises VMHUnavailableError when VMH cannot be asked and there is no local
+    MOL file, so callers do not report a valid abbreviation as unknown.
     """
-    row = find_metabolite_by_abbreviation(abbreviation)
+    unavailable = None
+    try:
+        row = lookup_metabolite(abbreviation)
+    except VMHUnavailableError as exc:
+        row, unavailable = None, exc
+    renamed_to = None
+    if row and row.get('is_former'):
+        # Only current abbreviations are accepted here (the reaction would
+        # otherwise be stored under the retired one); say what to use instead.
+        renamed_to, row = row.get('abbreviation'), None
     if not row:
         # Fallback to local mol file
         MOL_FILE_PATH = settings.MOL_FILE_PATH
@@ -80,6 +93,11 @@ def vmh_to_mol(abbreviation):
                 return mol, None, abbreviation
             else:
                 return None, f"Failed to parse .mol file for {abbreviation}", abbreviation
+        if unavailable is not None:
+            raise unavailable
+        if renamed_to:
+            return None, (f"Metabolite {abbreviation} was renamed in VMH; "
+                          f"use `{renamed_to}` instead"), abbreviation
         return None, f"Metabolite {abbreviation} does not exist in VMH", abbreviation
 
     # If VMH returns results
@@ -239,43 +257,28 @@ def chebi_to_mol(chebi_id, name):
     Output:
     - (tuple): A tuple containing - the MOL object,- an error message (if any) and - the name of the metabolite.
     """
-    wsdl = 'https://www.ebi.ac.uk/webservices/chebi/2.0/webservice?wsdl'
-    client = Client(wsdl)
-
-    if name:
-        # Setup parameters to search for "group"
-        params = {
-            'search': chebi_id,
-            'searchCategory': 'CHEBI NAME',
-            'maximumResults': 10,
-            'stars': 'ALL'}
-
-        # Call getLiteEntity method
-        response = client.service.getLiteEntity(**params)
-        if not response or not response[0]:
-            return None, f"Metabolite `{chebi_id}` does not exist in ChEBI", ''
-        response = response[0]
-        chebi_id = response['chebiId']
-        name = response['chebiAsciiName']
-    try:
-        complete_entity = client.service.getCompleteEntity(chebiId=chebi_id)
-    except BaseException:
-        return None, f"Metabolite {chebi_id} does not exist in ChEBI", ''
-    try:
-        inchi = complete_entity['inchi']
-    except BaseException:
+    # ChEBI 2.0 REST API (the SOAP web service was retired). Network/HTTP
+    # failures raise requests.RequestException.
+    compound, error = chebi_api.resolve(chebi_id, by_name=bool(name))
+    if error:
+        return None, error, ''
+    chebi_id = compound['chebi_accession']
+    inchi, smiles = compound['inchi'], compound['smiles']
+    if not inchi and not smiles:
         return None, f"Metabolite {chebi_id} does not have InChI on ChEBI", ''
-    mol = Chem.MolFromInchi(inchi, sanitize=False, removeHs=False)
+    if inchi:
+        mol = Chem.MolFromInchi(inchi, sanitize=False, removeHs=False)
+    else:
+        mol = Chem.MolFromSmiles(smiles, sanitize=False)
+    if mol is None:
+        return None, f"Invalid InChI {inchi or smiles}", ''
     mol.UpdatePropertyCache(strict=False)
-    name = complete_entity['chebiAsciiName'] if not name else name
+    name = compound['name']
     try:
         mol = Chem.AddHs(mol)
     except BaseException:
         pass
-    if mol:
-        return mol, None, name
-    else:
-        return None, f"Invalid InChI {inchi}", ''
+    return mol, None, name
 
 def saved_met_to_mol(id):
     """
@@ -315,6 +318,9 @@ def any_to_mol(mols, types, request, side='substrates'):
     errors = []
     names = []
     file_idx = 0  # Initialize file index
+    # Every ChEBI request takes ~15 s however many compounds it asks for.
+    chebi_api.prefetch_compounds(
+        [mol for mol, mol_type in zip(mols, types) if mol_type == 'ChEBI ID'])
     for idx, type in enumerate(types):
         if type == 'VMH':
             mol, error, name = vmh_to_mol(mols[idx])

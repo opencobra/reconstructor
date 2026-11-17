@@ -12,6 +12,7 @@ It includes:
 """
 
 import json
+import logging
 import os
 from collections import defaultdict
 import requests
@@ -26,10 +27,24 @@ from rdkit.Chem.rdMolDescriptors import CalcMolFormula #  pylint: disable=no-nam
 from reactions.utils.search_vmh import search_vmh
 from reactions.utils.to_mol import any_to_mol
 from reactions.utils.utils import capitalize_first_letter, parse_mol_formula
+from reactions.utils import chebi_api
 from reactions.utils.get_from_rhea import get_from_rhea
-from reactions.utils.vmh_api import find_metabolite_by_abbreviation, vmh_metabolite_url
+from reactions.utils.vmh_api import VMHUnavailableError, lookup_metabolite, vmh_metabolite_url
 from reactions.models import SavedMetabolite, User
 from django.conf import settings
+
+logger = logging.getLogger(__name__)
+
+
+def _request_user(request):
+    """The user named by the posted ``userID``, or None (signed out / invalid).
+
+    Signed-out browsers post the string "null" (FormData of sessionStorage)."""
+    user_id = (request.POST.get('userID') or '').strip()
+    if not user_id.isdigit():
+        return None
+    return User.objects.filter(pk=int(user_id)).first() #  pylint: disable=no-member
+
 
 def verify_metabolite(request):
     """
@@ -46,13 +61,23 @@ def verify_metabolite(request):
     Returns:
         JsonResponse:
             - Success: Details of the metabolite (name, formula, charge, etc.).
-            - Error: If the metabolite is not found or an invalid request is made.
+              ``warning`` / ``notice`` carry messages for the curator when VMH
+              could not be checked or an abbreviation was renamed.
+            - Error: If the metabolite is not found or an invalid request is made
+              (HTTP 503 with ``vmh_unavailable`` when VMH could not be asked).
     """
-    main_input = request.POST.get('metabolite')
-    input_type = request.POST.get('type')
+    if request.method != 'POST':
+        return JsonResponse(
+            {'error': True, 'message': 'Use POST to verify a metabolite.'}, status=405)
 
-    if not main_input.strip():
+    raw_input = request.POST.get('metabolite') or ''
+    input_type = (request.POST.get('type') or '').strip()
+    if not raw_input.strip():
         return JsonResponse({'error': True, 'message': 'No input provided'})
+    if not input_type:
+        return JsonResponse({'error': True, 'message': 'No metabolite type provided'})
+    # Drawings are URL-encoded MOL blocks whose header lines must be kept as-is.
+    main_input = raw_input if input_type == 'Draw' else raw_input.strip()
 
     if input_type == 'VMH':
         return _verify_vmh_metabolite(main_input, input_type)
@@ -60,66 +85,87 @@ def verify_metabolite(request):
         return _verify_saved_metabolite(request, main_input, input_type)
     return _verify_other_metabolite(request, main_input, input_type)
 
+
+def _local_mol_response(main_input, input_type):
+    """Response for a metabolite available as a local MOL file, else None."""
+    mol_path = os.path.join(settings.MOL_FILE_PATH, f"{main_input}.mol")
+    if not os.path.exists(mol_path):
+        return None
+    mol_obj = Chem.MolFromMolFile(mol_path)
+    if not mol_obj:
+        return JsonResponse({
+            'error': True,
+            'message': f"Failed to parse local MOL file for `{main_input}`"
+        }, status=500)
+    formula = CalcMolFormula(mol_obj)
+    return JsonResponse({
+        'found': True,
+        'abbr': main_input,
+        'name': main_input,
+        'miriam': '',
+        'input_type': input_type,
+        'atom_counts': parse_mol_formula(formula),
+        'charge': sum(atom.GetFormalCharge() for atom in mol_obj.GetAtoms()),
+        'noStructure': False
+    })
+
+
 def _verify_vmh_metabolite(main_input, input_type):
     """Helper function to verify a metabolite in VMH."""
-    row = find_metabolite_by_abbreviation(main_input)
+    try:
+        row = lookup_metabolite(main_input)
+    except VMHUnavailableError as exc:
+        local = _local_mol_response(main_input, input_type)
+        if local is not None:
+            return local
+        return JsonResponse({
+            'error': True,
+            'vmh_unavailable': True,
+            'message': exc.user_message(f"verify `{main_input}` in VMH"),
+        }, status=503)
 
     if row:
+        abbr = row.get('abbreviation') or main_input
         inchi_string = row.get('inchiString', '')
         smile = row.get('smile', '')
 
         if not smile and not inchi_string:
             return JsonResponse({
                 'error': True,
-                'message': f"Metabolite {main_input} does not have SMILES/Inchi in VMH"
+                'message': f"Metabolite {abbr} does not have SMILES/Inchi in VMH"
             }, status=404)
 
         mol_obj = Chem.MolFromSmiles(smile) if smile else Chem.MolFromInchi(inchi_string)
         if not mol_obj:
             return JsonResponse({
                 'error': True,
-                'message': f"Failed to parse structure for {main_input}"
+                'message': f"Failed to parse structure for {abbr}"
             }, status=500)
 
         formula = CalcMolFormula(mol_obj)
         atom_counts = parse_mol_formula(formula)
         charge = sum(atom.GetFormalCharge() for atom in mol_obj.GetAtoms())
 
-        return JsonResponse({
+        response = {
             'found': True,
-            'abbr': row.get('abbreviation', main_input),
-            'name': row.get('fullName') or main_input,
-            'miriam': vmh_metabolite_url(row.get('abbreviation') or main_input),
+            'abbr': abbr,
+            'name': row.get('fullName') or abbr,
+            'miriam': vmh_metabolite_url(abbr),
             'input_type': input_type,
             'atom_counts': atom_counts,
             'charge': charge,
             'noStructure': False
-        })
+        }
+        if row.get('is_former'):
+            response['renamed_from'] = main_input
+            response['notice'] = (f"`{main_input}` is a former VMH abbreviation; "
+                                  f"using the current one, `{abbr}`.")
+        return JsonResponse(response)
 
     # Fallback: Try to load local .mol file
-    mol_path = os.path.join(settings.MOL_FILE_PATH , f"{main_input}.mol")
-    if os.path.exists(mol_path):
-        mol_obj = Chem.MolFromMolFile(mol_path)
-        if mol_obj:
-            formula = CalcMolFormula(mol_obj)
-            atom_counts = parse_mol_formula(formula)
-            charge = sum(atom.GetFormalCharge() for atom in mol_obj.GetAtoms())
-
-            return JsonResponse({
-                'found': True,
-                'abbr': main_input,
-                'name': main_input,
-                'miriam': '',
-                'input_type': input_type,
-                'atom_counts': atom_counts,
-                'charge': charge,
-                'noStructure': False
-            })
-        else:
-            return JsonResponse({
-                'error': True,
-                'message': f"Failed to parse local MOL file for `{main_input}`"
-            }, status=500)
+    local = _local_mol_response(main_input, input_type)
+    if local is not None:
+        return local
 
     return JsonResponse({
         'error': True,
@@ -128,11 +174,8 @@ def _verify_vmh_metabolite(main_input, input_type):
 
 def _verify_saved_metabolite(request, main_input, input_type):
     """Helper function to verify a metabolite in the saved database."""
-    user_id = request.POST.get('userID')
-
-    try:
-        user = User.objects.get(pk=user_id) #  pylint: disable=no-member
-    except (User.DoesNotExist, ValueError): #  pylint: disable=no-member
+    user = _request_user(request)
+    if user is None:
         return JsonResponse(
             {'error': True, 'message': "Cannot use saved metabolite without signing in"}
         )
@@ -142,7 +185,7 @@ def _verify_saved_metabolite(request, main_input, input_type):
             Q(owner=user) | Q(shared_with=user),
             pk=main_input
         )
-    except SavedMetabolite.DoesNotExist: #  pylint: disable=no-member
+    except (SavedMetabolite.DoesNotExist, ValueError): #  pylint: disable=no-member
         return JsonResponse(
             {
                 'error': True,
@@ -150,6 +193,9 @@ def _verify_saved_metabolite(request, main_input, input_type):
             },
             status=404
         )
+    except SavedMetabolite.MultipleObjectsReturned: #  pylint: disable=no-member
+        # Owned and also shared with the same user: the row is the same one.
+        saved_met = SavedMetabolite.objects.filter(pk=main_input).first() #  pylint: disable=no-member
 
     atom_counts = parse_mol_formula(saved_met.mol_formula) if saved_met.mol_formula else {}
 
@@ -171,18 +217,35 @@ def _verify_saved_metabolite(request, main_input, input_type):
 
 def _verify_other_metabolite(request, main_input, input_type):
     """Helper function to verify metabolites from other sources."""
-    mols, errors, names = any_to_mol([main_input], [input_type], request, side=None)
+    try:
+        mols, errors, names = any_to_mol([main_input], [input_type], request, side=None)
+    except VMHUnavailableError as exc:
+        return JsonResponse({'error': True, 'vmh_unavailable': True,
+                             'message': exc.user_message()}, status=503)
+    except Exception as exc:  # upstream (ChEBI/PubChem/SwissLipids) or parse failure
+        logger.warning("Could not resolve %s input %r: %s", input_type, main_input, exc)
+        return JsonResponse({'error': True,
+                             'message': f"Could not process the {input_type} input: {exc}"})
     mol, error, name = mols[0], errors[0], names[0]
 
     if error:
         return JsonResponse({'error': True, 'message': error})
+    if mol is None:
+        return JsonResponse({'error': True,
+                             'message': f"Could not process the {input_type} input."})
 
-    found, miriam, abbr, name_vmh = search_vmh(mol, return_abbr=True, return_name=True)
+    warning = None
+    try:
+        found, miriam, abbr, name_vmh = search_vmh(
+            mol, return_abbr=True, return_name=True, strict=True)
+    except VMHUnavailableError as exc:
+        found, miriam, abbr, name_vmh = False, '', '', ''
+        warning = (exc.user_message("check whether this metabolite is already in VMH")
+                   + " It is treated as a new metabolite for now.")
     name = capitalize_first_letter(name_vmh if found else name)
     inchi_key = Chem.MolToInchiKey(mol)
-    user_id = request.POST.get('userID')
 
-    user = User.objects.get(pk=user_id) if user_id else None #  pylint: disable=no-member
+    user = _request_user(request)
     saved_exists, name_in_db = False, ""
 
     if user:
@@ -199,7 +262,7 @@ def _verify_other_metabolite(request, main_input, input_type):
     atom_counts = parse_mol_formula(formula)
     charge = sum(atom.GetFormalCharge() for atom in mol.GetAtoms())
 
-    return JsonResponse({
+    response = {
         'found': found,
         'abbr': abbr,
         'name': name,
@@ -210,7 +273,11 @@ def _verify_other_metabolite(request, main_input, input_type):
         'atom_counts': atom_counts,
         'charge': charge,
         'noStructure': False
-    })
+    }
+    if warning:
+        response['vmh_unavailable'] = True
+        response['warning'] = warning
+    return JsonResponse(response)
 
 
 
@@ -318,7 +385,16 @@ def fetch_rhea_rxn(request):
             data = json.loads(request.body)
             reaction_abbreviation = data.get('reactionAbbreviation')
             if reaction_abbreviation:
-                result = get_from_rhea(reaction_abbreviation)
+                try:
+                    result = get_from_rhea(reaction_abbreviation)
+                except requests.RequestException as exc:
+                    logger.warning("Rhea lookup of %r failed: %s", reaction_abbreviation, exc)
+                    return JsonResponse(
+                        {'error': 'Could not reach Rhea. Please try again shortly.'})
+                if 'error' not in result:
+                    # The page verifies each metabolite next; fetch all of them
+                    # from ChEBI in one (slow) request so those checks are fast.
+                    chebi_api.prefetch_compounds(result['substrates'] + result['products'])
                 return JsonResponse(result)
 
             return JsonResponse(

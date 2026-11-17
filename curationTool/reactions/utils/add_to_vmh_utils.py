@@ -9,10 +9,10 @@ from django.http import JsonResponse
 from reactions.utils.to_mol import any_to_mol
 from reactions.utils.search_vmh import check_reaction_vmh
 from reactions.utils.vmh_api import (
-    find_metabolite_by_abbreviation,
-    find_metabolite_by_full_name,
-    find_reaction_by_abbreviation,
-    reaction_name_exists,
+    metabolite_abbreviation_exists,
+    metabolite_name_exists,
+    reaction_abbreviation_exists,
+    reaction_description_exists,
 )
 # Function to gather additional reaction details
 
@@ -456,21 +456,32 @@ def check_reactions_vmh(reaction_objs):
 
 
 def check_names_abbrs_vmh(names_abbr_list):
+    """
+    For (reaction description, abbreviation) pairs, report which descriptions
+    and abbreviations VMH already uses.  An abbreviation counts as used when it
+    is a current one in any letter case or a former (renamed) one.
+
+    Raises VMHUnavailableError when VMH cannot be asked: these answers gate
+    submissions to VMH, so "unknown" must never be read as "free".
+    """
     names_vmh = {}
     abbr_vmh = {}
     for name, abbr in names_abbr_list:
-        found_reaction = find_reaction_by_abbreviation(abbr)
-        abbr_vmh[abbr] = bool(found_reaction and (found_reaction.get("abbreviation") or "").lower() == abbr.lower())
-        names_vmh[name] = reaction_name_exists(name)
+        abbr = (abbr or '').strip()
+        abbr_vmh[abbr] = reaction_abbreviation_exists(abbr) if abbr else False
+        names_vmh[name] = reaction_description_exists(name) if (name or '').strip() else False
     return names_vmh, abbr_vmh
 
 
 def make_request_names_abbrs(name, abbr):
+    """
+    Whether VMH already has a metabolite with this full name / abbreviation
+    (current or former).  Raises VMHUnavailableError when VMH cannot be asked.
+    """
     name = (name or '').strip()
     abbr = (abbr or '').strip()
-    found_abbr = find_metabolite_by_abbreviation(abbr) if abbr else None
-    abbr_found = bool(found_abbr and (found_abbr.get("abbreviation") or "").lower() == abbr.lower())
-    name_found = bool(find_metabolite_by_full_name(name)) if name else False
+    abbr_found = metabolite_abbreviation_exists(abbr) if abbr else False
+    name_found = metabolite_name_exists(name) if name else False
     return name_found, abbr_found
 
 

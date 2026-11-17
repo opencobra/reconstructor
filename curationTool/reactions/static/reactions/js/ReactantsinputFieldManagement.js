@@ -835,6 +835,13 @@ function handleDoneButtonClick(event) {
 				showErrorModal(data.message);
 				window.scrollTo(0, 0);
 			} else {
+				// VMH could not be checked, or the abbreviation was renamed in VMH
+				if (data.warning) {
+					Notify.warning(data.warning, 'VMH not checked');
+				}
+				if (data.notice) {
+					Notify.info(data.notice, 'VMH');
+				}
 				// NEW: Warn the user if a saved metabolite exists
 				if (data.saved_exists) {
 					Notify.error(

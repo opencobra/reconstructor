@@ -8,6 +8,7 @@ from rdkit import Chem
 from reactions.models import SavedMetabolite
 from reactions.tests.helpers import make_key, make_user, post_json
 from reactions.utils.to_mol import smiles_to_mol
+from reactions.utils.vmh_api import VMHUnavailableError
 
 URL = '/api/v1/metabolites/resolve'
 NOT_IN_VMH = (False, '', '', '')
@@ -31,15 +32,26 @@ class ResolveMetaboliteTests(TestCase):
         # the error must tell users where to get a key
         self.assertIn('/api-key/', response.json()['error']['message'])
 
-    @patch('reactions.utils.to_mol.vmh_to_mol',
-           return_value=(None, 'Abbreviation not found in VMH database', ''))
-    def test_vmh_resolution_without_credentials_explains_setup(self, _):
+    @patch('reactions.utils.to_mol.lookup_metabolite', return_value=None)
+    def test_unknown_vmh_abbreviation_is_unknown_identifier(self, _):
+        # VMH answered "no such metabolite": 422 even without a VMH API key.
         response = post_json(self.client, URL,
                              {'identifier': 'hex1', 'type': 'vmh'}, self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'unknown_identifier')
+        self.assertIn('does not exist in VMH', error['message'])
+
+    @patch('reactions.utils.to_mol.lookup_metabolite',
+           side_effect=VMHUnavailableError('VMH did not respond in time'))
+    def test_vmh_unavailable_is_upstream_error(self, _):
+        response = post_json(self.client, URL,
+                             {'identifier': 'o2', 'type': 'vmh'}, self.key)
         self.assertEqual(response.status_code, 502)
         error = response.json()['error']
         self.assertEqual(error['code'], 'upstream_unavailable')
-        self.assertIn('VMH_API_KEY', error['message'])
+        self.assertIn('did not respond in time', error['message'])
+        self.assertNotIn('not found', error['message'])
 
     @patch('reactions.services.metabolite_resolution.search_vmh',
            return_value=NOT_IN_VMH)
@@ -53,11 +65,11 @@ class ResolveMetaboliteTests(TestCase):
         self.assertTrue(body['inchi_key'].startswith('XLYOFNOQVPJJNP'))
         self.assertFalse(body['vmh']['found'])
 
-    @patch('reactions.services.metabolite_resolution.search_vmh',
-           return_value=(True, 'https://vmh.example/h2o', 'h2o', 'Water'))
+    @patch('reactions.services.metabolite_resolution.lookup_metabolite',
+           return_value={'abbreviation': 'h2o', 'fullName': 'Water', 'is_former': False})
     @patch('reactions.utils.to_mol.vmh_to_mol',
            side_effect=lambda abbr: (smiles_to_mol('O')[0], None, 'Water'))
-    def test_resolve_vmh_abbreviation(self, _mol, _search):
+    def test_resolve_vmh_abbreviation(self, _mol, _lookup):
         response = post_json(self.client, URL,
                              {'identifier': 'h2o', 'type': 'vmh'}, self.key)
         self.assertEqual(response.status_code, 200)
@@ -65,7 +77,16 @@ class ResolveMetaboliteTests(TestCase):
         self.assertEqual(body['name'], 'Water')
         self.assertEqual(body['vmh'],
                          {'found': True, 'abbreviation': 'h2o',
-                          'miriam': 'https://vmh.example/h2o'})
+                          'miriam': 'https://www.vmh.life/metabolite/h2o'})
+
+    @patch('reactions.services.metabolite_resolution.search_vmh',
+           side_effect=VMHUnavailableError("VMH's request limit has been reached",
+                                           retry_after=90, status=429))
+    def test_vmh_presence_check_unavailable_is_upstream_error(self, _):
+        response = post_json(self.client, URL,
+                             {'identifier': 'O', 'type': 'smiles'}, self.key)
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()['error']['code'], 'upstream_unavailable')
 
     def test_unknown_identifier(self):
         response = post_json(self.client, URL,

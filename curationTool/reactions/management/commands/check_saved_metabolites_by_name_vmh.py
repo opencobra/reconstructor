@@ -8,7 +8,7 @@ from django.core.management.base import BaseCommand
 from tqdm import tqdm
 
 from reactions.models import SavedMetabolite
-from reactions.utils.vmh_api import search_metabolites_new
+from reactions.utils.vmh_api import search_metabolites_by_name
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -50,7 +50,8 @@ class Command(BaseCommand):
                 continue
 
             try:
-                rows = search_metabolites_new({"fullName": name})
+                # Substring search on VMH; the exact name match is done below.
+                rows = search_metabolites_by_name(name)
             except Exception as exc:
                 self.stderr.write(f"Error searching '{name}' (id={met.id}): {exc}")
                 user_missing[user_label].append(entry)

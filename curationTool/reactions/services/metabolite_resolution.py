@@ -1,11 +1,9 @@
 """Resolve a single metabolite identifier to structure + VMH presence (FR-004)."""
 import requests
-from rdkit import Chem
 
 from reactions.services.constants import (
     API_TO_INTERNAL_TYPE,
     SUPPORTED_TYPES,
-    VMH_NOT_CONFIGURED_HINT,
 )
 from reactions.services.errors import (
     ServiceValidationError,
@@ -17,7 +15,26 @@ from reactions.services.saved_metabolites import visible_to_user
 from reactions.utils.get_mol_info import get_mol_info
 from reactions.utils.search_vmh import search_vmh
 from reactions.utils.to_mol import any_to_mol
-from reactions.utils.vmh_api import vmh_api_key_configured
+from reactions.utils.vmh_api import (
+    VMHUnavailableError,
+    lookup_metabolite,
+    vmh_metabolite_url,
+)
+
+
+def _vmh_presence(mol, identifier, internal_type):
+    """(found, miriam, abbreviation, name) for the resolved molecule.
+
+    A VMH identifier is reported as itself (resolution already confirmed it in
+    VMH); other inputs are matched by structure.  Raises VMHUnavailableError.
+    """
+    if internal_type == 'VMH':
+        record = lookup_metabolite(identifier)
+        if record and not record.get('is_former'):
+            abbr = record['abbreviation']
+            return True, vmh_metabolite_url(abbr), abbr, record.get('fullName') or ''
+        # Resolved from a local MOL file: fall through to the structure match.
+    return search_vmh(mol, return_abbr=True, return_name=True, strict=True)
 
 
 def resolve_metabolite(identifier, id_type, user=None):
@@ -45,6 +62,9 @@ def resolve_metabolite(identifier, id_type, user=None):
     try:
         mols, errors, names = any_to_mol(
             [identifier], [internal_type], None, side='substrates')
+    except VMHUnavailableError as exc:
+        raise UpstreamServiceError(
+            exc.user_message(f"resolve VMH identifier '{identifier}'"))
     except requests.RequestException as exc:
         raise UpstreamServiceError(
             f'Upstream source for type {id_type} is unavailable: {exc}')
@@ -53,10 +73,6 @@ def resolve_metabolite(identifier, id_type, user=None):
             f"Could not resolve identifier '{identifier}' (type {id_type}): {exc}")
 
     if errors[0] or mols[0] is None:
-        if internal_type == 'VMH' and not vmh_api_key_configured():
-            raise UpstreamServiceError(
-                f"Cannot resolve VMH identifier '{identifier}': "
-                f'{VMH_NOT_CONFIGURED_HINT}')
         raise UnknownIdentifierError(
             errors[0] or f"Could not resolve identifier '{identifier}' (type {id_type}).",
             detail={'identifier': identifier, 'type': id_type})
@@ -69,8 +85,10 @@ def resolve_metabolite(identifier, id_type, user=None):
     info = get_mol_info([mol])
 
     try:
-        found, miriam, abbr, vmh_name = search_vmh(
-            mol, return_abbr=True, return_name=True)
+        found, miriam, abbr, vmh_name = _vmh_presence(mol, identifier, internal_type)
+    except VMHUnavailableError as exc:
+        raise UpstreamServiceError(
+            exc.user_message('check the metabolite against VMH'))
     except requests.RequestException as exc:
         raise UpstreamServiceError(f'VMH is unavailable: {exc}')
 

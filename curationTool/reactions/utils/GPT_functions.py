@@ -17,9 +17,8 @@ from reactions.utils.vmh_api import (
     find_metabolite_by_abbreviation,
     find_metabolite_by_inchikey,
     gene_data_new,
-    gene_rows_old,
+    gene_reaction_formulas,
     gene_symbol_from_row,
-    vmh_old_get,
 )
 
 
@@ -37,11 +36,8 @@ def _api_get(url):
 
 
 def get_gene_name(gene_id):
+    # gene_data_new accepts HGNC symbols and Entrez IDs (incl. VMH's "2645.1").
     rows = gene_data_new(str(gene_id))
-    if not rows:
-        rows = gene_rows_old(gene_number=str(gene_id))
-    if not rows:
-        rows = gene_rows_old(gene_number=f"{gene_id}.1")
     if not rows:
         return str(gene_id)
     return gene_symbol_from_row(rows[0]) or rows[0].get('symbol', str(gene_id))
@@ -49,12 +45,8 @@ def get_gene_name(gene_id):
 
 def get_ncbi_gene_id(gene_name):
     rows = gene_data_new(gene_name)
-    if rows and rows[0].get('gene_number'):
-        return rows[0]['gene_number']
-
-    rows = gene_rows_old(symbol=gene_name)
-    if rows and rows[0].get('gene_number'):
-        return rows[0]['gene_number']
+    if rows and rows[0].get('entrez_id'):
+        return rows[0]['entrez_id']
     return gene_name
 
 
@@ -92,17 +84,8 @@ def get_vmh_met_from_inchi(inchi, met):
 
 
 def get_gene_reactions(ncbi_id):
-
-    reactions = []
-    response = vmh_old_get(f"/_api/genereactions/{ncbi_id}", timeout=30)
-    if not response or response.status_code != 200:
-        return reactions
-    schema = response.json()
-
-    for item in schema['results']:
-        reactions.append(item['formula'])
-
-    return reactions
+    # VMH lists a gene's reactions in /getGeneHandler (replaces /_api/genereactions).
+    return gene_reaction_formulas(str(ncbi_id))
 
 
 def extract_compounds(chemical_formula):

@@ -5,6 +5,7 @@ from unittest.mock import patch
 from django.test import TestCase
 
 from reactions.models import Reaction, SavedMetabolite
+from reactions.utils.vmh_api import VMHUnavailableError
 from reactions.tests.helpers import (
     NO_VMH_MATCH,
     found_all,
@@ -116,9 +117,24 @@ class CreateReactionTests(TestCase):
     @patch('reactions.services.reaction_processing.any_to_mol',
            side_effect=lambda ids, types, req, side='substrates': (
                [None] * len(ids),
-               ['Abbreviation not found in VMH database'] * len(ids),
+               [f'Metabolite {i} does not exist in VMH' for i in ids],
                [''] * len(ids)))
-    def test_vmh_metabolites_without_credentials_explain_setup(self, _mol, _check):
+    def test_unknown_vmh_metabolites_are_unknown_identifiers(self, _mol, _check):
+        # VMH answered "no such metabolite": 422, with or without a VMH key.
+        payload = {
+            'substrates': [{'identifier': 'atpX', 'type': 'vmh'}],
+            'products': [{'identifier': 'adp', 'type': 'vmh'}],
+            'direction': 'forward',
+        }
+        response = post_json(self.client, URL, payload, self.key)
+        self.assertEqual(response.status_code, 422)
+        error = response.json()['error']
+        self.assertEqual(error['code'], 'unknown_identifier')
+        self.assertIn("substrates[0] 'atpX'", error['message'])
+
+    @patch('reactions.services.reaction_processing.any_to_mol',
+           side_effect=VMHUnavailableError('could not connect to VMH'))
+    def test_vmh_unavailable_during_resolution_is_upstream_error(self, _mol, _check):
         payload = {
             'substrates': [{'identifier': 'atp', 'type': 'vmh'}],
             'products': [{'identifier': 'adp', 'type': 'vmh'}],
@@ -128,7 +144,17 @@ class CreateReactionTests(TestCase):
         self.assertEqual(response.status_code, 502)
         error = response.json()['error']
         self.assertEqual(error['code'], 'upstream_unavailable')
-        self.assertIn('VMH_API_KEY', error['message'])
+        self.assertIn('could not connect to VMH', error['message'])
+        self.assertEqual(Reaction.objects.count(), 0)
+
+    def test_vmh_check_error_dict_degrades_to_not_found(self, mock_check):
+        mock_check.return_value = {'found': False, 'similar': False, 'url': None,
+                                   'formula': None, 'error': 'Could not reach VMH'}
+        response = post_json(self.client, URL, water_transport(), self.key)
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.json()['vmh'],
+                         {'found': False, 'similar': False,
+                          'url': None, 'formula': None})
 
     def test_vmh_check_error_string_degrades_to_not_found(self, mock_check):
         # check_reaction_vmh returns a json-encoded error STRING when VMH is
@@ -185,6 +211,18 @@ class SavedMetabolitePersistenceTests(TestCase):
         self.assertEqual(
             Reaction.objects.exclude(
                 pk__in=self.user.created_reactions.values('reaction')).count(), 0)
+
+    @patch('reactions.services.reaction_processing.search_metabolites_vmh',
+           side_effect=VMHUnavailableError("VMH's request limit has been reached",
+                                           retry_after=300, status=429))
+    def test_vmh_unavailable_during_presence_check_stores_nothing(self, _search, _check):
+        # Metabolites VMH could not check must not be copied into the user's
+        # saved metabolites (they may well be in VMH).
+        response = post_json(self.client, URL, water_transport(), self.key)
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json()['error']['code'], 'upstream_unavailable')
+        self.assertEqual(SavedMetabolite.objects.count(), 0)
+        self.assertEqual(Reaction.objects.count(), 0)
 
     @patch('reactions.services.reaction_processing.search_metabolites_vmh', found_none)
     def test_failed_create_rolls_back_saved_metabolites(self, _):

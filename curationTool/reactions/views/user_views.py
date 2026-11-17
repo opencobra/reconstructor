@@ -15,6 +15,7 @@ Functions:
 """
 
 import json
+from django.core.cache import cache
 from django.http import JsonResponse
 from django.shortcuts import render
 from reactions.models import ApiKey, User, Reaction, Flag
@@ -246,12 +247,20 @@ def api_key_page(request):
     })
 
 
+API_KEY_PASSWORD_ATTEMPTS = 5
+API_KEY_PASSWORD_WINDOW = 15 * 60  # seconds
+
+
 def api_key_generate(request):
     """
     Generate (or rotate) the signed-in user's API key.
 
     Returns the full key exactly once; only its hash is stored. Rotation
     invalidates the previous key immediately.
+
+    The session's user id is synchronised from the browser (set_session_user),
+    so it does not prove who is asking; the account password must be re-entered
+    before a credential is minted (and failed attempts are limited).
     """
     if request.method != 'POST':
         return JsonResponse(
@@ -261,5 +270,22 @@ def api_key_generate(request):
         return JsonResponse(
             {'status': 'error', 'message': 'Sign in to manage your API key.'},
             status=401)
+
+    failures_key = f'api-key-password-failures:{user.pk}'
+    failures = cache.get(failures_key, 0)
+    if failures >= API_KEY_PASSWORD_ATTEMPTS:
+        return JsonResponse(
+            {'status': 'error',
+             'message': 'Too many incorrect passwords. Try again in 15 minutes.'},
+            status=429)
+    password = request.POST.get('password', '')
+    if not password or not user.check_password(password):
+        cache.set(failures_key, failures + 1, API_KEY_PASSWORD_WINDOW)
+        return JsonResponse(
+            {'status': 'error',
+             'message': 'Enter your Constructor password to generate a key.'
+             if not password else 'Incorrect password.'},
+            status=403)
+    cache.delete(failures_key)
     raw_key = api_key_service.generate_key(user)
     return JsonResponse({'status': 'success', 'api_key': raw_key})
